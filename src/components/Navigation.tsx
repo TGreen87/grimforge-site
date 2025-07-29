@@ -23,7 +23,9 @@ const Navigation = () => {
         {/* Logo */}
         <div className="flex items-center space-x-2">
           <Skull className="h-8 w-8 text-accent" />
-          <span className="blackletter text-2xl text-bone">Black Plague Records</span>
+          <a href="/" className="blackletter text-2xl text-bone hover:text-accent transition-colors">
+            Black Plague Records
+          </a>
         </div>
 
         {/* Desktop Navigation */}

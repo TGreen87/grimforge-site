@@ -38,8 +38,8 @@ const Footer = () => {
           <div className="space-y-4">
             <h3 className="gothic-heading text-bone">Information</h3>
             <ul className="space-y-2 text-sm text-muted-foreground">
-              <li><a href="#" className="hover:text-accent transition-colors">Shipping Info</a></li>
-              <li><a href="#" className="hover:text-accent transition-colors">Returns</a></li>
+              <li><a href="/legal/shipping" className="hover:text-accent transition-colors">Shipping Info</a></li>
+              <li><a href="/legal/returns" className="hover:text-accent transition-colors">Returns</a></li>
               <li><a href="#" className="hover:text-accent transition-colors">Size Guide</a></li>
               <li><a href="#" className="hover:text-accent transition-colors">Care Instructions</a></li>
               <li><a href="#" className="hover:text-accent transition-colors">Contact</a></li>
@@ -71,14 +71,14 @@ const Footer = () => {
             © 2024 Black Plague Records. All rights reserved.
           </p>
           <div className="flex space-x-6 mt-4 md:mt-0">
-            <a href="#" className="text-sm text-muted-foreground hover:text-accent transition-colors">
+            <a href="/legal/privacy" className="text-sm text-muted-foreground hover:text-accent transition-colors">
               Privacy Policy
             </a>
-            <a href="#" className="text-sm text-muted-foreground hover:text-accent transition-colors">
+            <a href="/legal/terms" className="text-sm text-muted-foreground hover:text-accent transition-colors">
               Terms of Service
             </a>
-            <a href="#" className="text-sm text-muted-foreground hover:text-accent transition-colors">
-              Cookie Policy
+            <a href="/legal/shipping" className="text-sm text-muted-foreground hover:text-accent transition-colors">
+              Shipping Info
             </a>
           </div>
         </div>

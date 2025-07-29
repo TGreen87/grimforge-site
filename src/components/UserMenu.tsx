@@ -75,7 +75,10 @@ const UserMenu = () => {
         )}
         
         {user.role === "admin" && (
-          <DropdownMenuItem className="text-accent hover:bg-secondary cursor-pointer">
+          <DropdownMenuItem 
+            className="text-accent hover:bg-secondary cursor-pointer"
+            onClick={() => window.location.href = '/admin'}
+          >
             <Crown className="mr-2 h-4 w-4" />
             <span>Admin Dashboard</span>
           </DropdownMenuItem>

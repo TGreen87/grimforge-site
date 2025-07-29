@@ -4,19 +4,23 @@ import ProductCatalog from "@/components/ProductCatalog";
 import PreOrderSection from "@/components/PreOrderSection";
 import GrimoireSection from "@/components/GrimoireSection";
 import Footer from "@/components/Footer";
+import SEOHead from "@/components/SEOHead";
 
 const Index = () => {
   return (
-    <div className="min-h-screen">
-      <Navigation />
-      <main>
-        <HeroSection />
-        <ProductCatalog />
-        <PreOrderSection />
-        <GrimoireSection />
-      </main>
-      <Footer />
-    </div>
+    <>
+      <SEOHead />
+      <div className="min-h-screen">
+        <Navigation />
+        <main>
+          <HeroSection />
+          <ProductCatalog />
+          <PreOrderSection />
+          <GrimoireSection />
+        </main>
+        <Footer />
+      </div>
+    </>
   );
 };
 

@@ -43,8 +43,15 @@ const ProductCard = ({ id, title, artist, format, price, image, limited, preOrde
     });
   };
 
+  const handleCardClick = () => {
+    window.location.href = `/product/${id}`;
+  };
+
   return (
-    <Card className="group bg-card/80 backdrop-blur-sm border-border hover:border-accent transition-all duration-300 hover:shadow-blood">
+    <Card 
+      className="group bg-card/80 backdrop-blur-sm border-border hover:border-accent transition-all duration-300 hover:shadow-blood cursor-pointer"
+      onClick={handleCardClick}
+    >
       <CardContent className="p-4">
         {/* Image Container */}
         <div className="relative aspect-square mb-4 overflow-hidden rounded">
@@ -78,10 +85,21 @@ const ProductCard = ({ id, title, artist, format, price, image, limited, preOrde
 
           {/* Hover Actions */}
           <div className="absolute inset-0 bg-background/80 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center gap-2">
-            <Button size="sm" variant="outline" className="border-frost text-frost hover:bg-frost hover:text-background">
+            <Button 
+              size="sm" 
+              variant="outline" 
+              className="border-frost text-frost hover:bg-frost hover:text-background"
+              onClick={(e) => {
+                e.stopPropagation();
+                window.location.href = `/product/${id}`;
+              }}
+            >
               <Eye className="h-4 w-4" />
             </Button>
-            <Button size="sm" className="bg-accent hover:bg-accent/90" onClick={handleAddToCart}>
+            <Button size="sm" className="bg-accent hover:bg-accent/90" onClick={(e) => {
+              e.stopPropagation();
+              handleAddToCart();
+            }}>
               <ShoppingCart className="h-4 w-4" />
             </Button>
           </div>
