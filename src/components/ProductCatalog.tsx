@@ -236,8 +236,8 @@ const ProductCatalog = () => {
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                {filteredProducts.map((product, index) => (
-                  <ProductCard key={index} {...product} />
+                {filteredProducts.map((product) => (
+                  <ProductCard key={product.id} {...product} />
                 ))}
               </div>
             )}
@@ -252,8 +252,8 @@ const ProductCatalog = () => {
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                {vinylProducts.map((product, index) => (
-                  <ProductCard key={index} {...product} />
+                {vinylProducts.map((product) => (
+                  <ProductCard key={product.id} {...product} />
                 ))}
               </div>
             )}
@@ -268,8 +268,8 @@ const ProductCatalog = () => {
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                {cassetteProducts.map((product, index) => (
-                  <ProductCard key={index} {...product} />
+                {cassetteProducts.map((product) => (
+                  <ProductCard key={product.id} {...product} />
                 ))}
               </div>
             )}
@@ -284,8 +284,8 @@ const ProductCatalog = () => {
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                {cdProducts.map((product, index) => (
-                  <ProductCard key={index} {...product} />
+                {cdProducts.map((product) => (
+                  <ProductCard key={product.id} {...product} />
                 ))}
               </div>
             )}
