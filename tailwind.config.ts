@@ -61,7 +61,22 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
-				}
+				},
+				// Gothic color palette
+				frost: 'hsl(var(--frost))',
+				blood: 'hsl(var(--blood))',
+				bone: 'hsl(var(--bone))',
+				shadow: 'hsl(var(--shadow))',
+				metal: 'hsl(var(--metal))'
+			},
+			fontFamily: {
+				'gothic': ['Cinzel', 'serif'],
+				'blackletter': ['Old English Text MT', 'Cinzel', 'serif']
+			},
+			animation: {
+				'vinyl-spin': 'vinyl-spin 3s linear infinite',
+				'blood-drip': 'blood-drip 2s ease-in-out infinite',
+				'frost-shimmer': 'frost-shimmer 4s ease-in-out infinite'
 			},
 			borderRadius: {
 				lg: 'var(--radius)',
@@ -84,11 +99,20 @@ export default {
 					to: {
 						height: '0'
 					}
+				},
+				'vinyl-spin': {
+					from: { transform: 'rotate(0deg)' },
+					to: { transform: 'rotate(360deg)' }
+				},
+				'blood-drip': {
+					'0%': { transform: 'translateY(-10px)', opacity: '0' },
+					'50%': { opacity: '1' },
+					'100%': { transform: 'translateY(20px)', opacity: '0' }
+				},
+				'frost-shimmer': {
+					'0%, 100%': { opacity: '0.3' },
+					'50%': { opacity: '0.7' }
 				}
-			},
-			animation: {
-				'accordion-down': 'accordion-down 0.2s ease-out',
-				'accordion-up': 'accordion-up 0.2s ease-out'
 			}
 		}
 	},
