@@ -1,4 +1,5 @@
 import { memo } from "react";
+import { useNavigate } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -19,9 +20,13 @@ interface ProductCardProps {
 }
 
 const ProductCard = ({ id, title, artist, format, price, image, limited, preOrder }: ProductCardProps) => {
+  const navigate = useNavigate();
   const { addItem } = useCart();
   const { addItem: addToWishlist, removeItem: removeFromWishlist, isInWishlist } = useWishlist();
   const { toast } = useToast();
+  
+  // Extract original ID for navigation (remove any -rec- suffix)
+  const originalId = id.split('-rec-')[0];
   const formatIcons = {
     vinyl: "🎵",
     cassette: "📼", 
@@ -75,7 +80,7 @@ const ProductCard = ({ id, title, artist, format, price, image, limited, preOrde
   };
 
   const handleCardClick = () => {
-    window.location.href = `/product/${id}`;
+    navigate(`/product/${originalId}`);
   };
 
   return (
@@ -122,7 +127,7 @@ const ProductCard = ({ id, title, artist, format, price, image, limited, preOrde
               className="border-frost text-frost hover:bg-frost hover:text-background"
               onClick={(e) => {
                 e.stopPropagation();
-                window.location.href = `/product/${id}`;
+                navigate(`/product/${originalId}`);
               }}
             >
               <Eye className="h-4 w-4" />

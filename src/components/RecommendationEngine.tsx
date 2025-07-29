@@ -102,9 +102,14 @@ const RecommendationEngine = ({
       type = "your dark tastes";
     }
 
-    // Add some randomization to keep it fresh
+    // Add some randomization to keep it fresh - ensure unique IDs
     const shuffled = recommended.sort(() => Math.random() - 0.5);
-    setRecommendations(shuffled);
+    // Ensure unique IDs for React keys by adding index to prevent duplicates
+    const uniqueRecommendations = shuffled.map((item, index) => ({
+      ...item,
+      id: `${item.id}-rec-${index}`
+    }));
+    setRecommendations(uniqueRecommendations);
     setRecommendationType(type);
   };
 
