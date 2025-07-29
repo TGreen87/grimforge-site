@@ -92,7 +92,13 @@ const GrimoireSection = () => {
                     <span>{posts[0].readTime}</span>
                   </div>
                   
-                  <Button className="bg-accent hover:bg-accent/90 text-accent-foreground">
+                  <Button 
+                    className="bg-accent hover:bg-accent/90 text-accent-foreground"
+                    onClick={() => {
+                      // Navigate to blog post
+                      alert('Feature coming soon: Full blog post functionality');
+                    }}
+                  >
                     Read More
                     <ArrowRight className="h-4 w-4 ml-2" />
                   </Button>
@@ -138,7 +144,15 @@ const GrimoireSection = () => {
                     <span>{post.readTime}</span>
                   </div>
                   
-                  <Button variant="ghost" size="sm" className="text-accent hover:text-accent">
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    className="text-accent hover:text-accent"
+                    onClick={() => {
+                      // Navigate to blog post
+                      alert('Feature coming soon: Full blog post functionality');
+                    }}
+                  >
                     Read More
                     <ArrowRight className="h-3 w-3 ml-1" />
                   </Button>
@@ -150,7 +164,15 @@ const GrimoireSection = () => {
 
         {/* View All Button */}
         <div className="text-center">
-          <Button variant="outline" size="lg" className="border-frost text-frost hover:bg-frost hover:text-background gothic-heading">
+          <Button 
+            variant="outline" 
+            size="lg" 
+            className="border-frost text-frost hover:bg-frost hover:text-background gothic-heading"
+            onClick={() => {
+              // Navigate to full blog/grimoire section
+              alert('Feature coming soon: Full Grimoire section with all blog posts');
+            }}
+          >
             Enter the Full Grimoire
             <ArrowRight className="h-4 w-4 ml-2" />
           </Button>

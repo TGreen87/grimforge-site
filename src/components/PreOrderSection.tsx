@@ -84,7 +84,13 @@ const PreOrderSection = () => {
                 placeholder="your@darkness.com"
                 className="flex-1 max-w-sm px-4 py-2 bg-secondary border border-border rounded text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-accent"
               />
-              <button className="px-6 py-2 bg-accent text-accent-foreground rounded hover:bg-accent/90 transition-colors gothic-heading">
+              <button 
+                className="px-6 py-2 bg-accent text-accent-foreground rounded hover:bg-accent/90 transition-colors gothic-heading"
+                onClick={() => {
+                  // Add email subscription logic here
+                  alert('Thank you for joining the cult! You will receive notifications about new releases.');
+                }}
+              >
                 Join the Cult
               </button>
             </div>
