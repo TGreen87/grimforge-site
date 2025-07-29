@@ -4,10 +4,13 @@ import { Star, ShoppingCart, Heart, Share2, Play, Truck, Shield, RotateCcw } fro
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import SEOHead from "@/components/SEOHead";
+import ProductReviews from "@/components/ProductReviews";
+import RecommendationEngine from "@/components/RecommendationEngine";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useCart } from "@/contexts/CartContext";
+import { useWishlist } from "@/contexts/WishlistContext";
 import { useToast } from "@/hooks/use-toast";
 
 // Mock product data - in production this would come from a database
@@ -43,6 +46,7 @@ const mockProduct = {
 const ProductDetail = () => {
   const { id } = useParams<{ id: string }>();
   const { addItem } = useCart();
+  const { addItem: addToWishlist, removeItem: removeFromWishlist, isInWishlist } = useWishlist();
   const { toast } = useToast();
   const [selectedImage, setSelectedImage] = useState(0);
   const [quantity, setQuantity] = useState(1);
@@ -68,6 +72,29 @@ const ProductDetail = () => {
       title: "Added to Cart",
       description: `${quantity}x ${mockProduct.title} has been added to your dark collection.`,
     });
+  };
+
+  const handleWishlistToggle = () => {
+    if (isInWishlist(mockProduct.id)) {
+      removeFromWishlist(mockProduct.id);
+      toast({
+        title: "Removed from Wishlist",
+        description: `${mockProduct.title} has been removed from your dark desires.`,
+      });
+    } else {
+      addToWishlist({
+        id: mockProduct.id,
+        title: mockProduct.title,
+        artist: mockProduct.artist,
+        format: mockProduct.format,
+        price: mockProduct.price,
+        image: mockProduct.image
+      });
+      toast({
+        title: "Added to Wishlist",
+        description: `${mockProduct.title} has been added to your dark desires.`,
+      });
+    }
   };
 
   const structuredData = {
@@ -195,8 +222,12 @@ const ProductDetail = () => {
                     <ShoppingCart className="h-4 w-4 mr-2" />
                     Add to Cart
                   </Button>
-                  <Button variant="outline" size="icon">
-                    <Heart className="h-4 w-4" />
+                  <Button 
+                    variant={isInWishlist(mockProduct.id) ? "default" : "outline"} 
+                    size="icon"
+                    onClick={handleWishlistToggle}
+                  >
+                    <Heart className={`h-4 w-4 ${isInWishlist(mockProduct.id) ? 'fill-current' : ''}`} />
                   </Button>
                   <Button variant="outline" size="icon">
                     <Share2 className="h-4 w-4" />
@@ -228,10 +259,11 @@ const ProductDetail = () => {
           {/* Product Details Tabs */}
           <div className="mt-16">
             <Tabs defaultValue="description" className="w-full">
-              <TabsList className="grid w-full grid-cols-3">
+              <TabsList className="grid w-full grid-cols-4">
                 <TabsTrigger value="description">Description</TabsTrigger>
                 <TabsTrigger value="tracks">Track Listing</TabsTrigger>
                 <TabsTrigger value="details">Details</TabsTrigger>
+                <TabsTrigger value="reviews">Reviews</TabsTrigger>
               </TabsList>
               
               <TabsContent value="description" className="mt-6">
@@ -295,7 +327,21 @@ const ProductDetail = () => {
                   </div>
                 </div>
               </TabsContent>
+              
+              <TabsContent value="reviews" className="mt-6">
+                <ProductReviews 
+                  productId={id || "1"}
+                  reviews={[]}
+                  averageRating={mockProduct.rating}
+                  totalReviews={mockProduct.reviews}
+                />
+              </TabsContent>
             </Tabs>
+          </div>
+
+          {/* Recommendations */}
+          <div className="mt-16">
+            <RecommendationEngine currentProductId={id} />
           </div>
         </main>
         <Footer />

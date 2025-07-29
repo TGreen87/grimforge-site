@@ -1,8 +1,9 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { ShoppingCart, Eye } from "lucide-react";
+import { ShoppingCart, Eye, Heart } from "lucide-react";
 import { useCart } from "@/contexts/CartContext";
+import { useWishlist } from "@/contexts/WishlistContext";
 import { useToast } from "@/hooks/use-toast";
 
 interface ProductCardProps {
@@ -18,6 +19,7 @@ interface ProductCardProps {
 
 const ProductCard = ({ id, title, artist, format, price, image, limited, preOrder }: ProductCardProps) => {
   const { addItem } = useCart();
+  const { addItem: addToWishlist, removeItem: removeFromWishlist, isInWishlist } = useWishlist();
   const { toast } = useToast();
   const formatIcons = {
     vinyl: "🎵",
@@ -41,6 +43,34 @@ const ProductCard = ({ id, title, artist, format, price, image, limited, preOrde
       description: `${artist} - ${title} has been summoned to your cart`,
       duration: 2000,
     });
+  };
+
+  const handleWishlistToggle = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    const priceNumber = parseFloat(price.replace('$', ''));
+    
+    if (isInWishlist(id)) {
+      removeFromWishlist(id);
+      toast({
+        title: "Removed from wishlist",
+        description: `${artist} - ${title} has been removed from your dark desires`,
+        duration: 2000,
+      });
+    } else {
+      addToWishlist({
+        id,
+        title,
+        artist,
+        format,
+        price: priceNumber,
+        image
+      });
+      toast({
+        title: "Added to wishlist",
+        description: `${artist} - ${title} has been added to your dark desires`,
+        duration: 2000,
+      });
+    }
   };
 
   const handleCardClick = () => {
@@ -95,6 +125,14 @@ const ProductCard = ({ id, title, artist, format, price, image, limited, preOrde
               }}
             >
               <Eye className="h-4 w-4" />
+            </Button>
+            <Button 
+              size="sm" 
+              variant={isInWishlist(id) ? "default" : "outline"}
+              className={isInWishlist(id) ? "bg-accent hover:bg-accent/90" : "border-frost text-frost hover:bg-frost hover:text-background"}
+              onClick={handleWishlistToggle}
+            >
+              <Heart className={`h-4 w-4 ${isInWishlist(id) ? 'fill-current' : ''}`} />
             </Button>
             <Button size="sm" className="bg-accent hover:bg-accent/90" onClick={(e) => {
               e.stopPropagation();

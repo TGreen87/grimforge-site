@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { HelmetProvider } from "react-helmet-async";
 import { CartProvider } from "@/contexts/CartContext";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { WishlistProvider } from "@/contexts/WishlistContext";
 import Index from "./pages/Index";
 import AdminDashboard from "./pages/AdminDashboard";
 import LegalPages from "./pages/LegalPages";
@@ -19,20 +20,22 @@ const App = () => (
     <HelmetProvider>
       <TooltipProvider>
         <AuthProvider>
-          <CartProvider>
-            <Toaster />
-            <Sonner />
-            <BrowserRouter>
-              <Routes>
-                <Route path="/" element={<Index />} />
-                <Route path="/admin" element={<AdminDashboard />} />
-                <Route path="/product/:id" element={<ProductDetail />} />
-                <Route path="/legal/:page" element={<LegalPages />} />
-                {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-            </BrowserRouter>
-          </CartProvider>
+          <WishlistProvider>
+            <CartProvider>
+              <Toaster />
+              <Sonner />
+              <BrowserRouter>
+                <Routes>
+                  <Route path="/" element={<Index />} />
+                  <Route path="/admin" element={<AdminDashboard />} />
+                  <Route path="/product/:id" element={<ProductDetail />} />
+                  <Route path="/legal/:page" element={<LegalPages />} />
+                  {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+              </BrowserRouter>
+            </CartProvider>
+          </WishlistProvider>
         </AuthProvider>
       </TooltipProvider>
     </HelmetProvider>

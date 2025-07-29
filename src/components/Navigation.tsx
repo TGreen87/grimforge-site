@@ -1,6 +1,8 @@
 import { ShoppingCart, Search, Menu, Skull } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import CartDrawer from "./CartDrawer";
+import WishlistDrawer from "./WishlistDrawer";
+import AdvancedSearch from "./AdvancedSearch";
 import AuthModal from "./AuthModal";
 import UserMenu from "./UserMenu";
 import { useAuth } from "@/contexts/AuthContext";
@@ -64,9 +66,13 @@ const Navigation = () => {
 
         {/* Action Buttons */}
         <div className="flex items-center space-x-4">
-          <Button variant="ghost" size="sm" className="text-foreground hover:text-accent">
+          <div className="hidden md:block">
+            <AdvancedSearch />
+          </div>
+          <Button variant="ghost" size="sm" className="md:hidden text-foreground hover:text-accent">
             <Search className="h-4 w-4" />
           </Button>
+          <WishlistDrawer />
           <CartDrawer />
           {isAuthenticated ? (
             <UserMenu />
