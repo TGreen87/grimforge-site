@@ -26,8 +26,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   // Simulate loading user from localStorage on mount
   useEffect(() => {
     const savedUser = localStorage.getItem("blackplague_user");
+    console.log("AuthContext: Saved user from localStorage:", savedUser);
     if (savedUser) {
-      setUser(JSON.parse(savedUser));
+      const parsedUser = JSON.parse(savedUser);
+      console.log("AuthContext: Parsed user:", parsedUser);
+      setUser(parsedUser);
     }
     setIsLoading(false);
   }, []);

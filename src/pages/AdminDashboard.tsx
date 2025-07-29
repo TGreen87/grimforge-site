@@ -27,10 +27,17 @@ const mockStats = {
 const AdminDashboard = () => {
   const { user } = useAuth();
 
+  // Debug logging
+  console.log("AdminDashboard: Current user:", user);
+  console.log("AdminDashboard: User role:", user?.role);
+
   // Redirect if not admin
   if (!user || user.role !== 'admin') {
+    console.log("AdminDashboard: Redirecting to home - not admin");
     return <Navigate to="/" replace />;
   }
+
+  console.log("AdminDashboard: Rendering admin dashboard");
 
   return (
     <div className="min-h-screen bg-background">
