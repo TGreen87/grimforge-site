@@ -2,10 +2,13 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/co
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useCart } from "@/contexts/CartContext";
+import { useAuth } from "@/contexts/AuthContext";
 import { ShoppingCart, Minus, Plus, X } from "lucide-react";
+import CheckoutModal from "./CheckoutModal";
 
 const CartDrawer = () => {
   const { items, getTotalItems, getTotalPrice, updateQuantity, removeItem } = useCart();
+  const { isAuthenticated } = useAuth();
 
   const formatPrice = (price: number) => `$${price.toFixed(2)}`;
 
@@ -108,7 +111,13 @@ const CartDrawer = () => {
               </div>
               
               <Button className="w-full bg-accent hover:bg-accent/90 text-accent-foreground gothic-heading">
-                Proceed to Ritual Checkout
+                {isAuthenticated ? (
+                  <CheckoutModal>
+                    <span className="w-full">Proceed to Ritual Checkout</span>
+                  </CheckoutModal>
+                ) : (
+                  "Sign In to Complete Ritual"
+                )}
               </Button>
               
               <Button variant="outline" className="w-full border-frost text-frost hover:bg-frost hover:text-background">
