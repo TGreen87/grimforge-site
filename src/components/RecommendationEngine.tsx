@@ -25,14 +25,14 @@ interface RecommendationEngineProps {
 
 // Mock product data for recommendations
 const mockProducts: Product[] = [
-  { id: "1", title: "Eternal Darkness", artist: "Shadowmoon", format: "vinyl", price: "$34.99", image: "/src/assets/album-1.jpg", genre: "Black Metal", limited: true },
-  { id: "2", title: "Blood Moon Rising", artist: "Crimson Tide", format: "cd", price: "$18.99", image: "/src/assets/album-2.jpg", genre: "Death Metal" },
-  { id: "3", title: "Necromantic Ritual", artist: "Death's Embrace", format: "cassette", price: "$24.99", image: "/src/assets/album-3.jpg", genre: "Black Metal" },
-  { id: "4", title: "Shadow's Call", artist: "Void Walker", format: "vinyl", price: "$39.99", image: "/src/assets/album-4.jpg", genre: "Doom Metal", limited: true },
-  { id: "5", title: "Dark Prophecy", artist: "Nightmare Lord", format: "cd", price: "$21.99", image: "/src/assets/album-5.jpg", genre: "Gothic Metal" },
-  { id: "6", title: "Abyssal Dreams", artist: "Shadowmoon", format: "vinyl", price: "$42.99", image: "/src/assets/album-6.jpg", genre: "Black Metal", preOrder: true },
-  { id: "7", title: "Cursed Lands", artist: "Void Walker", format: "cassette", price: "$19.99", image: "/src/assets/album-1.jpg", genre: "Doom Metal" },
-  { id: "8", title: "Infernal Symphony", artist: "Death's Embrace", format: "vinyl", price: "$36.99", image: "/src/assets/album-2.jpg", genre: "Black Metal", limited: true },
+  { id: "rec-1", title: "Eternal Darkness", artist: "Shadowmoon", format: "vinyl", price: "$34.99", image: "/src/assets/album-1.jpg", genre: "Black Metal", limited: true },
+  { id: "rec-2", title: "Blood Moon Rising", artist: "Crimson Tide", format: "cd", price: "$18.99", image: "/src/assets/album-2.jpg", genre: "Death Metal" },
+  { id: "rec-3", title: "Necromantic Ritual", artist: "Death's Embrace", format: "cassette", price: "$24.99", image: "/src/assets/album-3.jpg", genre: "Black Metal" },
+  { id: "rec-4", title: "Shadow's Call", artist: "Void Walker", format: "vinyl", price: "$39.99", image: "/src/assets/album-4.jpg", genre: "Doom Metal", limited: true },
+  { id: "rec-5", title: "Dark Prophecy", artist: "Nightmare Lord", format: "cd", price: "$21.99", image: "/src/assets/album-5.jpg", genre: "Gothic Metal" },
+  { id: "rec-6", title: "Abyssal Dreams", artist: "Shadowmoon", format: "vinyl", price: "$42.99", image: "/src/assets/album-6.jpg", genre: "Black Metal", preOrder: true },
+  { id: "rec-7", title: "Cursed Lands", artist: "Void Walker", format: "cassette", price: "$19.99", image: "/src/assets/album-1.jpg", genre: "Doom Metal" },
+  { id: "rec-8", title: "Infernal Symphony", artist: "Death's Embrace", format: "vinyl", price: "$36.99", image: "/src/assets/album-2.jpg", genre: "Black Metal", limited: true },
 ];
 
 const RecommendationEngine = ({ 
