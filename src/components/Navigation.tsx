@@ -1,4 +1,5 @@
 import { ShoppingCart, Search, Menu, Skull } from "lucide-react";
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import CartDrawer from "./CartDrawer";
 import WishlistDrawer from "./WishlistDrawer";
@@ -25,9 +26,9 @@ const Navigation = () => {
         {/* Logo */}
         <div className="flex items-center space-x-2">
           <Skull className="h-8 w-8 text-accent" />
-          <a href="/" className="blackletter text-2xl text-bone hover:text-accent transition-colors">
+          <Link to="/" className="blackletter text-2xl text-bone hover:text-accent transition-colors">
             Black Plague Records
-          </a>
+          </Link>
         </div>
 
         {/* Desktop Navigation */}

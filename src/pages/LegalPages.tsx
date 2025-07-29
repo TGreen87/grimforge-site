@@ -97,6 +97,85 @@ const LegalPages = () => {
         <h2>Non-Returnable Items</h2>
         <p>Opened vinyl records, CDs, and cassettes cannot be returned unless defective. Digital downloads are non-returnable.</p>
       `
+    },
+    "size-guide": {
+      title: "Size Guide",
+      lastUpdated: "January 2024",
+      content: `
+        <h2>Vinyl Record Sizes</h2>
+        <ul>
+          <li><strong>12" LP:</strong> Standard album format (33⅓ RPM)</li>
+          <li><strong>10" EP:</strong> Extended play format</li>
+          <li><strong>7" Single:</strong> Standard single format (45 RPM)</li>
+        </ul>
+        
+        <h2>Cassette Tape Specifications</h2>
+        <p>All cassettes are standard size (4" x 2.5") and compatible with all standard cassette players.</p>
+        
+        <h2>CD Specifications</h2>
+        <p>Standard 120mm diameter CDs, compatible with all CD players and computer drives.</p>
+        
+        <h2>Packaging Dimensions</h2>
+        <ul>
+          <li><strong>Vinyl:</strong> 12.5" x 12.5" x 0.25"</li>
+          <li><strong>CD:</strong> 5.5" x 5" x 0.4"</li>
+          <li><strong>Cassette:</strong> 4.3" x 2.8" x 0.7"</li>
+        </ul>
+      `
+    },
+    care: {
+      title: "Care Instructions",
+      lastUpdated: "January 2024", 
+      content: `
+        <h2>Vinyl Record Care</h2>
+        <ul>
+          <li>Store vertically to prevent warping</li>
+          <li>Keep away from direct sunlight and heat</li>
+          <li>Handle by edges and label area only</li>
+          <li>Clean with anti-static brush before each play</li>
+          <li>Use proper inner sleeves to prevent scratches</li>
+        </ul>
+        
+        <h2>Cassette Tape Care</h2>
+        <ul>
+          <li>Store in cool, dry place</li>
+          <li>Rewind fully after each use</li>
+          <li>Keep away from magnetic fields</li>
+          <li>Clean tape heads regularly</li>
+        </ul>
+        
+        <h2>CD Care</h2>
+        <ul>
+          <li>Handle by edges only</li>
+          <li>Store in protective cases</li>
+          <li>Clean with soft, lint-free cloth</li>
+          <li>Wipe from center to edge in straight lines</li>
+        </ul>
+      `
+    },
+    contact: {
+      title: "Contact Us",
+      lastUpdated: "January 2024",
+      content: `
+        <h2>Get in Touch</h2>
+        <p>We're here to help with your dark musical needs. Contact us through any of the following methods:</p>
+        
+        <h2>Customer Service</h2>
+        <p><strong>Email:</strong> support@blackplaguerecords.com</p>
+        <p><strong>Hours:</strong> Monday - Friday, 9 AM - 6 PM AEST</p>
+        
+        <h2>Orders & Shipping</h2>
+        <p><strong>Email:</strong> orders@blackplaguerecords.com</p>
+        
+        <h2>Returns & Refunds</h2>
+        <p><strong>Email:</strong> returns@blackplaguerecords.com</p>
+        
+        <h2>General Inquiries</h2>
+        <p><strong>Email:</strong> info@blackplaguerecords.com</p>
+        
+        <h2>Response Time</h2>
+        <p>We typically respond to all inquiries within 24 hours during business days.</p>
+      `
     }
   };
 

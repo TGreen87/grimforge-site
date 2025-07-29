@@ -1,4 +1,5 @@
 import { Skull, Facebook, Instagram, Twitter, Mail } from "lucide-react";
+import { Link } from "react-router-dom";
 
 const Footer = () => {
   return (
@@ -26,11 +27,11 @@ const Footer = () => {
           <div className="space-y-4">
             <h3 className="gothic-heading text-bone">Catalog</h3>
             <ul className="space-y-2 text-sm text-muted-foreground">
-              <li><a href="#" className="hover:text-accent transition-colors">New Arrivals</a></li>
-              <li><a href="#" className="hover:text-accent transition-colors">Vinyl Records</a></li>
-              <li><a href="#" className="hover:text-accent transition-colors">Cassette Tapes</a></li>
-              <li><a href="#" className="hover:text-accent transition-colors">Compact Discs</a></li>
-              <li><a href="#" className="hover:text-accent transition-colors">Limited Editions</a></li>
+              <li><Link to="/?section=catalog" className="hover:text-accent transition-colors">New Arrivals</Link></li>
+              <li><Link to="/?section=vinyl" className="hover:text-accent transition-colors">Vinyl Records</Link></li>
+              <li><Link to="/?section=cassettes" className="hover:text-accent transition-colors">Cassette Tapes</Link></li>
+              <li><Link to="/?section=cds" className="hover:text-accent transition-colors">Compact Discs</Link></li>
+              <li><Link to="/?section=catalog" className="hover:text-accent transition-colors">Limited Editions</Link></li>
             </ul>
           </div>
 
@@ -38,11 +39,11 @@ const Footer = () => {
           <div className="space-y-4">
             <h3 className="gothic-heading text-bone">Information</h3>
             <ul className="space-y-2 text-sm text-muted-foreground">
-              <li><a href="/legal/shipping" className="hover:text-accent transition-colors">Shipping Info</a></li>
-              <li><a href="/legal/returns" className="hover:text-accent transition-colors">Returns</a></li>
-              <li><a href="#" className="hover:text-accent transition-colors">Size Guide</a></li>
-              <li><a href="#" className="hover:text-accent transition-colors">Care Instructions</a></li>
-              <li><a href="#" className="hover:text-accent transition-colors">Contact</a></li>
+              <li><Link to="/legal/shipping" className="hover:text-accent transition-colors">Shipping Info</Link></li>
+              <li><Link to="/legal/returns" className="hover:text-accent transition-colors">Returns</Link></li>
+              <li><Link to="/legal/size-guide" className="hover:text-accent transition-colors">Size Guide</Link></li>
+              <li><Link to="/legal/care" className="hover:text-accent transition-colors">Care Instructions</Link></li>
+              <li><Link to="/legal/contact" className="hover:text-accent transition-colors">Contact</Link></li>
             </ul>
           </div>
 
@@ -71,15 +72,15 @@ const Footer = () => {
             © 2024 Black Plague Records. All rights reserved.
           </p>
           <div className="flex space-x-6 mt-4 md:mt-0">
-            <a href="/legal/privacy" className="text-sm text-muted-foreground hover:text-accent transition-colors">
+            <Link to="/legal/privacy" className="text-sm text-muted-foreground hover:text-accent transition-colors">
               Privacy Policy
-            </a>
-            <a href="/legal/terms" className="text-sm text-muted-foreground hover:text-accent transition-colors">
+            </Link>
+            <Link to="/legal/terms" className="text-sm text-muted-foreground hover:text-accent transition-colors">
               Terms of Service
-            </a>
-            <a href="/legal/shipping" className="text-sm text-muted-foreground hover:text-accent transition-colors">
+            </Link>
+            <Link to="/legal/shipping" className="text-sm text-muted-foreground hover:text-accent transition-colors">
               Shipping Info
-            </a>
+            </Link>
           </div>
         </div>
       </div>

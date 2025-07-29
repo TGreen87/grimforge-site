@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { Search, X, TrendingUp, Clock } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -51,6 +52,7 @@ const AdvancedSearch = ({ onSearchResults, placeholder = "Search for dark treasu
   const [isLoading, setIsLoading] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const navigate = useNavigate();
 
   // Generate suggestions based on query
   useEffect(() => {
@@ -260,7 +262,7 @@ const AdvancedSearch = ({ onSearchResults, placeholder = "Search for dark treasu
               {results.slice(0, 5).map((result) => (
                 <button
                   key={result.id}
-                  onClick={() => window.location.href = `/product/${result.id}`}
+                  onClick={() => navigate(`/product/${result.id}`)}
                   className="w-full flex items-center gap-3 px-3 py-2 text-left hover:bg-muted rounded-md"
                 >
                   <img 
