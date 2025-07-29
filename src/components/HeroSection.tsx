@@ -31,7 +31,17 @@ const HeroSection = () => {
           >
             Explore Catalog
           </Button>
-          <Button variant="outline" size="lg" className="gothic-heading border-frost text-frost hover:bg-frost hover:text-background">
+          <Button 
+            variant="outline" 
+            size="lg" 
+            className="gothic-heading border-frost text-frost hover:bg-frost hover:text-background"
+            onClick={() => {
+              const catalogElement = document.getElementById('catalog');
+              if (catalogElement) {
+                catalogElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+              }
+            }}
+          >
             New Arrivals
           </Button>
         </div>
