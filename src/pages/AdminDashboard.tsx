@@ -25,11 +25,25 @@ const mockStats = {
 };
 
 const AdminDashboard = () => {
-  const { user } = useAuth();
+  const { user, isLoading } = useAuth();
 
   // Debug logging
   console.log("AdminDashboard: Current user:", user);
   console.log("AdminDashboard: User role:", user?.role);
+  console.log("AdminDashboard: isLoading:", isLoading);
+
+  // Show loading while auth is being determined
+  if (isLoading) {
+    console.log("AdminDashboard: Still loading user data");
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-accent"></div>
+          <p className="mt-4 text-muted-foreground">Loading admin dashboard...</p>
+        </div>
+      </div>
+    );
+  }
 
   // Redirect if not admin
   if (!user || user.role !== 'admin') {

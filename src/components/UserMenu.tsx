@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -75,15 +76,15 @@ const UserMenu = () => {
         )}
         
         {user.role === "admin" && (
-          <DropdownMenuItem 
-            className="text-accent hover:bg-secondary cursor-pointer"
-            onClick={() => {
-              console.log("UserMenu: Navigating to admin dashboard");
-              window.location.href = '/admin';
-            }}
-          >
-            <Crown className="mr-2 h-4 w-4" />
-            <span>Admin Dashboard</span>
+          <DropdownMenuItem asChild>
+            <Link 
+              to="/admin" 
+              className="text-accent hover:bg-secondary cursor-pointer flex items-center w-full"
+              onClick={() => console.log("UserMenu: Navigating to admin dashboard")}
+            >
+              <Crown className="mr-2 h-4 w-4" />
+              <span>Admin Dashboard</span>
+            </Link>
           </DropdownMenuItem>
         )}
         
