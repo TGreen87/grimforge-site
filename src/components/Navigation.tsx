@@ -1,8 +1,12 @@
 import { ShoppingCart, Search, Menu, Skull } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import CartDrawer from "./CartDrawer";
+import AuthModal from "./AuthModal";
+import UserMenu from "./UserMenu";
+import { useAuth } from "@/contexts/AuthContext";
 
 const Navigation = () => {
+  const { isAuthenticated } = useAuth();
   return (
     <nav className="fixed top-0 w-full z-50 bg-background/95 backdrop-blur-sm border-b border-border">
       <div className="container mx-auto px-4 h-16 flex items-center justify-between">
@@ -37,6 +41,11 @@ const Navigation = () => {
             <Search className="h-4 w-4" />
           </Button>
           <CartDrawer />
+          {isAuthenticated ? (
+            <UserMenu />
+          ) : (
+            <AuthModal />
+          )}
           <Button variant="ghost" size="sm" className="md:hidden text-foreground hover:text-accent">
             <Menu className="h-4 w-4" />
           </Button>
