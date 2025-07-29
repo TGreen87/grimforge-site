@@ -52,7 +52,8 @@ const ProductDetail = () => {
   const [quantity, setQuantity] = useState(1);
 
   // In production, you'd fetch the product based on the ID
-  if (!id || id !== "1") {
+  // For now, accept any ID and show the mock product
+  if (!id) {
     return <Navigate to="/404" replace />;
   }
 

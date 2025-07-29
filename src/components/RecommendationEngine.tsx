@@ -46,7 +46,7 @@ const RecommendationEngine = ({
 
   useEffect(() => {
     generateRecommendations();
-  }, [currentProductId, userGenres, userPurchaseHistory]);
+  }, [currentProductId, JSON.stringify(userGenres), JSON.stringify(userPurchaseHistory)]);
 
   const generateRecommendations = () => {
     let recommended: Product[] = [];
