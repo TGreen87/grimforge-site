@@ -7,7 +7,7 @@ import album3 from "@/assets/album-3.jpg";
 import album4 from "@/assets/album-4.jpg";
 import album5 from "@/assets/album-5.jpg";
 import album6 from "@/assets/album-6.jpg";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 
 interface Filters {
   searchTerm: string;
@@ -30,6 +30,24 @@ const ProductCatalog = () => {
     limitedOnly: false
   });
   const [activeTab, setActiveTab] = useState("all");
+
+  // Handle navigation from external sources
+  useEffect(() => {
+    const handleHashChange = () => {
+      const hash = window.location.hash.replace('#', '');
+      if (hash === 'vinyl' || hash === 'cassettes' || hash === 'cds') {
+        const tabValue = hash === 'cassettes' ? 'cassette' : hash === 'cds' ? 'cd' : hash;
+        setActiveTab(tabValue);
+      }
+    };
+
+    // Check initial hash
+    handleHashChange();
+    
+    // Listen for hash changes
+    window.addEventListener('hashchange', handleHashChange);
+    return () => window.removeEventListener('hashchange', handleHashChange);
+  }, []);
   // Enhanced mock data with more properties for filtering
   const allProducts = [
     {
@@ -226,6 +244,11 @@ const ProductCatalog = () => {
               CDs ({cdProducts.length})
             </TabsTrigger>
           </TabsList>
+
+          {/* Add invisible anchor points for navigation */}
+          <div id="vinyl" className="absolute -top-20"></div>
+          <div id="cassettes" className="absolute -top-20"></div>
+          <div id="cds" className="absolute -top-20"></div>
 
           <TabsContent value="all">
             {filteredProducts.length === 0 ? (

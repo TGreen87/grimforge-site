@@ -1,7 +1,39 @@
 import { Skull, Facebook, Instagram, Twitter, Mail } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 
 const Footer = () => {
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  const scrollToSection = (sectionId: string) => {
+    // If we're not on the home page, navigate there first
+    if (location.pathname !== '/') {
+      navigate('/');
+      // Wait for navigation to complete, then scroll
+      setTimeout(() => {
+        handleScroll(sectionId);
+      }, 100);
+    } else {
+      // We're already on the home page, just scroll
+      handleScroll(sectionId);
+    }
+  };
+
+  const handleScroll = (sectionId: string) => {
+    const element = document.getElementById(sectionId);
+    if (element) {
+      element.scrollIntoView({ 
+        behavior: 'smooth',
+        block: 'start'
+      });
+    }
+    
+    // For format-specific sections, also switch to the right tab
+    if (sectionId === 'vinyl' || sectionId === 'cassettes' || sectionId === 'cds') {
+      // Trigger tab change by updating hash
+      window.location.hash = sectionId;
+    }
+  };
   return (
     <footer className="bg-background/95 border-t border-border mt-20">
       <div className="container mx-auto px-4 py-12">
@@ -27,11 +59,11 @@ const Footer = () => {
           <div className="space-y-4">
             <h3 className="gothic-heading text-bone">Catalog</h3>
             <ul className="space-y-2 text-sm text-muted-foreground">
-              <li><Link to="/?section=catalog" className="hover:text-accent transition-colors">New Arrivals</Link></li>
-              <li><Link to="/?section=vinyl" className="hover:text-accent transition-colors">Vinyl Records</Link></li>
-              <li><Link to="/?section=cassettes" className="hover:text-accent transition-colors">Cassette Tapes</Link></li>
-              <li><Link to="/?section=cds" className="hover:text-accent transition-colors">Compact Discs</Link></li>
-              <li><Link to="/?section=catalog" className="hover:text-accent transition-colors">Limited Editions</Link></li>
+              <li><button onClick={() => scrollToSection('catalog')} className="hover:text-accent transition-colors text-left">New Arrivals</button></li>
+              <li><button onClick={() => scrollToSection('vinyl')} className="hover:text-accent transition-colors text-left">Vinyl Records</button></li>
+              <li><button onClick={() => scrollToSection('cassettes')} className="hover:text-accent transition-colors text-left">Cassette Tapes</button></li>
+              <li><button onClick={() => scrollToSection('cds')} className="hover:text-accent transition-colors text-left">Compact Discs</button></li>
+              <li><button onClick={() => scrollToSection('catalog')} className="hover:text-accent transition-colors text-left">Limited Editions</button></li>
             </ul>
           </div>
 
