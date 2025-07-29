@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -5,6 +6,7 @@ import { ShoppingCart, Eye, Heart } from "lucide-react";
 import { useCart } from "@/contexts/CartContext";
 import { useWishlist } from "@/contexts/WishlistContext";
 import { useToast } from "@/hooks/use-toast";
+import LazyImage from "@/components/LazyImage";
 
 interface ProductCardProps {
   id: string;
@@ -85,7 +87,7 @@ const ProductCard = ({ id, title, artist, format, price, image, limited, preOrde
       <CardContent className="p-4">
         {/* Image Container */}
         <div className="relative aspect-square mb-4 overflow-hidden rounded">
-          <img 
+          <LazyImage 
             src={image} 
             alt={`${artist} - ${title}`}
             className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
@@ -165,4 +167,4 @@ const ProductCard = ({ id, title, artist, format, price, image, limited, preOrde
   );
 };
 
-export default ProductCard;
+export default memo(ProductCard);
