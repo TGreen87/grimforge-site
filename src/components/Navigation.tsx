@@ -7,6 +7,16 @@ import { useAuth } from "@/contexts/AuthContext";
 
 const Navigation = () => {
   const { isAuthenticated } = useAuth();
+
+  const scrollToSection = (sectionId: string) => {
+    const element = document.getElementById(sectionId);
+    if (element) {
+      element.scrollIntoView({ 
+        behavior: 'smooth',
+        block: 'start'
+      });
+    }
+  };
   return (
     <nav className="fixed top-0 w-full z-50 bg-background/95 backdrop-blur-sm border-b border-border">
       <div className="container mx-auto px-4 h-16 flex items-center justify-between">
@@ -18,21 +28,36 @@ const Navigation = () => {
 
         {/* Desktop Navigation */}
         <div className="hidden md:flex items-center space-x-8">
-          <a href="#catalog" className="text-foreground hover:text-accent transition-colors">
+          <button 
+            onClick={() => scrollToSection('catalog')}
+            className="text-foreground hover:text-accent transition-colors cursor-pointer"
+          >
             Catalog
-          </a>
-          <a href="#vinyl" className="text-foreground hover:text-accent transition-colors">
+          </button>
+          <button 
+            onClick={() => scrollToSection('vinyl')}
+            className="text-foreground hover:text-accent transition-colors cursor-pointer"
+          >
             Vinyl
-          </a>
-          <a href="#cassettes" className="text-foreground hover:text-accent transition-colors">
+          </button>
+          <button 
+            onClick={() => scrollToSection('cassettes')}
+            className="text-foreground hover:text-accent transition-colors cursor-pointer"
+          >
             Cassettes
-          </a>
-          <a href="#cds" className="text-foreground hover:text-accent transition-colors">
+          </button>
+          <button 
+            onClick={() => scrollToSection('cds')}
+            className="text-foreground hover:text-accent transition-colors cursor-pointer"
+          >
             CDs
-          </a>
-          <a href="#grimoire" className="text-foreground hover:text-accent transition-colors">
+          </button>
+          <button 
+            onClick={() => scrollToSection('grimoire')}
+            className="text-foreground hover:text-accent transition-colors cursor-pointer"
+          >
             Grimoire
-          </a>
+          </button>
         </div>
 
         {/* Action Buttons */}

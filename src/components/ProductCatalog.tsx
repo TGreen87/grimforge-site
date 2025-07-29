@@ -7,20 +7,45 @@ import album3 from "@/assets/album-3.jpg";
 import album4 from "@/assets/album-4.jpg";
 import album5 from "@/assets/album-5.jpg";
 import album6 from "@/assets/album-6.jpg";
-import { useState } from "react";
+import { useState, useMemo } from "react";
+
+interface Filters {
+  searchTerm: string;
+  selectedGenres: string[];
+  priceRange: [number, number];
+  grimnessLevel: [number];
+  sortBy: string;
+  inStock: boolean;
+  limitedOnly: boolean;
+}
 
 const ProductCatalog = () => {
-  const [filters, setFilters] = useState({});
-  // Mock data for demonstration
-  const products = [
+  const [filters, setFilters] = useState<Filters>({
+    searchTerm: "",
+    selectedGenres: [],
+    priceRange: [0, 100],
+    grimnessLevel: [50],
+    sortBy: "featured",
+    inStock: false,
+    limitedOnly: false
+  });
+  const [activeTab, setActiveTab] = useState("all");
+  // Enhanced mock data with more properties for filtering
+  const allProducts = [
     {
       id: "mayhem-de-mysteriis",
       title: "De Mysteriis Dom Sathanas",
       artist: "Mayhem",
       format: "vinyl" as const,
       price: "$45.00",
+      priceNumber: 45,
       image: album1,
-      limited: true
+      limited: true,
+      inStock: true,
+      genre: ["Black Metal", "Raw Black Metal"],
+      grimness: 95,
+      releaseYear: 1994,
+      featured: true
     },
     {
       id: "burzum-hvis-lyset",
@@ -28,7 +53,13 @@ const ProductCatalog = () => {
       artist: "Burzum", 
       format: "cassette" as const,
       price: "$25.00",
-      image: album2
+      priceNumber: 25,
+      image: album2,
+      inStock: true,
+      genre: ["Atmospheric Black Metal", "Black Metal"],
+      grimness: 85,
+      releaseYear: 1994,
+      featured: false
     },
     {
       id: "emperor-nightside",
@@ -36,7 +67,13 @@ const ProductCatalog = () => {
       artist: "Emperor",
       format: "cd" as const,
       price: "$18.00",
-      image: album3
+      priceNumber: 18,
+      image: album3,
+      inStock: true,
+      genre: ["Symphonic Black Metal", "Black Metal"],
+      grimness: 80,
+      releaseYear: 1994,
+      featured: true
     },
     {
       id: "darkthrone-transilvanian",
@@ -44,8 +81,14 @@ const ProductCatalog = () => {
       artist: "Darkthrone",
       format: "vinyl" as const,
       price: "$42.00",
+      priceNumber: 42,
       image: album4,
-      preOrder: true
+      preOrder: true,
+      inStock: false,
+      genre: ["Raw Black Metal", "Black Metal"],
+      grimness: 90,
+      releaseYear: 1994,
+      featured: false
     },
     {
       id: "dissection-somberlain",
@@ -53,7 +96,13 @@ const ProductCatalog = () => {
       artist: "Dissection",
       format: "vinyl" as const,
       price: "$48.00",
-      image: album5
+      priceNumber: 48,
+      image: album5,
+      inStock: true,
+      genre: ["Blackened Death", "Black Metal"],
+      grimness: 75,
+      releaseYear: 1993,
+      featured: true
     },
     {
       id: "darkthrone-funeral-moon",
@@ -61,14 +110,88 @@ const ProductCatalog = () => {
       artist: "Darkthrone",
       format: "cassette" as const,
       price: "$22.00",
+      priceNumber: 22,
       image: album6,
-      limited: true
+      limited: true,
+      inStock: true,
+      genre: ["Raw Black Metal", "Black Metal"],
+      grimness: 92,
+      releaseYear: 1993,
+      featured: false
     }
   ];
 
-  const vinylProducts = products.filter(p => p.format === "vinyl");
-  const cassetteProducts = products.filter(p => p.format === "cassette");
-  const cdProducts = products.filter(p => p.format === "cd");
+  // Filter and sort products
+  const filteredProducts = useMemo(() => {
+    let filtered = allProducts;
+
+    // Search filter
+    if (filters.searchTerm) {
+      const searchLower = filters.searchTerm.toLowerCase();
+      filtered = filtered.filter(product => 
+        product.title.toLowerCase().includes(searchLower) ||
+        product.artist.toLowerCase().includes(searchLower) ||
+        product.genre.some(g => g.toLowerCase().includes(searchLower))
+      );
+    }
+
+    // Genre filter
+    if (filters.selectedGenres.length > 0) {
+      filtered = filtered.filter(product =>
+        filters.selectedGenres.some(genre => product.genre.includes(genre))
+      );
+    }
+
+    // Price range filter
+    filtered = filtered.filter(product =>
+      product.priceNumber >= filters.priceRange[0] && 
+      product.priceNumber <= filters.priceRange[1]
+    );
+
+    // Grimness filter
+    const [grimnessMin] = filters.grimnessLevel;
+    filtered = filtered.filter(product => product.grimness >= grimnessMin);
+
+    // In stock filter
+    if (filters.inStock) {
+      filtered = filtered.filter(product => product.inStock);
+    }
+
+    // Limited edition filter
+    if (filters.limitedOnly) {
+      filtered = filtered.filter(product => product.limited);
+    }
+
+    // Format filter (from tab)
+    if (activeTab !== "all") {
+      filtered = filtered.filter(product => product.format === activeTab);
+    }
+
+    // Sorting
+    filtered.sort((a, b) => {
+      switch (filters.sortBy) {
+        case "price-low":
+          return a.priceNumber - b.priceNumber;
+        case "price-high":
+          return b.priceNumber - a.priceNumber;
+        case "artist":
+          return a.artist.localeCompare(b.artist);
+        case "grimness":
+          return b.grimness - a.grimness;
+        case "newest":
+          return b.releaseYear - a.releaseYear;
+        case "featured":
+        default:
+          return b.featured ? 1 : -1;
+      }
+    });
+
+    return filtered;
+  }, [filters, activeTab, allProducts]);
+
+  const vinylProducts = filteredProducts.filter(p => p.format === "vinyl");
+  const cassetteProducts = filteredProducts.filter(p => p.format === "cassette");
+  const cdProducts = filteredProducts.filter(p => p.format === "cd");
 
   return (
     <section id="catalog" className="py-20 px-4">
@@ -88,44 +211,84 @@ const ProductCatalog = () => {
         <CatalogFilters onFiltersChange={setFilters} />
 
         {/* Format Tabs */}
-        <Tabs defaultValue="all" className="w-full">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="grid w-full grid-cols-4 mb-8 bg-secondary/50">
-            <TabsTrigger value="all" className="gothic-heading">All Formats</TabsTrigger>
-            <TabsTrigger value="vinyl" className="gothic-heading">Vinyl</TabsTrigger>
-            <TabsTrigger value="cassette" className="gothic-heading">Cassettes</TabsTrigger>
-            <TabsTrigger value="cd" className="gothic-heading">CDs</TabsTrigger>
+            <TabsTrigger value="all" className="gothic-heading">
+              All Formats ({filteredProducts.length})
+            </TabsTrigger>
+            <TabsTrigger value="vinyl" className="gothic-heading">
+              Vinyl ({vinylProducts.length})
+            </TabsTrigger>
+            <TabsTrigger value="cassette" className="gothic-heading">
+              Cassettes ({cassetteProducts.length})
+            </TabsTrigger>
+            <TabsTrigger value="cd" className="gothic-heading">
+              CDs ({cdProducts.length})
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="all">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {products.map((product, index) => (
-                <ProductCard key={index} {...product} />
-              ))}
-            </div>
+            {filteredProducts.length === 0 ? (
+              <div className="text-center py-12">
+                <p className="text-muted-foreground text-lg">
+                  No albums found in the darkness... Try adjusting your filters.
+                </p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                {filteredProducts.map((product, index) => (
+                  <ProductCard key={index} {...product} />
+                ))}
+              </div>
+            )}
           </TabsContent>
 
           <TabsContent value="vinyl">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {vinylProducts.map((product, index) => (
-                <ProductCard key={index} {...product} />
-              ))}
-            </div>
+            {vinylProducts.length === 0 ? (
+              <div className="text-center py-12">
+                <p className="text-muted-foreground text-lg">
+                  No vinyl records match your dark desires...
+                </p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                {vinylProducts.map((product, index) => (
+                  <ProductCard key={index} {...product} />
+                ))}
+              </div>
+            )}
           </TabsContent>
 
           <TabsContent value="cassette">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {cassetteProducts.map((product, index) => (
-                <ProductCard key={index} {...product} />
-              ))}
-            </div>
+            {cassetteProducts.length === 0 ? (
+              <div className="text-center py-12">
+                <p className="text-muted-foreground text-lg">
+                  No cassettes echo in the void...
+                </p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                {cassetteProducts.map((product, index) => (
+                  <ProductCard key={index} {...product} />
+                ))}
+              </div>
+            )}
           </TabsContent>
 
           <TabsContent value="cd">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {cdProducts.map((product, index) => (
-                <ProductCard key={index} {...product} />
-              ))}
-            </div>
+            {cdProducts.length === 0 ? (
+              <div className="text-center py-12">
+                <p className="text-muted-foreground text-lg">
+                  No CDs shine in the moonlight...
+                </p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                {cdProducts.map((product, index) => (
+                  <ProductCard key={index} {...product} />
+                ))}
+              </div>
+            )}
           </TabsContent>
         </Tabs>
       </div>

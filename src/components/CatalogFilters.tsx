@@ -5,17 +5,27 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Search, SlidersHorizontal, X } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+
+interface Filters {
+  searchTerm: string;
+  selectedGenres: string[];
+  priceRange: [number, number];
+  grimnessLevel: [number];
+  sortBy: string;
+  inStock: boolean;
+  limitedOnly: boolean;
+}
 
 interface CatalogFiltersProps {
-  onFiltersChange: (filters: any) => void;
+  onFiltersChange: (filters: Filters) => void;
 }
 
 const CatalogFilters = ({ onFiltersChange }: CatalogFiltersProps) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedGenres, setSelectedGenres] = useState<string[]>([]);
-  const [priceRange, setPriceRange] = useState([0, 100]);
-  const [grimnessLevel, setGrimnessLevel] = useState([50]);
+  const [priceRange, setPriceRange] = useState<[number, number]>([0, 100]);
+  const [grimnessLevel, setGrimnessLevel] = useState<[number]>([50]);
   const [sortBy, setSortBy] = useState("featured");
   const [inStock, setInStock] = useState(false);
   const [limitedOnly, setLimitedOnly] = useState(false);
@@ -34,11 +44,25 @@ const CatalogFilters = ({ onFiltersChange }: CatalogFiltersProps) => {
     );
   };
 
+  // Update parent whenever filters change
+  useEffect(() => {
+    const filters: Filters = {
+      searchTerm,
+      selectedGenres,
+      priceRange,
+      grimnessLevel,
+      sortBy,
+      inStock,
+      limitedOnly
+    };
+    onFiltersChange(filters);
+  }, [searchTerm, selectedGenres, priceRange, grimnessLevel, sortBy, inStock, limitedOnly, onFiltersChange]);
+
   const handleClearFilters = () => {
     setSearchTerm("");
     setSelectedGenres([]);
-    setPriceRange([0, 100]);
-    setGrimnessLevel([50]);
+    setPriceRange([0, 100] as [number, number]);
+    setGrimnessLevel([50] as [number]);
     setSortBy("featured");
     setInStock(false);
     setLimitedOnly(false);
@@ -96,7 +120,7 @@ const CatalogFilters = ({ onFiltersChange }: CatalogFiltersProps) => {
           <div className="px-2">
             <Slider
               value={priceRange}
-              onValueChange={setPriceRange}
+              onValueChange={(value) => setPriceRange(value as [number, number])}
               max={100}
               step={5}
               className="w-full"
@@ -114,7 +138,7 @@ const CatalogFilters = ({ onFiltersChange }: CatalogFiltersProps) => {
           <div className="px-2">
             <Slider
               value={grimnessLevel}
-              onValueChange={setGrimnessLevel}
+              onValueChange={(value) => setGrimnessLevel(value as [number])}
               max={100}
               step={10}
               className="w-full"

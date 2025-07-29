@@ -19,7 +19,16 @@ const HeroSection = () => {
         </p>
         
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
-          <Button size="lg" className="gothic-heading bg-accent hover:bg-accent/90 text-accent-foreground">
+          <Button 
+            size="lg" 
+            className="gothic-heading bg-accent hover:bg-accent/90 text-accent-foreground"
+            onClick={() => {
+              const catalogElement = document.getElementById('catalog');
+              if (catalogElement) {
+                catalogElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+              }
+            }}
+          >
             Explore Catalog
           </Button>
           <Button variant="outline" size="lg" className="gothic-heading border-frost text-frost hover:bg-frost hover:text-background">
