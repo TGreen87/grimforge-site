@@ -2,8 +2,11 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ShoppingCart, Eye } from "lucide-react";
+import { useCart } from "@/contexts/CartContext";
+import { useToast } from "@/hooks/use-toast";
 
 interface ProductCardProps {
+  id: string;
   title: string;
   artist: string;
   format: "vinyl" | "cassette" | "cd";
@@ -13,11 +16,31 @@ interface ProductCardProps {
   preOrder?: boolean;
 }
 
-const ProductCard = ({ title, artist, format, price, image, limited, preOrder }: ProductCardProps) => {
+const ProductCard = ({ id, title, artist, format, price, image, limited, preOrder }: ProductCardProps) => {
+  const { addItem } = useCart();
+  const { toast } = useToast();
   const formatIcons = {
     vinyl: "🎵",
     cassette: "📼", 
     cd: "💿"
+  };
+
+  const handleAddToCart = () => {
+    const priceNumber = parseFloat(price.replace('$', ''));
+    addItem({
+      id,
+      title,
+      artist,
+      format,
+      price: priceNumber,
+      image
+    });
+    
+    toast({
+      title: "Added to cart",
+      description: `${artist} - ${title} has been summoned to your cart`,
+      duration: 2000,
+    });
   };
 
   return (
@@ -58,7 +81,7 @@ const ProductCard = ({ title, artist, format, price, image, limited, preOrder }:
             <Button size="sm" variant="outline" className="border-frost text-frost hover:bg-frost hover:text-background">
               <Eye className="h-4 w-4" />
             </Button>
-            <Button size="sm" className="bg-accent hover:bg-accent/90">
+            <Button size="sm" className="bg-accent hover:bg-accent/90" onClick={handleAddToCart}>
               <ShoppingCart className="h-4 w-4" />
             </Button>
           </div>
@@ -76,7 +99,7 @@ const ProductCard = ({ title, artist, format, price, image, limited, preOrder }:
             <span className="text-lg font-bold text-accent">
               {price}
             </span>
-            <Button size="sm" variant="ghost" className="text-muted-foreground hover:text-accent">
+            <Button size="sm" variant="ghost" className="text-muted-foreground hover:text-accent" onClick={handleAddToCart}>
               Add to Cart
             </Button>
           </div>

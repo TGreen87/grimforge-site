@@ -1,5 +1,6 @@
 import { ShoppingCart, Search, Menu, Skull } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import CartDrawer from "./CartDrawer";
 
 const Navigation = () => {
   return (
@@ -35,9 +36,7 @@ const Navigation = () => {
           <Button variant="ghost" size="sm" className="text-foreground hover:text-accent">
             <Search className="h-4 w-4" />
           </Button>
-          <Button variant="ghost" size="sm" className="text-foreground hover:text-accent">
-            <ShoppingCart className="h-4 w-4" />
-          </Button>
+          <CartDrawer />
           <Button variant="ghost" size="sm" className="md:hidden text-foreground hover:text-accent">
             <Menu className="h-4 w-4" />
           </Button>

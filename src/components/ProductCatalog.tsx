@@ -1,4 +1,5 @@
 import ProductCard from "./ProductCard";
+import CatalogFilters from "./CatalogFilters";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import album1 from "@/assets/album-1.jpg";
 import album2 from "@/assets/album-2.jpg";
@@ -6,11 +7,14 @@ import album3 from "@/assets/album-3.jpg";
 import album4 from "@/assets/album-4.jpg";
 import album5 from "@/assets/album-5.jpg";
 import album6 from "@/assets/album-6.jpg";
+import { useState } from "react";
 
 const ProductCatalog = () => {
+  const [filters, setFilters] = useState({});
   // Mock data for demonstration
   const products = [
     {
+      id: "mayhem-de-mysteriis",
       title: "De Mysteriis Dom Sathanas",
       artist: "Mayhem",
       format: "vinyl" as const,
@@ -19,6 +23,7 @@ const ProductCatalog = () => {
       limited: true
     },
     {
+      id: "burzum-hvis-lyset",
       title: "Hvis Lyset Tar Oss",
       artist: "Burzum", 
       format: "cassette" as const,
@@ -26,6 +31,7 @@ const ProductCatalog = () => {
       image: album2
     },
     {
+      id: "emperor-nightside",
       title: "In the Nightside Eclipse",
       artist: "Emperor",
       format: "cd" as const,
@@ -33,6 +39,7 @@ const ProductCatalog = () => {
       image: album3
     },
     {
+      id: "darkthrone-transilvanian",
       title: "Transilvanian Hunger",
       artist: "Darkthrone",
       format: "vinyl" as const,
@@ -41,6 +48,7 @@ const ProductCatalog = () => {
       preOrder: true
     },
     {
+      id: "dissection-somberlain",
       title: "The Somberlain",
       artist: "Dissection",
       format: "vinyl" as const,
@@ -48,6 +56,7 @@ const ProductCatalog = () => {
       image: album5
     },
     {
+      id: "darkthrone-funeral-moon",
       title: "Under a Funeral Moon",
       artist: "Darkthrone",
       format: "cassette" as const,
@@ -74,6 +83,9 @@ const ProductCatalog = () => {
             Discover the finest collection of black metal releases from legendary acts and underground hordes
           </p>
         </div>
+
+        {/* Advanced Filters */}
+        <CatalogFilters onFiltersChange={setFilters} />
 
         {/* Format Tabs */}
         <Tabs defaultValue="all" className="w-full">
