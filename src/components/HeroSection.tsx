@@ -36,8 +36,10 @@ const HeroSection = () => {
         playsInline
         className="absolute inset-0 w-full h-full object-cover"
         onLoadedData={() => setIsPlaying(true)}
+        onError={() => console.log('Video failed to load')}
       >
-        <source src="/Video_for_Obsidian_Rite_Records.mp4" type="video/mp4" />
+        <source src="https://raw.githubusercontent.com/TGreen87/grimforge-site/main/Video_for_Obsidian_Rite_Records.mp4" type="video/mp4" />
+        Your browser does not support the video tag.
       </video>
       
       {/* Bottom overlay for text readability */}
