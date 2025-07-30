@@ -11,27 +11,27 @@ interface SEOHeadProps {
 }
 
 const SEOHead = ({
-  title = "Black Ritual Records - Dark Music for Dark Souls",
+  title = "Obsidian Rite Records - Dark Music for Dark Souls",
   description = "Discover the darkest depths of metal, black metal, and gothic music. Vinyl, CDs, cassettes, and rare releases from the underground's most sinister artists.",
-  keywords = "black metal, death metal, gothic, vinyl records, underground music, dark music, metal albums, rare releases, Black Ritual Records",
+  keywords = "black metal, death metal, gothic, vinyl records, underground music, dark music, metal albums, rare releases, Obsidian Rite Records",
   image = "/og-image.jpg",
-  url = "https://blackplaguerecords.com",
+  url = "https://obsidianriterecords.com",
   type = "website",
   structuredData
 }: SEOHeadProps) => {
-  const fullTitle = title.includes("Black Ritual Records") ? title : `${title} | Black Ritual Records`;
+  const fullTitle = title.includes("Obsidian Rite Records") ? title : `${title} | Obsidian Rite Records`;
   
   const defaultStructuredData = {
     "@context": "https://schema.org",
     "@type": "MusicStore",
-    "name": "Black Ritual Records",
+    "name": "Obsidian Rite Records",
     "description": description,
     "url": url,
     "logo": `${url}/logo.png`,
     "sameAs": [
-      "https://facebook.com/blackplaguerecords",
-      "https://instagram.com/blackplaguerecords",
-      "https://twitter.com/blackplaguerecords"
+      "https://facebook.com/obsidianriterecords",
+      "https://instagram.com/obsidianriterecords",
+      "https://twitter.com/obsidianriterecords"
     ],
     "address": {
       "@type": "PostalAddress",
@@ -49,7 +49,7 @@ const SEOHead = ({
       <meta name="description" content={description} />
       <meta name="keywords" content={keywords} />
       <meta name="robots" content="index, follow" />
-      <meta name="author" content="Black Ritual Records" />
+      <meta name="author" content="Obsidian Rite Records" />
       <link rel="canonical" href={url} />
 
       {/* Open Graph Meta Tags */}
@@ -60,7 +60,7 @@ const SEOHead = ({
       <meta property="og:image" content={image} />
       <meta property="og:image:width" content="1200" />
       <meta property="og:image:height" content="630" />
-      <meta property="og:site_name" content="Black Ritual Records" />
+      <meta property="og:site_name" content="Obsidian Rite Records" />
       <meta property="og:locale" content="en_US" />
 
       {/* Twitter Card Meta Tags */}
@@ -68,14 +68,14 @@ const SEOHead = ({
       <meta name="twitter:title" content={fullTitle} />
       <meta name="twitter:description" content={description} />
       <meta name="twitter:image" content={image} />
-      <meta name="twitter:site" content="@blackplaguerecords" />
-      <meta name="twitter:creator" content="@blackplaguerecords" />
+      <meta name="twitter:site" content="@obsidianriterecords" />
+      <meta name="twitter:creator" content="@obsidianriterecords" />
 
       {/* Additional Meta Tags */}
       <meta name="theme-color" content="#0F0F0F" />
       <meta name="msapplication-TileColor" content="#0F0F0F" />
-      <meta name="application-name" content="Black Ritual Records" />
-      <meta name="apple-mobile-web-app-title" content="Black Ritual Records" />
+      <meta name="application-name" content="Obsidian Rite Records" />
+      <meta name="apple-mobile-web-app-title" content="Obsidian Rite Records" />
       <meta name="apple-mobile-web-app-capable" content="yes" />
       <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 

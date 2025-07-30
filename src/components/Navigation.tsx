@@ -27,7 +27,7 @@ const Navigation = () => {
         <div className="flex items-center space-x-2">
           <Skull className="h-8 w-8 text-accent" />
           <Link to="/" className="blackletter text-2xl text-bone hover:text-accent transition-colors">
-            Black Ritual Records
+            Obsidian Rite Records
           </Link>
         </div>
 

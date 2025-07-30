@@ -10,7 +10,7 @@ const HeroSection = () => {
       {/* Main Content */}
       <div className="relative z-10 text-center px-4 max-w-4xl mx-auto">
         <h1 className="blackletter text-6xl md:text-8xl mb-6 text-bone">
-          Black Ritual Records
+          Obsidian Rite Records
         </h1>
         <div className="w-32 h-1 blood-accent mx-auto mb-8"></div>
         <p className="text-xl md:text-2xl text-muted-foreground mb-8 leading-relaxed">
