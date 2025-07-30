@@ -88,7 +88,7 @@ const PWAPrompt = () => {
             </Button>
           </div>
           <CardDescription>
-            Install Black Plague Records for a better experience - offline access, faster loading, and push notifications.
+            Install Black Ritual Records for a better experience - offline access, faster loading, and push notifications.
           </CardDescription>
         </CardHeader>
         <CardContent className="pt-0">

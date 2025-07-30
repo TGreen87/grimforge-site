@@ -14,7 +14,7 @@ const SiteSettings = () => {
   const { toast } = useToast();
   const [settings, setSettings] = useState({
     general: {
-      siteName: "Black Plague Records",
+      siteName: "Black Ritual Records",
       tagline: "Dark Music for Dark Souls",
       description: "Australia's premier distributor of underground black metal since the darkness began.",
       contactEmail: "contact@blackplaguerecords.com",
@@ -22,7 +22,7 @@ const SiteSettings = () => {
       timezone: "UTC"
     },
     seo: {
-      metaTitle: "Black Plague Records - Dark Music for Dark Souls",
+      metaTitle: "Black Ritual Records - Dark Music for Dark Souls",
       metaDescription: "Discover the darkest depths of metal, black metal, and gothic music. Vinyl, CDs, cassettes, and rare releases from the underground's most sinister artists.",
       keywords: "black metal, death metal, gothic, vinyl records, underground music",
       ogImage: "/og-image.jpg",

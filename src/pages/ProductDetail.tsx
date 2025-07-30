@@ -429,7 +429,7 @@ const ProductDetail = () => {
       "availability": "https://schema.org/InStock",
       "seller": {
         "@type": "Organization",
-        "name": "Black Plague Records"
+        "name": "Black Ritual Records"
       }
     },
     "aggregateRating": {

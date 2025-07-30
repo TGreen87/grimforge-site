@@ -11,20 +11,20 @@ interface SEOHeadProps {
 }
 
 const SEOHead = ({
-  title = "Black Plague Records - Dark Music for Dark Souls",
+  title = "Black Ritual Records - Dark Music for Dark Souls",
   description = "Discover the darkest depths of metal, black metal, and gothic music. Vinyl, CDs, cassettes, and rare releases from the underground's most sinister artists.",
-  keywords = "black metal, death metal, gothic, vinyl records, underground music, dark music, metal albums, rare releases, Black Plague Records",
+  keywords = "black metal, death metal, gothic, vinyl records, underground music, dark music, metal albums, rare releases, Black Ritual Records",
   image = "/og-image.jpg",
   url = "https://blackplaguerecords.com",
   type = "website",
   structuredData
 }: SEOHeadProps) => {
-  const fullTitle = title.includes("Black Plague Records") ? title : `${title} | Black Plague Records`;
+  const fullTitle = title.includes("Black Ritual Records") ? title : `${title} | Black Ritual Records`;
   
   const defaultStructuredData = {
     "@context": "https://schema.org",
     "@type": "MusicStore",
-    "name": "Black Plague Records",
+    "name": "Black Ritual Records",
     "description": description,
     "url": url,
     "logo": `${url}/logo.png`,
@@ -49,7 +49,7 @@ const SEOHead = ({
       <meta name="description" content={description} />
       <meta name="keywords" content={keywords} />
       <meta name="robots" content="index, follow" />
-      <meta name="author" content="Black Plague Records" />
+      <meta name="author" content="Black Ritual Records" />
       <link rel="canonical" href={url} />
 
       {/* Open Graph Meta Tags */}
@@ -60,7 +60,7 @@ const SEOHead = ({
       <meta property="og:image" content={image} />
       <meta property="og:image:width" content="1200" />
       <meta property="og:image:height" content="630" />
-      <meta property="og:site_name" content="Black Plague Records" />
+      <meta property="og:site_name" content="Black Ritual Records" />
       <meta property="og:locale" content="en_US" />
 
       {/* Twitter Card Meta Tags */}
@@ -74,8 +74,8 @@ const SEOHead = ({
       {/* Additional Meta Tags */}
       <meta name="theme-color" content="#0F0F0F" />
       <meta name="msapplication-TileColor" content="#0F0F0F" />
-      <meta name="application-name" content="Black Plague Records" />
-      <meta name="apple-mobile-web-app-title" content="Black Plague Records" />
+      <meta name="application-name" content="Black Ritual Records" />
+      <meta name="apple-mobile-web-app-title" content="Black Ritual Records" />
       <meta name="apple-mobile-web-app-capable" content="yes" />
       <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 

@@ -42,7 +42,7 @@ const Footer = () => {
           <div className="space-y-4">
             <div className="flex items-center space-x-2">
               <Skull className="h-6 w-6 text-accent" />
-              <span className="blackletter text-xl text-bone">Black Plague Records</span>
+              <span className="blackletter text-xl text-bone">Black Ritual Records</span>
             </div>
             <p className="text-muted-foreground text-sm">
               Australia's premier distributor of underground black metal since the darkness began.
@@ -101,7 +101,7 @@ const Footer = () => {
         {/* Bottom Bar */}
         <div className="border-t border-border mt-8 pt-8 flex flex-col md:flex-row justify-between items-center">
           <p className="text-sm text-muted-foreground">
-            © 2024 Black Plague Records. All rights reserved.
+            © 2024 Black Ritual Records. All rights reserved.
           </p>
           <div className="flex space-x-6 mt-4 md:mt-0">
             <Link to="/legal/privacy" className="text-sm text-muted-foreground hover:text-accent transition-colors">

@@ -12,7 +12,7 @@ const LegalPages = () => {
       lastUpdated: "January 2024",
       content: `
         <h2>Information We Collect</h2>
-        <p>At Black Plague Records, we collect information you provide directly to us, such as when you create an account, make a purchase, or contact us.</p>
+        <p>At Black Ritual Records, we collect information you provide directly to us, such as when you create an account, make a purchase, or contact us.</p>
         
         <h2>How We Use Your Information</h2>
         <p>We use the information we collect to provide, maintain, and improve our services, process transactions, and communicate with you.</p>
@@ -24,7 +24,7 @@ const LegalPages = () => {
         <p>We implement appropriate security measures to protect your personal information against unauthorized access, alteration, disclosure, or destruction.</p>
         
         <h2>Contact Us</h2>
-        <p>If you have any questions about this Privacy Policy, please contact us at privacy@blackplaguerecords.com</p>
+        <p>If you have any questions about this Privacy Policy, please contact us at privacy@blackritualrecords.com</p>
       `
     },
     terms: {
@@ -32,7 +32,7 @@ const LegalPages = () => {
       lastUpdated: "January 2024",
       content: `
         <h2>Acceptance of Terms</h2>
-        <p>By accessing and using Black Plague Records, you accept and agree to be bound by the terms and provision of this agreement.</p>
+        <p>By accessing and using Black Ritual Records, you accept and agree to be bound by the terms and provision of this agreement.</p>
         
         <h2>Products and Services</h2>
         <p>All products are subject to availability. We reserve the right to discontinue any product at any time.</p>
@@ -44,10 +44,10 @@ const LegalPages = () => {
         <p>We ship worldwide. Return policy allows for returns within 30 days of purchase for unopened items.</p>
         
         <h2>Limitation of Liability</h2>
-        <p>Black Plague Records shall not be liable for any indirect, incidental, special, consequential, or punitive damages.</p>
+        <p>Black Ritual Records shall not be liable for any indirect, incidental, special, consequential, or punitive damages.</p>
         
         <h2>Contact Information</h2>
-        <p>For questions regarding these terms, contact us at legal@blackplaguerecords.com</p>
+        <p>For questions regarding these terms, contact us at legal@blackritualrecords.com</p>
       `
     },
     shipping: {
@@ -92,7 +92,7 @@ const LegalPages = () => {
         <p>If you receive a damaged item, please contact us immediately with photos. We will provide a replacement or full refund.</p>
         
         <h2>How to Return</h2>
-        <p>Contact our customer service at returns@blackplaguerecords.com to initiate a return and receive instructions.</p>
+        <p>Contact our customer service at returns@blackritualrecords.com to initiate a return and receive instructions.</p>
         
         <h2>Non-Returnable Items</h2>
         <p>Opened vinyl records, CDs, and cassettes cannot be returned unless defective. Digital downloads are non-returnable.</p>
@@ -161,17 +161,17 @@ const LegalPages = () => {
         <p>We're here to help with your dark musical needs. Contact us through any of the following methods:</p>
         
         <h2>Customer Service</h2>
-        <p><strong>Email:</strong> support@blackplaguerecords.com</p>
+        <p><strong>Email:</strong> support@blackritualrecords.com</p>
         <p><strong>Hours:</strong> Monday - Friday, 9 AM - 6 PM AEST</p>
         
         <h2>Orders & Shipping</h2>
-        <p><strong>Email:</strong> orders@blackplaguerecords.com</p>
+        <p><strong>Email:</strong> orders@blackritualrecords.com</p>
         
         <h2>Returns & Refunds</h2>
-        <p><strong>Email:</strong> returns@blackplaguerecords.com</p>
+        <p><strong>Email:</strong> returns@blackritualrecords.com</p>
         
         <h2>General Inquiries</h2>
-        <p><strong>Email:</strong> info@blackplaguerecords.com</p>
+        <p><strong>Email:</strong> info@blackritualrecords.com</p>
         
         <h2>Response Time</h2>
         <p>We typically respond to all inquiries within 24 hours during business days.</p>
@@ -189,7 +189,7 @@ const LegalPages = () => {
     <>
       <SEOHead
         title={content.title}
-        description={`${content.title} for Black Plague Records - Understanding your rights and our policies for dark music purchases.`}
+        description={`${content.title} for Black Ritual Records - Understanding your rights and our policies for dark music purchases.`}
         url={`https://blackplaguerecords.com/legal/${page}`}
       />
       <div className="min-h-screen bg-background">
