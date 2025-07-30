@@ -38,7 +38,7 @@ const HeroSection = () => {
         onLoadedData={() => setIsPlaying(true)}
         onError={() => console.log('Video failed to load')}
       >
-        <source src="https://raw.githubusercontent.com/TGreen87/grimforge-site/main/Video_for_Obsidian_Rite_Records.mp4" type="video/mp4" />
+        <source src="/Video_for_Obsidian_Rite_Records.mp4" type="video/mp4" />
         Your browser does not support the video tag.
       </video>
       
