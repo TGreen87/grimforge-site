@@ -1,12 +1,12 @@
 import ProductCard from "./ProductCard";
 import CatalogFilters from "./CatalogFilters";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import album1 from "@/assets/album-1.jpg";
-import album2 from "@/assets/album-2.jpg";
-import album3 from "@/assets/album-3.jpg";
-import album4 from "@/assets/album-4.jpg";
-import album5 from "@/assets/album-5.jpg";
-import album6 from "@/assets/album-6.jpg";
+const album1 = "/assets/album-1.jpg";
+const album2 = "/assets/album-2.jpg";
+const album3 = "/assets/album-3.jpg";
+const album4 = "/assets/album-4.jpg";
+const album5 = "/assets/album-5.jpg";
+const album6 = "/assets/album-6.jpg";
 import { useState, useMemo, useEffect } from "react";
 
 interface Filters {

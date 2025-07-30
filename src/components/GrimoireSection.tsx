@@ -2,9 +2,9 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Clock, User, ArrowRight } from "lucide-react";
-import grimoire1 from "@/assets/grimoire-1.jpg";
-import grimoire2 from "@/assets/grimoire-2.jpg";
-import grimoire3 from "@/assets/grimoire-3.jpg";
+const grimoire1 = "/assets/grimoire-1.jpg";
+const grimoire2 = "/assets/grimoire-2.jpg";
+const grimoire3 = "/assets/grimoire-3.jpg";
 
 const GrimoireSection = () => {
   // Mock blog posts data

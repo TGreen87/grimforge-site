@@ -1,7 +1,7 @@
 import PreOrderCard from "./PreOrderCard";
-import album1 from "@/assets/album-1.jpg";
-import album2 from "@/assets/album-2.jpg";
-import album3 from "@/assets/album-3.jpg";
+const album1 = "/assets/album-1.jpg";
+const album2 = "/assets/album-2.jpg";
+const album3 = "/assets/album-3.jpg";
 
 const PreOrderSection = () => {
   // Mock pre-order data
