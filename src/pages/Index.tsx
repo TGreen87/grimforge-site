@@ -13,7 +13,7 @@ const Index = () => {
       <SEOHead />
       <div className="min-h-screen">
         <Navigation />
-        <main>
+        <main className="relative">
           <HeroSection />
           <ProductCatalog />
           <div className="container mx-auto px-4 py-16">
