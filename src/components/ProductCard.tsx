@@ -88,9 +88,9 @@ const ProductCard = ({ id, title, artist, format, price, image, limited, preOrde
       className="group bg-card/80 backdrop-blur-sm border-border hover:border-accent transition-all duration-300 hover:shadow-blood cursor-pointer"
       onClick={handleCardClick}
     >
-      <CardContent className="p-4">
+      <CardContent className="p-3 md:p-4">
         {/* Image Container */}
-        <div className="relative aspect-square mb-4 overflow-hidden rounded">
+        <div className="relative aspect-square mb-3 md:mb-4 overflow-hidden rounded">
           <img 
             src={image} 
             alt={`${artist} - ${title}`}
@@ -102,67 +102,69 @@ const ProductCard = ({ id, title, artist, format, price, image, limited, preOrde
             <div className="absolute inset-0 vinyl-spin opacity-0 group-hover:opacity-30 bg-gradient-to-r from-transparent via-bone/20 to-transparent"></div>
           )}
           
-          {/* Badges */}
-          <div className="absolute top-2 left-2 flex flex-col gap-1">
+          {/* Badges - Mobile optimized */}
+          <div className="absolute top-1.5 left-1.5 md:top-2 md:left-2 flex flex-col gap-1">
             {limited && (
-              <Badge variant="destructive" className="text-xs">
+              <Badge variant="destructive" className="text-xs px-1.5 py-0.5">
                 Limited
               </Badge>
             )}
             {preOrder && (
-              <Badge variant="secondary" className="text-xs">
+              <Badge variant="secondary" className="text-xs px-1.5 py-0.5">
                 Pre-Order
               </Badge>
             )}
-            <Badge variant="outline" className="text-xs border-frost text-frost">
-              {formatIcons[format]} {format.toUpperCase()}
+            <Badge variant="outline" className="text-xs px-1.5 py-0.5 border-frost text-frost">
+              <span className="hidden sm:inline">{formatIcons[format]} </span>
+              {format.toUpperCase()}
             </Badge>
           </div>
 
-          {/* Hover Actions */}
-          <div className="absolute inset-0 bg-background/80 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center gap-2">
+          {/* Hover Actions - Touch optimized */}
+          <div className="absolute inset-0 bg-background/80 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center gap-1.5 md:gap-2">
             <Button 
               size="sm" 
               variant="outline" 
-              className="border-frost text-frost hover:bg-frost hover:text-background"
+              className="h-8 w-8 md:h-9 md:w-9 border-frost text-frost hover:bg-frost hover:text-background p-0"
               onClick={(e) => {
                 e.stopPropagation();
                 navigate(`/product/${originalId}`);
               }}
             >
-              <Eye className="h-4 w-4" />
+              <Eye className="h-3.5 w-3.5 md:h-4 md:w-4" />
             </Button>
             <Button 
               size="sm" 
               variant={isInWishlist(id) ? "default" : "outline"}
-              className={isInWishlist(id) ? "bg-accent hover:bg-accent/90" : "border-frost text-frost hover:bg-frost hover:text-background"}
+              className={`h-8 w-8 md:h-9 md:w-9 p-0 ${isInWishlist(id) ? "bg-accent hover:bg-accent/90" : "border-frost text-frost hover:bg-frost hover:text-background"}`}
               onClick={handleWishlistToggle}
             >
-              <Heart className={`h-4 w-4 ${isInWishlist(id) ? 'fill-current' : ''}`} />
+              <Heart className={`h-3.5 w-3.5 md:h-4 md:w-4 ${isInWishlist(id) ? 'fill-current' : ''}`} />
             </Button>
-            <Button size="sm" className="bg-accent hover:bg-accent/90" onClick={(e) => {
+            <Button size="sm" className="h-8 w-8 md:h-9 md:w-9 bg-accent hover:bg-accent/90 p-0" onClick={(e) => {
               e.stopPropagation();
               handleAddToCart();
             }}>
-              <ShoppingCart className="h-4 w-4" />
+              <ShoppingCart className="h-3.5 w-3.5 md:h-4 md:w-4" />
             </Button>
           </div>
         </div>
 
-        {/* Product Info */}
-        <div className="space-y-2">
-          <h3 className="gothic-heading text-sm font-semibold text-bone line-clamp-1">
+        {/* Product Info - Mobile optimized */}
+        <div className="space-y-1.5 md:space-y-2">
+          <h3 className="gothic-heading text-sm md:text-base font-semibold text-bone line-clamp-1">
             {title}
           </h3>
-          <p className="text-muted-foreground text-sm">
+          <p className="text-muted-foreground text-xs md:text-sm">
             {artist}
           </p>
           <div className="flex items-center justify-between">
-            <span className="text-lg font-bold text-accent">
+            <span className="text-base md:text-lg font-bold text-accent">
               {price}
             </span>
-            <Button size="sm" variant="ghost" className="text-muted-foreground hover:text-accent" onClick={handleAddToCart}>
-              Add to Cart
+            <Button size="sm" variant="ghost" className="text-xs md:text-sm text-muted-foreground hover:text-accent px-2" onClick={handleAddToCart}>
+              <span className="hidden sm:inline">Add to Cart</span>
+              <span className="sm:hidden">Add</span>
             </Button>
           </div>
         </div>

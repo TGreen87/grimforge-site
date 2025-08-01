@@ -214,13 +214,13 @@ const ProductCatalog = () => {
   return (
     <section id="catalog" className="py-20 px-4">
       <div className="container mx-auto">
-        {/* Section Header */}
-        <div className="text-center mb-16">
-          <h2 className="blackletter text-4xl md:text-6xl mb-4 text-bone">
+        {/* Section Header - Mobile optimized */}
+        <div className="text-center mb-8 md:mb-16">
+          <h2 className="blackletter text-3xl md:text-5xl lg:text-6xl mb-3 md:mb-4 text-bone">
             Catalog
           </h2>
-          <div className="w-24 h-1 blood-accent mx-auto mb-6"></div>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+          <div className="w-16 md:w-24 h-1 blood-accent mx-auto mb-4 md:mb-6"></div>
+          <p className="text-base md:text-lg text-muted-foreground max-w-xl md:max-w-2xl mx-auto px-4">
             Discover the finest collection of black metal releases from legendary acts and underground hordes
           </p>
         </div>
@@ -228,19 +228,21 @@ const ProductCatalog = () => {
         {/* Advanced Filters */}
         <CatalogFilters onFiltersChange={setFilters} />
 
-        {/* Format Tabs */}
+        {/* Format Tabs - Mobile responsive */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-4 mb-8 bg-secondary/50">
-            <TabsTrigger value="all" className="gothic-heading">
-              All Formats ({filteredProducts.length})
+          <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 mb-6 md:mb-8 bg-secondary/50">
+            <TabsTrigger value="all" className="gothic-heading text-xs md:text-sm">
+              <span className="hidden sm:inline">All Formats</span>
+              <span className="sm:hidden">All</span> ({filteredProducts.length})
             </TabsTrigger>
-            <TabsTrigger value="vinyl" className="gothic-heading">
+            <TabsTrigger value="vinyl" className="gothic-heading text-xs md:text-sm">
               Vinyl ({vinylProducts.length})
             </TabsTrigger>
-            <TabsTrigger value="cassette" className="gothic-heading">
-              Cassettes ({cassetteProducts.length})
+            <TabsTrigger value="cassette" className="gothic-heading text-xs md:text-sm">
+              <span className="hidden sm:inline">Cassettes</span>
+              <span className="sm:hidden">Tapes</span> ({cassetteProducts.length})
             </TabsTrigger>
-            <TabsTrigger value="cd" className="gothic-heading">
+            <TabsTrigger value="cd" className="gothic-heading text-xs md:text-sm">
               CDs ({cdProducts.length})
             </TabsTrigger>
           </TabsList>
@@ -258,7 +260,7 @@ const ProductCatalog = () => {
                 </p>
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
                 {filteredProducts.map((product) => (
                   <ProductCard key={product.id} {...product} />
                 ))}
@@ -274,7 +276,7 @@ const ProductCatalog = () => {
                 </p>
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
                 {vinylProducts.map((product) => (
                   <ProductCard key={product.id} {...product} />
                 ))}
@@ -290,7 +292,7 @@ const ProductCatalog = () => {
                 </p>
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
                 {cassetteProducts.map((product) => (
                   <ProductCard key={product.id} {...product} />
                 ))}
@@ -306,7 +308,7 @@ const ProductCatalog = () => {
                 </p>
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
                 {cdProducts.map((product) => (
                   <ProductCard key={product.id} {...product} />
                 ))}

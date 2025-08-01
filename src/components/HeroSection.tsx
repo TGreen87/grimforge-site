@@ -45,37 +45,41 @@ const HeroSection = () => {
       {/* Bottom overlay for text readability */}
       <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-background/90"></div>
       
-      {/* Video Controls */}
-      <div className="absolute top-6 right-6 z-20 flex gap-2">
+      {/* Video Controls - Responsive positioning */}
+      <div className="absolute top-4 right-4 md:top-6 md:right-6 z-20 flex gap-1 md:gap-2">
         <Button
           variant="ghost"
           size="icon"
           onClick={togglePlay}
-          className="bg-background/20 hover:bg-background/40 text-white backdrop-blur-sm"
+          className="h-8 w-8 md:h-10 md:w-10 bg-background/20 hover:bg-background/40 text-white backdrop-blur-sm"
         >
-          {isPlaying ? <Pause size={20} /> : <Play size={20} />}
+          {isPlaying ? <Pause size={16} className="md:w-5 md:h-5" /> : <Play size={16} className="md:w-5 md:h-5" />}
         </Button>
         <Button
           variant="ghost"
           size="icon"
           onClick={toggleMute}
-          className="bg-background/20 hover:bg-background/40 text-white backdrop-blur-sm"
+          className="h-8 w-8 md:h-10 md:w-10 bg-background/20 hover:bg-background/40 text-white backdrop-blur-sm"
         >
-          {isMuted ? <VolumeX size={20} /> : <Volume2 size={20} />}
+          {isMuted ? <VolumeX size={16} className="md:w-5 md:h-5" /> : <Volume2 size={16} className="md:w-5 md:h-5" />}
         </Button>
       </div>
       
-      {/* Main Content - Positioned at bottom */}
-      <div className="absolute bottom-24 left-0 right-0 z-10 text-center px-4">
-        <p className="text-lg md:text-xl text-muted-foreground mb-6 leading-relaxed drop-shadow-lg">
-          Underground Black Metal Collection<br />
-          Vinyl • Cassettes • CDs
+      {/* Main Content - Responsive positioning and sizing */}
+      <div className="absolute bottom-16 md:bottom-24 left-0 right-0 z-10 text-center px-4">
+        <p className="text-base md:text-lg lg:text-xl text-muted-foreground mb-4 md:mb-6 leading-relaxed drop-shadow-lg">
+          Underground Black Metal Collection<br className="hidden sm:block" />
+          <span className="sm:hidden">•</span>
+          <span className="hidden sm:inline"> • </span>
+          Vinyl <span className="hidden sm:inline">• </span>
+          <span className="sm:hidden">•</span> Cassettes <span className="hidden sm:inline">• </span>
+          <span className="sm:hidden">•</span> CDs
         </p>
         
-        <div className="flex flex-col sm:flex-row gap-4 justify-center max-w-md mx-auto">
+        <div className="flex flex-col gap-3 sm:flex-row sm:gap-4 justify-center max-w-sm sm:max-w-md mx-auto">
           <Button 
             size="lg" 
-            className="gothic-heading bg-accent hover:bg-accent/90 text-accent-foreground shadow-lg"
+            className="gothic-heading bg-accent hover:bg-accent/90 text-accent-foreground shadow-lg text-sm md:text-base"
             onClick={() => {
               const catalogElement = document.getElementById('catalog');
               if (catalogElement) {
@@ -88,7 +92,7 @@ const HeroSection = () => {
           <Button 
             variant="outline" 
             size="lg" 
-            className="gothic-heading border-frost text-frost hover:bg-frost hover:text-background shadow-lg"
+            className="gothic-heading border-frost text-frost hover:bg-frost hover:text-background shadow-lg text-sm md:text-base"
             onClick={() => {
               const catalogElement = document.getElementById('catalog');
               if (catalogElement) {

@@ -49,20 +49,20 @@ const PreOrderSection = () => {
   return (
     <section className="py-20 px-4 bg-gradient-to-b from-background to-secondary/10">
       <div className="container mx-auto">
-        {/* Section Header */}
-        <div className="text-center mb-16">
-          <h2 className="blackletter text-4xl md:text-6xl mb-4 text-bone">
+        {/* Section Header - Mobile optimized */}
+        <div className="text-center mb-10 md:mb-16">
+          <h2 className="blackletter text-3xl md:text-5xl lg:text-6xl mb-3 md:mb-4 text-bone">
             Pre-Order Rituals
           </h2>
-          <div className="w-24 h-1 blood-accent mx-auto mb-6"></div>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+          <div className="w-16 md:w-24 h-1 blood-accent mx-auto mb-4 md:mb-6"></div>
+          <p className="text-base md:text-lg text-muted-foreground max-w-xl md:max-w-2xl mx-auto px-4">
             Reserve your copy of upcoming releases before they manifest in the physical realm. 
             Limited pressings vanish quickly into the void.
           </p>
         </div>
 
-        {/* Pre-Order Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        {/* Pre-Order Grid - Mobile responsive */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
           {preOrders.map((preOrder) => (
             <PreOrderCard key={preOrder.id} {...preOrder} />
           ))}
@@ -78,14 +78,14 @@ const PreOrderSection = () => {
               Get notified about upcoming limited releases before they're announced to the masses. 
               Be the first to secure your copy of the rarest pressings.
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <div className="flex flex-col gap-3 sm:flex-row sm:gap-4 justify-center">
               <input 
                 type="email" 
                 placeholder="your@darkness.com"
-                className="flex-1 max-w-sm px-4 py-2 bg-secondary border border-border rounded text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-accent"
+                className="flex-1 max-w-sm px-4 py-2 bg-secondary border border-border rounded text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-accent text-sm md:text-base"
               />
               <button 
-                className="px-6 py-2 bg-accent text-accent-foreground rounded hover:bg-accent/90 transition-colors gothic-heading"
+                className="px-6 py-2 bg-accent text-accent-foreground rounded hover:bg-accent/90 transition-colors gothic-heading text-sm md:text-base"
                 onClick={() => {
                   // Add email subscription logic here
                   alert('Thank you for joining the cult! You will receive notifications about new releases.');

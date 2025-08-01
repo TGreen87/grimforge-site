@@ -81,7 +81,7 @@ const CatalogFilters = ({ onFiltersChange }: CatalogFiltersProps) => {
         </Button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
         {/* Search */}
         <div className="space-y-2">
           <Label className="text-sm text-bone">Search the Darkness</Label>
@@ -173,13 +173,13 @@ const CatalogFilters = ({ onFiltersChange }: CatalogFiltersProps) => {
         </div>
       </div>
 
-      {/* Quick Filters */}
-      <div className="mt-6 flex gap-4">
+      {/* Quick Filters - Mobile responsive */}
+      <div className="mt-6 flex flex-col sm:flex-row gap-3 sm:gap-4">
         <Button
           variant={inStock ? "default" : "outline"}
           size="sm"
           onClick={() => setInStock(!inStock)}
-          className={inStock ? "bg-accent hover:bg-accent/90" : "border-frost text-frost hover:bg-frost hover:text-background"}
+          className={`w-full sm:w-auto ${inStock ? "bg-accent hover:bg-accent/90" : "border-frost text-frost hover:bg-frost hover:text-background"}`}
         >
           In Stock Only
         </Button>
@@ -187,7 +187,7 @@ const CatalogFilters = ({ onFiltersChange }: CatalogFiltersProps) => {
           variant={limitedOnly ? "default" : "outline"}
           size="sm"
           onClick={() => setLimitedOnly(!limitedOnly)}
-          className={limitedOnly ? "bg-accent hover:bg-accent/90" : "border-frost text-frost hover:bg-frost hover:text-background"}
+          className={`w-full sm:w-auto ${limitedOnly ? "bg-accent hover:bg-accent/90" : "border-frost text-frost hover:bg-frost hover:text-background"}`}
         >
           Limited Editions
         </Button>
