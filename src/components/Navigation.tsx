@@ -1,4 +1,4 @@
-import { ShoppingCart, Search, Menu, Skull } from "lucide-react";
+import { ShoppingCart, Search, Menu } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import CartDrawer from "./CartDrawer";
@@ -24,8 +24,7 @@ const Navigation = () => {
     <nav className="fixed top-0 w-full z-50 bg-background/95 backdrop-blur-sm border-b border-border">
       <div className="container mx-auto px-4 h-16 flex items-center justify-between">
         {/* Logo - Desktop Only */}
-        <div className="hidden md:flex items-center space-x-2">
-          <Skull className="h-8 w-8 text-accent" />
+        <div className="hidden md:flex items-center">
           <Link to="/" className="blackletter text-2xl text-bone hover:text-accent transition-colors">
             Obsidian Rite Records
           </Link>
