@@ -23,12 +23,34 @@ const Navigation = () => {
   return (
     <nav className="fixed top-0 w-full z-50 bg-background/95 backdrop-blur-sm border-b border-border">
       <div className="container mx-auto px-4 h-16 flex items-center justify-between">
-        {/* Logo */}
-        <div className="flex items-center space-x-2">
+        {/* Logo - Desktop Only */}
+        <div className="hidden md:flex items-center space-x-2">
           <Skull className="h-8 w-8 text-accent" />
           <Link to="/" className="blackletter text-2xl text-bone hover:text-accent transition-colors">
             Obsidian Rite Records
           </Link>
+        </div>
+
+        {/* Mobile Navigation */}
+        <div className="flex md:hidden items-center space-x-4 text-sm">
+          <button 
+            onClick={() => scrollToSection('catalog')}
+            className="text-foreground hover:text-accent transition-colors"
+          >
+            Catalog
+          </button>
+          <button 
+            onClick={() => scrollToSection('vinyl')}
+            className="text-foreground hover:text-accent transition-colors"
+          >
+            Vinyl
+          </button>
+          <button 
+            onClick={() => scrollToSection('cassettes')}
+            className="text-foreground hover:text-accent transition-colors"
+          >
+            Cassettes
+          </button>
         </div>
 
         {/* Desktop Navigation */}
