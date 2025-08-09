@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { BarChart3, TrendingUp, Settings, Users as UsersIcon, Package, ShoppingBag, Upload as UploadIcon } from "lucide-react";
+import { BarChart3, TrendingUp, Settings, Users as UsersIcon, Package, ShoppingBag, Upload as UploadIcon, FileText } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/contexts/AuthContext";
@@ -11,6 +11,7 @@ import CustomerManagement from "@/components/admin/CustomerManagement";
 import SiteSettings from "@/components/admin/SiteSettings";
 import RecordsManager from "@/components/admin/RecordsManager";
 import UploadProduct from "@/components/admin/UploadProduct";
+import EditCatalogText from "@/components/admin/EditCatalogText";
 
 // Mock data for admin dashboard
 const mockStats = {
@@ -112,7 +113,7 @@ const AdminDashboard = () => {
 
         {/* Main Content Tabs */}
         <Tabs defaultValue="analytics" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-7">
+          <TabsList className="grid w-full grid-cols-8">
             <TabsTrigger value="analytics" className="flex items-center gap-2">
               <BarChart3 className="h-4 w-4" />
               Analytics
@@ -136,6 +137,10 @@ const AdminDashboard = () => {
             <TabsTrigger value="uploader" className="flex items-center gap-2">
               <UploadIcon className="h-4 w-4" />
               Upload
+            </TabsTrigger>
+            <TabsTrigger value="catalog" className="flex items-center gap-2">
+              <FileText className="h-4 w-4" />
+              Catalog Text
             </TabsTrigger>
             <TabsTrigger value="settings" className="flex items-center gap-2">
               <Settings className="h-4 w-4" />
@@ -165,6 +170,10 @@ const AdminDashboard = () => {
 
           <TabsContent value="uploader">
             <UploadProduct />
+          </TabsContent>
+
+          <TabsContent value="catalog">
+            <EditCatalogText />
           </TabsContent>
 
           <TabsContent value="settings">
