@@ -364,11 +364,47 @@ const ProductDetail = () => {
     return <Navigate to="/404" replace />;
   }
 
-  const product = productDatabase[id as keyof typeof productDatabase];
+  let product: any = productDatabase[id as keyof typeof productDatabase];
+  
+  // Fallback: try dynamic products uploaded via Admin (stored in localStorage)
+  if (!product) {
+    try {
+      const recordsRaw = localStorage.getItem('orr_records');
+      const records = recordsRaw ? JSON.parse(recordsRaw) as any[] : [];
+      const rec = records.find((r) => r.id === id || (typeof r.id === 'string' && r.id.startsWith(id + '-')));
+      if (rec) {
+        const fmt = (rec.format ?? 'vinyl').toString().toLowerCase();
+        const formatProper = fmt === 'vinyl' ? 'Vinyl' : fmt === 'cd' ? 'CD' : 'Cassette';
+        product = {
+          id: rec.id,
+          title: rec.title ?? 'Untitled',
+          artist: rec.artist ?? 'Unknown',
+          format: formatProper,
+          price: Number(rec.price ?? 0),
+          image: rec.image ?? '/assets/album-1.jpg',
+          images: [rec.image ?? '/assets/album-1.jpg'],
+          description: rec.description ?? 'No description provided.',
+          trackListing: Array.isArray(rec.tracks) ? rec.tracks : [],
+          genre: Array.isArray(rec.tags) ? rec.tags.join(', ') : (rec.genre ?? 'Music'),
+          releaseYear: rec.releaseYear ?? new Date().getFullYear(),
+          label: rec.label ?? 'Independent',
+          catalog: rec.sku ?? '',
+          weight: rec.weight ?? 'Standard',
+          limitedEdition: !!rec.limited,
+          stock: Number(rec.stock ?? 0),
+          rating: 4.7,
+          reviews: 0,
+        };
+      }
+    } catch (e) {
+      console.warn('Failed to parse dynamic records from storage', e);
+    }
+  }
   
   if (!product) {
     return <Navigate to="/404" replace />;
   }
+
 
   const handleAddToCart = () => {
     for (let i = 0; i < quantity; i++) {

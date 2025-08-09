@@ -8,6 +8,7 @@ const album4 = "/assets/album-4.jpg";
 const album5 = "/assets/album-5.jpg";
 const album6 = "/assets/album-6.jpg";
 import { useState, useMemo, useEffect } from "react";
+import { storageKeys, getJSON } from "@/lib/storage";
 
 interface Filters {
   searchTerm: string;
@@ -139,9 +140,34 @@ const ProductCatalog = () => {
     }
   ];
 
+  // Dynamically added products from Admin uploads (local storage)
+  const dynamicProducts = useMemo(() => {
+    const records = getJSON<any[]>(storageKeys.records, []);
+    return records
+      .filter((r) => r && (r.active ?? true))
+      .map((r) => ({
+        id: r.id,
+        title: r.title ?? "Untitled",
+        artist: r.artist ?? "Unknown",
+        format: (r.format ?? "vinyl") as "vinyl" | "cassette" | "cd",
+        price: `$${Number(r.price ?? 0).toFixed(2)}`,
+        priceNumber: Number(r.price ?? 0),
+        image: r.image ?? album1,
+        limited: !!r.limited,
+        preOrder: !!r.preOrder,
+        inStock: Number(r.stock ?? 0) > 0,
+        genre: Array.isArray(r.tags) ? r.tags : (typeof r.genre === "string" ? [r.genre] : []),
+        grimness: 60,
+        releaseYear: r.releaseYear ?? new Date().getFullYear(),
+        featured: !!r.featured,
+      }));
+  }, []);
+
+  const allProductsCombined = useMemo(() => [...allProducts, ...dynamicProducts], [dynamicProducts]);
+
   // Filter and sort products
   const filteredProducts = useMemo(() => {
-    let filtered = allProducts;
+    let filtered = allProductsCombined;
 
     // Search filter
     if (filters.searchTerm) {
@@ -205,7 +231,7 @@ const ProductCatalog = () => {
     });
 
     return filtered;
-  }, [filters, activeTab, allProducts]);
+  }, [filters, activeTab, allProductsCombined]);
 
   const vinylProducts = filteredProducts.filter(p => p.format === "vinyl");
   const cassetteProducts = filteredProducts.filter(p => p.format === "cassette");
