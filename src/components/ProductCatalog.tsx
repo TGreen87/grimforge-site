@@ -8,7 +8,7 @@ const album4 = "/assets/album-4.jpg";
 const album5 = "/assets/album-5.jpg";
 const album6 = "/assets/album-6.jpg";
 import { useState, useMemo, useEffect } from "react";
-import { storageKeys, getJSON } from "@/lib/storage";
+import { useSupabaseProducts } from "@/hooks/useSupabaseProducts";
 
 interface Filters {
   searchTerm: string;
@@ -140,30 +140,10 @@ const ProductCatalog = () => {
     }
   ];
 
-  // Dynamically added products from Admin uploads (local storage)
-  const dynamicProducts = useMemo(() => {
-    const records = getJSON<any[]>(storageKeys.records, []);
-    return records
-      .filter((r) => r && (r.active ?? true))
-      .map((r) => ({
-        id: r.id,
-        title: r.title ?? "Untitled",
-        artist: r.artist ?? "Unknown",
-        format: (r.format ?? "vinyl") as "vinyl" | "cassette" | "cd",
-        price: `$${Number(r.price ?? 0).toFixed(2)}`,
-        priceNumber: Number(r.price ?? 0),
-        image: r.image ?? album1,
-        limited: !!r.limited,
-        preOrder: !!r.preOrder,
-        inStock: Number(r.stock ?? 0) > 0,
-        genre: Array.isArray(r.tags) ? r.tags : (typeof r.genre === "string" ? [r.genre] : []),
-        grimness: 60,
-        releaseYear: r.releaseYear ?? new Date().getFullYear(),
-        featured: !!r.featured,
-      }));
-  }, []);
+  // Products from Supabase (live)
+  const supabaseProducts = useSupabaseProducts();
 
-  const allProductsCombined = useMemo(() => [...allProducts, ...dynamicProducts], [dynamicProducts]);
+  const allProductsCombined = useMemo(() => [...allProducts, ...supabaseProducts], [supabaseProducts]);
 
   // Filter and sort products
   const filteredProducts = useMemo(() => {

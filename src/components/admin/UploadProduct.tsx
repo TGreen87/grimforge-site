@@ -6,7 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { storageKeys, getJSON, setJSON } from "@/lib/storage";
+
 import { Upload, Tag, Wand2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -108,34 +108,77 @@ export default function UploadProduct() {
     }
   };
 
-  const publish = () => {
+  const publish = async () => {
     if (!canPublish) {
       toast({ title: "Missing fields", description: "Title, artist and price are required", variant: "destructive" });
       return;
     }
     const id = `${slugify(`${form.artist}-${form.title}`)}-upl-${Date.now()}`;
-    const record = {
-      id,
-      title: form.title,
-      artist: form.artist,
-      format: form.format,
-      price: Number(form.price || 0),
-      sku: form.sku,
-      stock: Number(form.stock || 0),
-      active: true,
-      image: form.image || "/assets/album-1.jpg",
-      description: form.description,
-      tags,
-      featured: form.featured,
-      limited: form.limited,
-      preOrder: form.preOrder,
-      releaseYear: new Date().getFullYear(),
-    };
 
-    const existing = getJSON<any[]>(storageKeys.records, []);
-    setJSON(storageKeys.records, [record, ...existing]);
-    toast({ title: "Published", description: `${form.artist} - ${form.title} is now in the catalog` });
-    setForm({ ...defaultForm });
+    try {
+      let imageUrl = "/assets/album-1.jpg";
+
+      if (form.image && form.image.startsWith("data:")) {
+        // Convert data URL to Blob
+        const arr = form.image.split(",");
+        const mimeMatch = arr[0].match(/:(.*?);/);
+        const mime = mimeMatch ? mimeMatch[1] : "image/jpeg";
+        const bstr = atob(arr[1]);
+        let n = bstr.length;
+        const u8arr = new Uint8Array(n);
+        while (n--) u8arr[n] = bstr.charCodeAt(n);
+        const blob = new Blob([u8arr], { type: mime });
+
+        const ext = mime.split("/")[1] || "jpg";
+        const filePath = `images/${id}.${ext}`;
+
+        const { error: uploadError } = await supabase.storage
+          .from("products")
+          .upload(filePath, blob, { contentType: mime });
+
+        if (uploadError) {
+          console.error("Image upload failed", uploadError);
+          toast({ title: "Image upload failed", description: "Continuing without image upload", variant: "destructive" });
+        } else {
+          const { data: publicUrlData } = supabase.storage.from("products").getPublicUrl(filePath);
+          if (publicUrlData?.publicUrl) {
+            imageUrl = publicUrlData.publicUrl;
+          }
+        }
+      } else if (typeof form.image === "string" && form.image) {
+        imageUrl = form.image;
+      }
+
+      const { error: insertError } = await supabase
+        .from("products")
+        .insert({
+          id,
+          title: form.title,
+          artist: form.artist,
+          format: form.format,
+          price: Number(form.price || 0),
+          sku: form.sku || null,
+          stock: Number(form.stock || 0),
+          active: true,
+          image: imageUrl,
+          description: form.description,
+          tags,
+          featured: form.featured,
+          limited: form.limited,
+          pre_order: form.preOrder,
+          release_year: new Date().getFullYear(),
+        });
+
+      if (insertError) {
+        throw insertError;
+      }
+
+      toast({ title: "Published", description: `${form.artist} - ${form.title} is now in the catalog` });
+      setForm({ ...defaultForm });
+    } catch (e: any) {
+      console.error("Publish failed", e);
+      toast({ title: "Publish failed", description: e.message ?? "Please try again", variant: "destructive" });
+    }
   };
 
   return (
