@@ -51,7 +51,7 @@ const WishlistDrawer = () => {
   return (
     <Sheet open={isOpen} onOpenChange={setIsOpen}>
       <SheetTrigger asChild>
-        <Button variant="ghost" size="sm" className="relative text-foreground hover:text-accent">
+        <Button aria-label="Open wishlist" variant="ghost" size="sm" className="relative text-foreground hover:text-accent">
           <Heart className="h-4 w-4" />
           {getTotalItems() > 0 && (
             <Badge 

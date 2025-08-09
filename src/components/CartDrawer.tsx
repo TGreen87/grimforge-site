@@ -15,7 +15,7 @@ const CartDrawer = () => {
   return (
     <Sheet>
       <SheetTrigger asChild>
-        <Button variant="ghost" size="sm" className="relative text-foreground hover:text-accent">
+        <Button aria-label="Open cart" variant="ghost" size="sm" className="relative text-foreground hover:text-accent">
           <ShoppingCart className="h-4 w-4" />
           {getTotalItems() > 0 && (
             <Badge className="absolute -top-2 -right-2 h-5 w-5 flex items-center justify-center p-0 bg-accent text-accent-foreground text-xs">

@@ -1,4 +1,5 @@
-import { createContext, useContext, useState, ReactNode } from "react";
+import { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import { storageKeys, getJSON, setJSON } from "@/lib/storage";
 
 interface CartItem {
   id: string;
@@ -23,8 +24,11 @@ interface CartContextType {
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
 export const CartProvider = ({ children }: { children: ReactNode }) => {
-  const [items, setItems] = useState<CartItem[]>([]);
+  const [items, setItems] = useState<CartItem[]>(() => getJSON<CartItem[]>(storageKeys.cart, []));
 
+  useEffect(() => {
+    setJSON(storageKeys.cart, items);
+  }, [items]);
   const addItem = (newItem: Omit<CartItem, "quantity">) => {
     setItems(currentItems => {
       const existingItem = currentItems.find(item => item.id === newItem.id);

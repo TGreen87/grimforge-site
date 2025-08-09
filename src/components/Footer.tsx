@@ -1,5 +1,7 @@
-import { Skull, Facebook, Instagram, Twitter, Mail } from "lucide-react";
+import { Facebook, Instagram, Twitter, Mail } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
+import { brand } from "@/config/brand";
+import NewsletterSignup from "@/components/NewsletterSignup";
 
 const Footer = () => {
   const location = useLocation();
@@ -41,8 +43,7 @@ const Footer = () => {
           {/* Brand */}
           <div className="space-y-4">
             <div className="flex items-center space-x-2">
-              <Skull className="h-6 w-6 text-accent" />
-              <span className="blackletter text-xl text-bone">Obsidian Rite Records</span>
+              <span className="blackletter text-xl text-bone">{brand.name}</span>
             </div>
             <p className="text-muted-foreground text-sm">
               Australia's premier distributor of underground black metal since the darkness began.
@@ -85,16 +86,7 @@ const Footer = () => {
             <p className="text-sm text-muted-foreground">
               Subscribe for news of the latest releases from the underground.
             </p>
-            <div className="flex">
-              <input 
-                type="email" 
-                placeholder="Enter your email"
-                className="flex-1 px-3 py-2 bg-secondary border border-border rounded-l text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-accent"
-              />
-              <button className="px-4 py-2 bg-accent text-accent-foreground rounded-r hover:bg-accent/90 transition-colors">
-                Subscribe
-              </button>
-            </div>
+            <NewsletterSignup />
           </div>
         </div>
 
