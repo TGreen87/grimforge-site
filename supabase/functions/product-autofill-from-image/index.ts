@@ -8,7 +8,9 @@ const corsHeaders = {
 };
 
 interface AutofillRequest {
-  imageBase64: string;
+  imageBase64?: string;
+  imageBase64List?: string[];
+  referenceUrls?: string[];
   hints?: { title?: string; artist?: string; format?: string };
 }
 
@@ -28,10 +30,16 @@ serve(async (req) => {
 
   try {
     const body = (await req.json()) as AutofillRequest;
-    const { imageBase64, hints } = body || {};
+    const { imageBase64, imageBase64List, referenceUrls = [], hints } = body || {};
 
-    if (!imageBase64 || typeof imageBase64 !== "string") {
-      return new Response(JSON.stringify({ error: "imageBase64 is required" }), {
+    const images = Array.isArray(imageBase64List)
+      ? imageBase64List.filter((s) => typeof s === "string" && s.length > 0)
+      : [];
+    if (imageBase64 && typeof imageBase64 === "string") images.unshift(imageBase64);
+    const uniqueImages = Array.from(new Set(images));
+
+    if ((!uniqueImages.length) && (!referenceUrls || referenceUrls.length === 0)) {
+      return new Response(JSON.stringify({ error: "Provide at least one image or a reference URL" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -51,7 +59,13 @@ serve(async (req) => {
 - If the field is unknown, use an empty string, and tags as empty array.
 Return JSON only.`;
 
-    const userText = `Hints to help (optional): title=${hints?.title ?? ""}, artist=${hints?.artist ?? ""}, format=${hints?.format ?? ""}.`;
+    const refs = (referenceUrls || []).slice(0, 5).join(" | ");
+    const userText = `Hints to help (optional): title=${hints?.title ?? ""}, artist=${hints?.artist ?? ""}, format=${hints?.format ?? ""}. Reference URLs: ${refs}`;
+
+    const userContent = [
+      { type: "text", text: userText },
+      ...uniqueImages.slice(0, 5).map((u) => ({ type: "image_url" as const, image_url: { url: u } })),
+    ];
 
     const payload = {
       model: "gpt-4o-mini",
@@ -59,13 +73,7 @@ Return JSON only.`;
         { role: "system", content: systemPrompt },
         {
           role: "user",
-          content: [
-            { type: "text", text: userText },
-            {
-              type: "image_url",
-              image_url: { url: imageBase64 },
-            },
-          ],
+          content: userContent as any,
         },
       ],
       temperature: 0.2,
@@ -112,37 +120,45 @@ Return JSON only.`;
       title: string; artist: string; format: "vinyl"|"cassette"|"cd"; description: string; tags: string[];
     };
 
-    // Fallback: if image has no labels and we couldn't extract enough, try web search via Perplexity
+    // Fallback: if insufficient data, try web search via Perplexity using uploaded image(s) and reference URLs
     if ((!result.title || !result.artist) && Deno.env.get("PERPLEXITY_API_KEY")) {
       try {
-        let imageUrl = "";
-        const isDataUrl = typeof imageBase64 === "string" && imageBase64.startsWith("data:");
+        const imageUrls: string[] = [];
         const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
         const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
 
-        if (isDataUrl && SUPABASE_URL && SUPABASE_SERVICE_ROLE_KEY) {
+        if (uniqueImages.length && SUPABASE_URL && SUPABASE_SERVICE_ROLE_KEY) {
           const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
-          const m = imageBase64.match(/^data:(.*?);base64,(.*)$/);
-          if (m) {
-            const mime = m[1] || "image/jpeg";
-            const base64 = m[2];
-            const bytes = Uint8Array.from(atob(base64), (c) => c.charCodeAt(0));
-            const ext = (mime.split("/")[1] || "jpg").toLowerCase();
-            const path = `autofill/tmp-${Date.now()}.${ext}`;
-            const blob = new Blob([bytes], { type: mime });
-            const { error: upErr } = await supabase.storage.from("products").upload(path, blob, { contentType: mime, upsert: true });
-            if (!upErr) {
-              const { data: pub } = supabase.storage.from("products").getPublicUrl(path);
-              imageUrl = pub?.publicUrl || "";
+          for (const img of uniqueImages.slice(0, 5)) {
+            if (typeof img === "string" && img.startsWith("data:")) {
+              const m = img.match(/^data:(.*?);base64,(.*)$/);
+              if (m) {
+                const mime = m[1] || "image/jpeg";
+                const base64 = m[2];
+                const bytes = Uint8Array.from(atob(base64), (c) => c.charCodeAt(0));
+                const ext = (mime.split("/")[1] || "jpg").toLowerCase();
+                const path = `autofill/tmp-${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+                const blob = new Blob([bytes], { type: mime });
+                const { error: upErr } = await supabase.storage.from("products").upload(path, blob, { contentType: mime, upsert: true });
+                if (!upErr) {
+                  const { data: pub } = supabase.storage.from("products").getPublicUrl(path);
+                  if (pub?.publicUrl) imageUrls.push(pub.publicUrl);
+                }
+              }
+            } else if (typeof img === "string") {
+              imageUrls.push(img);
             }
           }
-        } else if (typeof imageBase64 === "string") {
-          imageUrl = imageBase64;
+        } else if (uniqueImages.length) {
+          // No Supabase creds available to upload data URLs, use any http(s) URLs directly
+          for (const img of uniqueImages.slice(0, 5)) if (typeof img === "string") imageUrls.push(img);
         }
 
-        if (imageUrl) {
+        const allRefs = (referenceUrls || []).slice(0, 8);
+
+        if (imageUrls.length || allRefs.length) {
           const PPLX_API_KEY = Deno.env.get("PERPLEXITY_API_KEY")!;
-          const query = `Identify this music release from its cover image and return JSON only.\nImage URL: ${imageUrl}\nKeys:\n{\n  "title": string,\n  "artist": string,\n  "format": "vinyl" | "cassette" | "cd",\n  "description": string,\n  "tags": string[]\n}\nGuidelines:\n- Use web search (Discogs, Bandcamp, label sites, retailers) to confirm.\n- Keep description <= 280 chars. Provide 5-8 concise tags. Infer format if possible; else vinyl.\n- If unknown, use empty strings/array.`;
+          const query = `Identify this music release and return JSON only.\nImage URLs:\n${imageUrls.map((u,i)=>`- ${i+1}. ${u}`).join("\n")}\nReference URLs:\n${allRefs.map((u,i)=>`- ${i+1}. ${u}`).join("\n")}\nKeys:\n{\n  "title": string,\n  "artist": string,\n  "format": "vinyl" | "cassette" | "cd",\n  "description": string,\n  "tags": string[]\n}\nGuidelines:\n- Use Discogs, Bandcamp, label and retailer pages to confirm.\n- Keep description <= 280 chars. Provide 5-8 concise tags. Infer format if possible; else vinyl.\n- If unknown, use empty strings/array.`;
 
           const pplxResp = await fetch("https://api.perplexity.ai/chat/completions", {
             method: "POST",

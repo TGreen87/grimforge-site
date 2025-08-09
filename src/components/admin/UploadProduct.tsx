@@ -22,7 +22,9 @@ interface NewProductForm {
   featured: boolean;
   limited: boolean;
   preOrder: boolean;
-  image?: string; // data URL
+  image?: string; // primary image (data URL)
+  images: string[]; // all selected images for context
+  referenceUrlsInput: string; // optional URLs (one per line or comma-separated)
   tagsInput: string; // comma separated
 }
 
@@ -38,6 +40,8 @@ const defaultForm: NewProductForm = {
   limited: false,
   preOrder: false,
   image: undefined,
+  images: [],
+  referenceUrlsInput: "",
   tagsInput: "",
 };
 
@@ -74,17 +78,25 @@ export default function UploadProduct() {
 
   const canPublish = form.title.trim() && form.artist.trim() && form.price >= 0;
 
-  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = () => {
-      setForm((f) => ({ ...f, image: String(reader.result) }));
-      if (fileRef.current) fileRef.current.value = "";
-      void runAutofill(String(reader.result));
-    };
-    reader.readAsDataURL(file);
-  };
+const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const files = Array.from(e.target.files || []);
+  if (!files.length) return;
+  // Read up to 5 images as data URLs for context
+  Promise.all(
+    files.slice(0, 5).map(
+      (file) =>
+        new Promise<string>((resolve) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(String(reader.result));
+          reader.readAsDataURL(file);
+        })
+    )
+  ).then((dataUrls) => {
+    setForm((f) => ({ ...f, image: dataUrls[0], images: dataUrls }));
+    if (fileRef.current) fileRef.current.value = "";
+    void runAutofill(dataUrls);
+  });
+};
 
   const generateTags = async () => {
     const baseText = `${form.title} ${form.artist} ${form.description}`.trim();
@@ -112,37 +124,52 @@ export default function UploadProduct() {
     }
   };
 
-  const runAutofill = async (imageBase64?: string) => {
-    if (!imageBase64) return;
-    try {
-      setAutofillLoading(true);
-      const { data, error } = await supabase.functions.invoke("product-autofill-from-image", {
-        body: { imageBase64, hints: { title: form.title, artist: form.artist, format: form.format } },
-      });
-      if (error) throw error;
-      const ai = data as any;
-      setForm((f) => {
-        const currentTags = (f.tagsInput || "").split(",").map(t => t.trim()).filter(Boolean);
-        const newTags = Array.isArray(ai?.tags) ? ai.tags : [];
-        const mergedTags = Array.from(new Set([...currentTags, ...newTags]));
-        return {
-          ...f,
-          title: f.title || ai?.title || "",
-          artist: f.artist || ai?.artist || "",
-          description: f.description || ai?.description || "",
-          format: f.format || (ai?.format as any) || "vinyl",
-          tagsInput: mergedTags.join(", "),
-        };
-      });
-      const filled = ["title","artist","format","description","tags"].filter(k => !!ai?.[k]).length;
-      toast({ title: "Auto-filled from image", description: `Populated ${filled} fields` });
-    } catch (e: any) {
-      console.error("Autofill failed", e);
-      toast({ title: "Autofill failed", description: e.message ?? "Unable to extract details", variant: "destructive" });
-    } finally {
-      setAutofillLoading(false);
-    }
-  };
+const runAutofill = async (input?: string | string[]) => {
+  const imagesToSend: string[] = Array.isArray(input)
+    ? input
+    : typeof input === "string"
+    ? [input]
+    : (form.images?.length ? form.images : (form.image ? [form.image] : []));
+  if (!imagesToSend.length && !form.referenceUrlsInput.trim()) return;
+  try {
+    setAutofillLoading(true);
+    const referenceUrls = (form.referenceUrlsInput || "")
+      .split(/\r?\n|,|;|\s+/)
+      .map((s) => s.trim())
+      .filter(Boolean);
+
+    const { data, error } = await supabase.functions.invoke("product-autofill-from-image", {
+      body: {
+        imageBase64: imagesToSend[0] || null,
+        imageBase64List: imagesToSend,
+        referenceUrls,
+        hints: { title: form.title, artist: form.artist, format: form.format },
+      },
+    });
+    if (error) throw error;
+    const ai = data as any;
+    setForm((f) => {
+      const currentTags = (f.tagsInput || "").split(",").map(t => t.trim()).filter(Boolean);
+      const newTags = Array.isArray(ai?.tags) ? ai.tags : [];
+      const mergedTags = Array.from(new Set([...currentTags, ...newTags]));
+      return {
+        ...f,
+        title: f.title || ai?.title || "",
+        artist: f.artist || ai?.artist || "",
+        description: f.description || ai?.description || "",
+        format: f.format || (ai?.format as any) || "vinyl",
+        tagsInput: mergedTags.join(", "),
+      };
+    });
+    const filled = ["title","artist","format","description","tags"].filter(k => !!(data as any)?.[k]).length;
+    toast({ title: "Auto-filled from context", description: `Populated ${filled} fields` });
+  } catch (e: any) {
+    console.error("Autofill failed", e);
+    toast({ title: "Autofill failed", description: e.message ?? "Unable to extract details", variant: "destructive" });
+  } finally {
+    setAutofillLoading(false);
+  }
+};
 
   const suggestPrice = async () => {
     if (!form.title || !form.artist) {
@@ -304,12 +331,35 @@ export default function UploadProduct() {
                   </div>
                 )}
               </div>
-              <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleImageSelect} />
+              {form.images?.length > 1 && (
+                <div className="grid grid-cols-5 gap-2">
+                  {form.images.slice(0,5).map((img, idx) => (
+                    <button
+                      type="button"
+                      key={idx}
+                      onClick={() => setForm(f => ({ ...f, image: img }))}
+                      className={`aspect-square overflow-hidden rounded border ${form.image===img ? 'ring-2 ring-primary' : ''}`}
+                      aria-label={`Select image ${idx+1} as primary`}
+                    >
+                      <img src={img} alt={`Additional image ${idx+1}`} className="w-full h-full object-cover" loading="lazy" />
+                    </button>
+                  ))}
+                </div>
+              )}
+              <input ref={fileRef} type="file" accept="image/*" multiple className="hidden" onChange={handleImageSelect} />
               <div className="flex gap-2">
-                <Button type="button" variant="outline" onClick={() => fileRef.current?.click()} aria-label="Upload image">
-                  <Upload className="h-4 w-4 mr-2" /> Upload Image
+                <Button type="button" variant="outline" onClick={() => fileRef.current?.click()} aria-label="Upload images">
+                  <Upload className="h-4 w-4 mr-2" /> Upload Images
                 </Button>
-                <Button type="button" variant="secondary" onClick={() => form.image && runAutofill(form.image)} disabled={autofillLoading || !form.image} aria-label="Auto-fill from image">
+                <Button
+                  type="button"
+                  variant="secondary"
+                  onClick={() => runAutofill()}
+                  disabled={
+                    autofillLoading || (!form.image && (form.images?.length ?? 0) === 0 && !form.referenceUrlsInput.trim())
+                  }
+                  aria-label="Auto-fill using images/URLs"
+                >
                   <Wand2 className="h-4 w-4 mr-2" /> Auto-fill
                 </Button>
               </div>
