@@ -2,3 +2,9 @@ project_id = "shbalyvvquvtvnkrsxtx"
 
 [functions.generate-tags]
 verify_jwt = false
+
+[functions.product-autofill-from-image]
+verify_jwt = false
+
+[functions.price-research-au]
+verify_jwt = false

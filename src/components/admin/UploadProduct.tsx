@@ -16,6 +16,7 @@ interface NewProductForm {
   description: string;
   format: "vinyl" | "cassette" | "cd";
   price: number;
+  cost?: number; // optional cost basis for pricing assist
   sku?: string;
   stock: number;
   featured: boolean;
@@ -63,6 +64,8 @@ export default function UploadProduct() {
   const { toast } = useToast();
   const [form, setForm] = useState<NewProductForm>({ ...defaultForm });
   const fileRef = useRef<HTMLInputElement>(null);
+  const [autofillLoading, setAutofillLoading] = useState(false);
+  const [priceLoading, setPriceLoading] = useState(false);
 
   const tags = useMemo(() =>
     form.tagsInput.split(",").map((t) => t.trim()).filter(Boolean),
@@ -78,6 +81,7 @@ export default function UploadProduct() {
     reader.onload = () => {
       setForm((f) => ({ ...f, image: String(reader.result) }));
       if (fileRef.current) fileRef.current.value = "";
+      void runAutofill(String(reader.result));
     };
     reader.readAsDataURL(file);
   };
@@ -105,6 +109,65 @@ export default function UploadProduct() {
       const merged = Array.from(new Set([...tags, ...guess]));
       setForm((f) => ({ ...f, tagsInput: merged.join(", ") }));
       toast({ title: "Fallback tags added", description: "AI unavailable, used local suggestion", variant: "default" });
+    }
+  };
+
+  const runAutofill = async (imageBase64?: string) => {
+    if (!imageBase64) return;
+    try {
+      setAutofillLoading(true);
+      const { data, error } = await supabase.functions.invoke("product-autofill-from-image", {
+        body: { imageBase64, hints: { title: form.title, artist: form.artist, format: form.format } },
+      });
+      if (error) throw error;
+      const ai = data as any;
+      setForm((f) => {
+        const currentTags = (f.tagsInput || "").split(",").map(t => t.trim()).filter(Boolean);
+        const newTags = Array.isArray(ai?.tags) ? ai.tags : [];
+        const mergedTags = Array.from(new Set([...currentTags, ...newTags]));
+        return {
+          ...f,
+          title: f.title || ai?.title || "",
+          artist: f.artist || ai?.artist || "",
+          description: f.description || ai?.description || "",
+          format: f.format || (ai?.format as any) || "vinyl",
+          tagsInput: mergedTags.join(", "),
+        };
+      });
+      const filled = ["title","artist","format","description","tags"].filter(k => !!ai?.[k]).length;
+      toast({ title: "Auto-filled from image", description: `Populated ${filled} fields` });
+    } catch (e: any) {
+      console.error("Autofill failed", e);
+      toast({ title: "Autofill failed", description: e.message ?? "Unable to extract details", variant: "destructive" });
+    } finally {
+      setAutofillLoading(false);
+    }
+  };
+
+  const suggestPrice = async () => {
+    if (!form.title || !form.artist) {
+      toast({ title: "Add title & artist first", description: "We use them to research comps" });
+      return;
+    }
+    try {
+      setPriceLoading(true);
+      const { data, error } = await supabase.functions.invoke("price-research-au", {
+        body: { title: form.title, artist: form.artist, format: form.format, cost: form.cost ?? null },
+      });
+      if (error) throw error;
+      const res = data as any;
+      if (typeof res?.suggested_price === "number") {
+        setForm(f => ({ ...f, price: Number(res.suggested_price) }));
+        const reason = (res?.reasoning || "Suggested retail for AU market").toString();
+        toast({ title: `Suggested: $${Number(res.suggested_price).toFixed(2)} AUD`, description: reason });
+      } else {
+        toast({ title: "No price suggestion", description: "Try again with more details" });
+      }
+    } catch (e: any) {
+      console.error("Price research failed", e);
+      toast({ title: "Price research failed", description: e.message ?? "Please try again", variant: "destructive" });
+    } finally {
+      setPriceLoading(false);
     }
   };
 
@@ -205,8 +268,14 @@ export default function UploadProduct() {
                     <SelectItem value="cd">CD</SelectItem>
                   </SelectContent>
                 </Select>
-                <Input type="number" step="0.01" placeholder="Price" value={form.price} onChange={(e) => setForm(f => ({ ...f, price: parseFloat(e.target.value) || 0 }))} aria-label="Price" />
+                <div className="flex items-center gap-2">
+                  <Input type="number" step="0.01" placeholder="Price (AUD)" value={form.price} onChange={(e) => setForm(f => ({ ...f, price: parseFloat(e.target.value) || 0 }))} aria-label="Price" />
+                  <Button type="button" variant="secondary" onClick={suggestPrice} disabled={priceLoading} aria-label="Suggest price">
+                    <Wand2 className="h-4 w-4 mr-2" /> Suggest
+                  </Button>
+                </div>
                 <Input placeholder="SKU" value={form.sku} onChange={(e) => setForm(f => ({ ...f, sku: e.target.value }))} aria-label="SKU" />
+                <Input type="number" step="0.01" placeholder="Cost (optional)" value={form.cost ?? ""} onChange={(e) => setForm(f => ({ ...f, cost: e.target.value === "" ? undefined : parseFloat(e.target.value) || 0 }))} aria-label="Cost" />
                 <Input type="number" placeholder="Stock" value={form.stock} onChange={(e) => setForm(f => ({ ...f, stock: parseInt(e.target.value || "0", 10) }))} aria-label="Stock" />
               </div>
               <Textarea placeholder="Description" value={form.description} onChange={(e) => setForm(f => ({ ...f, description: e.target.value }))} aria-label="Description" rows={5} />
@@ -236,9 +305,14 @@ export default function UploadProduct() {
                 )}
               </div>
               <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleImageSelect} />
-              <Button type="button" variant="outline" onClick={() => fileRef.current?.click()} aria-label="Upload image">
-                <Upload className="h-4 w-4 mr-2" /> Upload Image
-              </Button>
+              <div className="flex gap-2">
+                <Button type="button" variant="outline" onClick={() => fileRef.current?.click()} aria-label="Upload image">
+                  <Upload className="h-4 w-4 mr-2" /> Upload Image
+                </Button>
+                <Button type="button" variant="secondary" onClick={() => form.image && runAutofill(form.image)} disabled={autofillLoading || !form.image} aria-label="Auto-fill from image">
+                  <Wand2 className="h-4 w-4 mr-2" /> Auto-fill
+                </Button>
+              </div>
               <div className="flex items-center gap-2">
                 <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={form.featured} onChange={(e) => setForm(f => ({ ...f, featured: e.target.checked }))} /> Featured</label>
                 <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={form.limited} onChange={(e) => setForm(f => ({ ...f, limited: e.target.checked }))} /> Limited</label>
