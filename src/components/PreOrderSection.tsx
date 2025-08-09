@@ -47,7 +47,7 @@ const PreOrderSection = () => {
   ];
 
   return (
-    <section className="py-20 px-4 bg-gradient-to-b from-background to-secondary/10">
+    <section id="preorders" className="py-20 px-4 bg-gradient-to-b from-background to-secondary/10">
       <div className="container mx-auto">
         {/* Section Header - Mobile optimized */}
         <div className="text-center mb-10 md:mb-16">

@@ -8,17 +8,19 @@ import AuthModal from "./AuthModal";
 import UserMenu from "./UserMenu";
 import { useAuth } from "@/contexts/AuthContext";
 import { brand } from "@/config/brand";
+import { useActiveSection } from "@/hooks/useActiveSection";
+import MobileMenu from "./MobileMenu";
  
 const Navigation = () => {
   const { isAuthenticated } = useAuth();
-
+  const sectionIds = ["catalog", "vinyl", "cassettes", "cds", "grimoire", "preorders"];
+  const activeId = useActiveSection(sectionIds);
+ 
   const scrollToSection = (sectionId: string) => {
     const element = document.getElementById(sectionId);
     if (element) {
-      element.scrollIntoView({ 
-        behavior: 'smooth',
-        block: 'start'
-      });
+      const y = element.getBoundingClientRect().top + window.pageYOffset - 80; // header offset
+      window.scrollTo({ top: y, behavior: 'smooth' });
     }
   };
   return (
@@ -54,36 +56,42 @@ const Navigation = () => {
         </div>
 
         {/* Desktop Navigation */}
-        <div className="hidden md:flex items-center space-x-8">
+        <div className="hidden md:flex items-center space-x-8" role="navigation" aria-label="Primary">
           <button 
             onClick={() => scrollToSection('catalog')}
-            className="text-foreground hover:text-accent transition-colors cursor-pointer"
+            className={`text-foreground hover:text-accent transition-colors cursor-pointer ${activeId === 'catalog' ? 'text-accent' : ''}`}
           >
             Catalog
           </button>
           <button 
             onClick={() => scrollToSection('vinyl')}
-            className="text-foreground hover:text-accent transition-colors cursor-pointer"
+            className={`text-foreground hover:text-accent transition-colors cursor-pointer ${activeId === 'vinyl' ? 'text-accent' : ''}`}
           >
             Vinyl
           </button>
           <button 
             onClick={() => scrollToSection('cassettes')}
-            className="text-foreground hover:text-accent transition-colors cursor-pointer"
+            className={`text-foreground hover:text-accent transition-colors cursor-pointer ${activeId === 'cassettes' ? 'text-accent' : ''}`}
           >
             Cassettes
           </button>
           <button 
             onClick={() => scrollToSection('cds')}
-            className="text-foreground hover:text-accent transition-colors cursor-pointer"
+            className={`text-foreground hover:text-accent transition-colors cursor-pointer ${activeId === 'cds' ? 'text-accent' : ''}`}
           >
             CDs
           </button>
           <button 
             onClick={() => scrollToSection('grimoire')}
-            className="text-foreground hover:text-accent transition-colors cursor-pointer"
+            className={`text-foreground hover:text-accent transition-colors cursor-pointer ${activeId === 'grimoire' ? 'text-accent' : ''}`}
           >
             Grimoire
+          </button>
+          <button 
+            onClick={() => scrollToSection('preorders')}
+            className={`text-foreground hover:text-accent transition-colors cursor-pointer ${activeId === 'preorders' ? 'text-accent' : ''}`}
+          >
+            Pre-orders
           </button>
         </div>
 
@@ -102,9 +110,7 @@ const Navigation = () => {
           ) : (
             <AuthModal />
           )}
-          <Button variant="ghost" size="sm" className="md:hidden text-foreground hover:text-accent">
-            <Menu className="h-4 w-4" />
-          </Button>
+          <MobileMenu scrollToSection={scrollToSection} isAuthenticated={isAuthenticated} />
         </div>
       </div>
     </nav>
