@@ -363,6 +363,17 @@ const runAutofill = async (input?: string | string[]) => {
                   <Wand2 className="h-4 w-4 mr-2" /> Auto-fill
                 </Button>
               </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Reference URLs (optional)</label>
+                <Textarea
+                  placeholder="One per line: Discogs, Bandcamp, label, retailer URLs"
+                  value={form.referenceUrlsInput}
+                  onChange={(e) => setForm(f => ({ ...f, referenceUrlsInput: e.target.value }))}
+                  rows={3}
+                  aria-label="Reference URLs"
+                />
+                <p className="text-xs text-muted-foreground">These help the AI verify details and avoid describing artwork.</p>
+              </div>
               <div className="flex items-center gap-2">
                 <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={form.featured} onChange={(e) => setForm(f => ({ ...f, featured: e.target.checked }))} /> Featured</label>
                 <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={form.limited} onChange={(e) => setForm(f => ({ ...f, limited: e.target.checked }))} /> Limited</label>

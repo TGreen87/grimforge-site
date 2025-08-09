@@ -45,7 +45,7 @@ serve(async (req) => {
       });
     }
 
-    const systemPrompt = `You extract structured metadata about a music release from a cover image. Return STRICT JSON only with keys: 
+    const systemPrompt = `You are a discography metadata extractor. Identify the music release and return STRICT JSON only with keys:
 {
   "title": string,
   "artist": string,
@@ -53,10 +53,13 @@ serve(async (req) => {
   "description": string,
   "tags": string[]
 }
-- Infer format from visual cues (vinyl record, cassette shell, CD logo). If uncertain, default to "vinyl".
-- Keep description concise (max 280 chars), include notable info like edition, color, label if visible.
-- tags: 5-8 concise keywords (subgenres, mood, country if readable).
-- If the field is unknown, use an empty string, and tags as empty array.
+Rules:
+- Focus on the music and release info (title, artist, format, year/label/catalog if visible).
+- Do NOT describe the cover art or visuals. The description must summarize the sound/genre/subgenres, scene influences, and notable edition/pressing notes if visible.
+- Prefer info corroborated by any Reference URLs provided (Discogs, Bandcamp, label, retailer).
+- Description must be 120–220 characters, music-focused.
+- tags: 5–8 short music/style keywords (e.g., "black metal", "raw", "US", "demo").
+- If unknown, return empty string/array.
 Return JSON only.`;
 
     const refs = (referenceUrls || []).slice(0, 5).join(" | ");
@@ -120,8 +123,24 @@ Return JSON only.`;
       title: string; artist: string; format: "vinyl"|"cassette"|"cd"; description: string; tags: string[];
     };
 
-    // Fallback: if insufficient data, try web search via Perplexity using uploaded image(s) and reference URLs
-    if ((!result.title || !result.artist) && Deno.env.get("PERPLEXITY_API_KEY")) {
+    const isArtworkyDesc = (s: string) => {
+      if (!s) return false;
+      const bad = /\b(artwork|cover|illustration|depicts?|image|visual|painting|color\s?palette|symbols?|skull|pentagram|background|colors?)\b/i;
+      return bad.test(s);
+    };
+    const cleanDescription = (s: string) => {
+      if (!s) return "";
+      // Drop sentences that describe visuals
+      const sentences = s.split(/(?<=[.!?])\s+/);
+      const filtered = sentences.filter(sent => !/\b(artwork|cover|illustration|depicts?|image|visual|painting|color\s?palette|symbols?|background|colors?)\b/i.test(sent));
+      let out = filtered.join(" ").trim();
+      if (out.length > 280) out = out.slice(0, 277).trimEnd() + "...";
+      return out;
+    };
+    result.description = cleanDescription(result.description);
+
+    // Fallback: if insufficient data or description is artwork-focused, try web search via Perplexity using uploaded image(s) and reference URLs
+    if ((!result.title || !result.artist || !result.description || isArtworkyDesc(result.description)) && Deno.env.get("PERPLEXITY_API_KEY")) {
       try {
         const imageUrls: string[] = [];
         const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
@@ -158,7 +177,7 @@ Return JSON only.`;
 
         if (imageUrls.length || allRefs.length) {
           const PPLX_API_KEY = Deno.env.get("PERPLEXITY_API_KEY")!;
-          const query = `Identify this music release and return JSON only.\nImage URLs:\n${imageUrls.map((u,i)=>`- ${i+1}. ${u}`).join("\n")}\nReference URLs:\n${allRefs.map((u,i)=>`- ${i+1}. ${u}`).join("\n")}\nKeys:\n{\n  "title": string,\n  "artist": string,\n  "format": "vinyl" | "cassette" | "cd",\n  "description": string,\n  "tags": string[]\n}\nGuidelines:\n- Use Discogs, Bandcamp, label and retailer pages to confirm.\n- Keep description <= 280 chars. Provide 5-8 concise tags. Infer format if possible; else vinyl.\n- If unknown, use empty strings/array.`;
+          const query = `Identify this music release and return JSON only.\nImage URLs:\n${imageUrls.map((u,i)=>`- ${i+1}. ${u}`).join("\n")}\nReference URLs:\n${allRefs.map((u,i)=>`- ${i+1}. ${u}`).join("\n")}\nHints: title=${hints?.title ?? ""}, artist=${hints?.artist ?? ""}, format=${hints?.format ?? ""}\nKeys:\n{\n  "title": string,\n  "artist": string,\n  "format": "vinyl" | "cassette" | "cd",\n  "description": string,\n  "tags": string[]\n}\nGuidelines:\n- Use Discogs, Bandcamp, label and retailer pages to confirm.\n- Do NOT describe the cover art; describe the music (genre, sound, influences, scene) and edition/pressing notes if available.\n- Description length 120–220 chars, music-focused. Provide 5–8 concise tags. Infer format if possible; else vinyl.\n- If unknown, use empty strings/array.`;
 
           const pplxResp = await fetch("https://api.perplexity.ai/chat/completions", {
             method: "POST",
