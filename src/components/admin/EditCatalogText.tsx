@@ -24,6 +24,8 @@ export default function EditCatalogText() {
   const [products, setProducts] = useState<ProductRow[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [draftDesc, setDraftDesc] = useState<string>("");
+  const [draftTitle, setDraftTitle] = useState<string>("");
+  const [draftArtist, setDraftArtist] = useState<string>("");
 
   useEffect(() => {
     let ignore = false;
@@ -62,6 +64,8 @@ export default function EditCatalogText() {
   const onSelect = (p: ProductRow) => {
     setSelectedId(p.id);
     setDraftDesc(p.description || "");
+    setDraftTitle(p.title || "");
+    setDraftArtist(p.artist || "");
   };
 
   const onSave = async () => {
@@ -70,10 +74,10 @@ export default function EditCatalogText() {
       setSaving(true);
       const { error } = await supabase
         .from("products")
-        .update({ description: draftDesc })
+        .update({ description: draftDesc, title: draftTitle, artist: draftArtist })
         .eq("id", selected.id);
       if (error) throw error;
-      setProducts(prev => prev.map(pr => pr.id === selected.id ? { ...pr, description: draftDesc } : pr));
+      setProducts(prev => prev.map(pr => pr.id === selected.id ? { ...pr, description: draftDesc, title: draftTitle, artist: draftArtist } : pr));
       toast({ title: "Saved", description: "Catalog text updated" });
     } catch (e: any) {
       console.error("Save failed", e);
@@ -86,6 +90,8 @@ export default function EditCatalogText() {
   const onRevert = () => {
     if (!selected) return;
     setDraftDesc(selected.description || "");
+    setDraftTitle(selected.title || "");
+    setDraftArtist(selected.artist || "");
   };
 
   return (
@@ -133,6 +139,20 @@ export default function EditCatalogText() {
                   <div>
                     <div className="text-sm text-muted-foreground">Editing</div>
                     <div className="font-semibold">{selected.artist} – {selected.title}</div>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <Input
+                      value={draftTitle}
+                      onChange={(e) => setDraftTitle(e.target.value)}
+                      placeholder="Title"
+                      aria-label="Title"
+                    />
+                    <Input
+                      value={draftArtist}
+                      onChange={(e) => setDraftArtist(e.target.value)}
+                      placeholder="Artist"
+                      aria-label="Artist"
+                    />
                   </div>
                   <Textarea
                     rows={12}
