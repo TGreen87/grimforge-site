@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { storageKeys, getJSON, setJSON } from "@/lib/storage";
 import { Upload, Tag, Wand2 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
 interface NewProductForm {
   title: string;
@@ -81,14 +82,30 @@ export default function UploadProduct() {
     reader.readAsDataURL(file);
   };
 
-  const generateTags = () => {
-    const guess = simpleTagSuggest(`${form.title} ${form.artist} ${form.description}`);
-    const merged = Array.from(new Set([...
-      tags,
-      ...guess,
-    ]));
-    setForm((f) => ({ ...f, tagsInput: merged.join(", ") }));
-    toast({ title: "Tags suggested", description: `Added ${guess.length} tags` });
+  const generateTags = async () => {
+    const baseText = `${form.title} ${form.artist} ${form.description}`.trim();
+    if (!baseText) {
+      toast({ title: "Add details first", description: "Enter title/artist/description to suggest tags" });
+      return;
+    }
+
+    try {
+      const { data, error } = await supabase.functions.invoke("generate-tags", {
+        body: { text: baseText },
+      });
+
+      if (error) throw error;
+
+      const aiTags: string[] = Array.isArray(data?.tags) ? data.tags : [];
+      const merged = Array.from(new Set([...tags, ...aiTags]));
+      setForm((f) => ({ ...f, tagsInput: merged.join(", ") }));
+      toast({ title: "AI tags added", description: `Added ${aiTags.length} tags` });
+    } catch (err) {
+      const guess = simpleTagSuggest(baseText);
+      const merged = Array.from(new Set([...tags, ...guess]));
+      setForm((f) => ({ ...f, tagsInput: merged.join(", ") }));
+      toast({ title: "Fallback tags added", description: "AI unavailable, used local suggestion", variant: "default" });
+    }
   };
 
   const publish = () => {
