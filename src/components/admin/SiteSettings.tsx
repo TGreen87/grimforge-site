@@ -14,10 +14,10 @@ const SiteSettings = () => {
   const { toast } = useToast();
   const [settings, setSettings] = useState({
     general: {
-      siteName: "Black Ritual Records",
+      siteName: "Obsidian Rite Records",
       tagline: "Dark Music for Dark Souls",
       description: "Australia's premier distributor of underground black metal since the darkness began.",
-      contactEmail: "contact@blackplaguerecords.com",
+      contactEmail: "contact@obsidianriterecords.com",
       currency: "USD",
       timezone: "UTC"
     },

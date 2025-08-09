@@ -4,6 +4,7 @@ import { Star, ShoppingCart, Heart, Share2, Play, Truck, Shield, RotateCcw } fro
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import SEOHead from "@/components/SEOHead";
+import { brand } from "@/config/brand";
 import ProductReviews from "@/components/ProductReviews";
 import RecommendationEngine from "@/components/RecommendationEngine";
 import { Button } from "@/components/ui/button";
@@ -429,7 +430,7 @@ const ProductDetail = () => {
       "availability": "https://schema.org/InStock",
       "seller": {
         "@type": "Organization",
-        "name": "Black Ritual Records"
+        "name": brand.name
       }
     },
     "aggregateRating": {

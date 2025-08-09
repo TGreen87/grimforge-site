@@ -7,7 +7,8 @@ import AdvancedSearch from "./AdvancedSearch";
 import AuthModal from "./AuthModal";
 import UserMenu from "./UserMenu";
 import { useAuth } from "@/contexts/AuthContext";
-
+import { brand } from "@/config/brand";
+ 
 const Navigation = () => {
   const { isAuthenticated } = useAuth();
 
@@ -26,7 +27,7 @@ const Navigation = () => {
         {/* Logo - Desktop Only */}
         <div className="hidden md:flex items-center">
           <Link to="/" className="blackletter text-2xl text-bone hover:text-accent transition-colors">
-            Obsidian Rite Records
+            {brand.name}
           </Link>
         </div>
 

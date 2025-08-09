@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import { storageKeys } from "@/lib/storage";
 
 interface User {
   id: string;
@@ -23,14 +24,18 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Simulate loading user from localStorage on mount
   useEffect(() => {
-    const savedUser = localStorage.getItem("blackplague_user");
-    console.log("AuthContext: Saved user from localStorage:", savedUser);
-    if (savedUser) {
-      const parsedUser = JSON.parse(savedUser);
-      console.log("AuthContext: Parsed user:", parsedUser);
-      setUser(parsedUser);
+    const current = localStorage.getItem(storageKeys.user);
+    if (current) {
+      setUser(JSON.parse(current));
+      setIsLoading(false);
+      return;
+    }
+    const legacy = localStorage.getItem("blackplague_user");
+    if (legacy) {
+      localStorage.setItem(storageKeys.user, legacy);
+      localStorage.removeItem("blackplague_user");
+      setUser(JSON.parse(legacy));
     }
     setIsLoading(false);
   }, []);
@@ -52,7 +57,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     };
     
     setUser(mockUser);
-    localStorage.setItem("blackplague_user", JSON.stringify(mockUser));
+    localStorage.setItem(storageKeys.user, JSON.stringify(mockUser));
     setIsLoading(false);
   };
 
@@ -72,13 +77,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     };
     
     setUser(mockUser);
-    localStorage.setItem("blackplague_user", JSON.stringify(mockUser));
+    localStorage.setItem(storageKeys.user, JSON.stringify(mockUser));
     setIsLoading(false);
   };
 
   const logout = () => {
     setUser(null);
-    localStorage.removeItem("blackplague_user");
+    localStorage.removeItem(storageKeys.user);
   };
 
   return (

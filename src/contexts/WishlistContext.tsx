@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, ReactNode } from "react";
+import { storageKeys, getJSON, setJSON, migrateKey } from "@/lib/storage";
 
 interface WishlistItem {
   id: string;
@@ -23,13 +24,13 @@ const WishlistContext = createContext<WishlistContextType | undefined>(undefined
 
 export const WishlistProvider = ({ children }: { children: ReactNode }) => {
   const [items, setItems] = useState<WishlistItem[]>(() => {
-    // Load from localStorage on init
-    const saved = localStorage.getItem("blackplague_wishlist");
-    return saved ? JSON.parse(saved) : [];
+    // Migrate from legacy key then load
+    migrateKey("blackplague_wishlist", storageKeys.wishlist);
+    return getJSON<WishlistItem[]>(storageKeys.wishlist, []);
   });
 
   const saveToStorage = (newItems: WishlistItem[]) => {
-    localStorage.setItem("blackplague_wishlist", JSON.stringify(newItems));
+    setJSON(storageKeys.wishlist, newItems);
     setItems(newItems);
   };
 
@@ -59,7 +60,7 @@ export const WishlistProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const clearWishlist = () => {
-    localStorage.removeItem("blackplague_wishlist");
+    localStorage.removeItem(storageKeys.wishlist);
     setItems([]);
   };
 

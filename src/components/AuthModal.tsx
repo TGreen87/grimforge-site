@@ -140,8 +140,8 @@ const AuthModal = () => {
             <div className="mt-6 p-4 bg-secondary/20 rounded border border-border">
               <p className="text-xs text-muted-foreground mb-2">Demo Accounts:</p>
               <div className="space-y-1 text-xs">
-                <p className="flex items-center"><Users className="h-3 w-3 mr-1 text-frost" /> customer@blackplague.com</p>
-                <p className="flex items-center"><Crown className="h-3 w-3 mr-1 text-accent" /> admin@blackplague.com</p>
+                <p className="flex items-center"><Users className="h-3 w-3 mr-1 text-frost" /> customer@obsidianriterecords.com</p>
+                <p className="flex items-center"><Crown className="h-3 w-3 mr-1 text-accent" /> admin@obsidianriterecords.com</p>
                 <p className="text-muted-foreground">Password: anything</p>
               </div>
             </div>
