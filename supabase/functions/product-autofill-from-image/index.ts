@@ -62,7 +62,7 @@ Return JSON only.`;
           content: [
             { type: "text", text: userText },
             {
-              type: "input_image",
+              type: "image_url",
               image_url: { url: imageBase64 },
             },
           ],
