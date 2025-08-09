@@ -2,6 +2,7 @@ export const storageKeys = {
   wishlist: "orr_wishlist",
   cart: "orr_cart_v1",
   user: "orr_user",
+  records: "orr_records",
 } as const;
 
 export function getJSON<T>(key: string, fallback: T): T {

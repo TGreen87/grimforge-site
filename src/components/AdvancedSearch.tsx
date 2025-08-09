@@ -159,6 +159,7 @@ const AdvancedSearch = ({ onSearchResults, placeholder = "Search for dark treasu
           ref={inputRef}
           type="text"
           placeholder={placeholder}
+          aria-label="Search products"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           onFocus={() => setIsOpen(true)}

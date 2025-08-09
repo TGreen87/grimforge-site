@@ -94,6 +94,7 @@ const ProductCard = ({ id, title, artist, format, price, image, limited, preOrde
           <img 
             src={image} 
             alt={`${artist} - ${title}`}
+            loading="lazy"
             className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
           />
           
@@ -163,8 +164,8 @@ const ProductCard = ({ id, title, artist, format, price, image, limited, preOrde
               {price}
             </span>
             <Button size="sm" variant="ghost" className="text-xs md:text-sm text-muted-foreground hover:text-accent px-2" onClick={handleAddToCart}>
-              <span className="hidden sm:inline">Add to Cart</span>
-              <span className="sm:hidden">Add</span>
+            <span className="hidden sm:inline">Add to Cart</span>
+            <span className="sm:hidden">Add</span>
             </Button>
           </div>
         </div>

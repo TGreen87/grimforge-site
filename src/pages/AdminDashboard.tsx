@@ -9,6 +9,7 @@ import EnhancedProductManagement from "@/components/admin/EnhancedProductManagem
 import AdvancedOrderManagement from "@/components/admin/AdvancedOrderManagement";
 import CustomerManagement from "@/components/admin/CustomerManagement";
 import SiteSettings from "@/components/admin/SiteSettings";
+import RecordsManager from "@/components/admin/RecordsManager";
 
 // Mock data for admin dashboard
 const mockStats = {
@@ -110,7 +111,7 @@ const AdminDashboard = () => {
 
         {/* Main Content Tabs */}
         <Tabs defaultValue="analytics" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-5">
+          <TabsList className="grid w-full grid-cols-6">
             <TabsTrigger value="analytics" className="flex items-center gap-2">
               <BarChart3 className="h-4 w-4" />
               Analytics
@@ -126,6 +127,10 @@ const AdminDashboard = () => {
             <TabsTrigger value="customers" className="flex items-center gap-2">
               <UsersIcon className="h-4 w-4" />
               Customers
+            </TabsTrigger>
+            <TabsTrigger value="records" className="flex items-center gap-2">
+              <Package className="h-4 w-4" />
+              Records
             </TabsTrigger>
             <TabsTrigger value="settings" className="flex items-center gap-2">
               <Settings className="h-4 w-4" />
@@ -147,6 +152,10 @@ const AdminDashboard = () => {
 
           <TabsContent value="customers">
             <CustomerManagement />
+          </TabsContent>
+
+          <TabsContent value="records">
+            <RecordsManager />
           </TabsContent>
 
           <TabsContent value="settings">
