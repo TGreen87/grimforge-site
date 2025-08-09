@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface ProductRow {
   id: string;
@@ -14,6 +15,15 @@ interface ProductRow {
   format: string | null;
   description: string | null;
   active: boolean;
+  price: number;
+  stock: number;
+  sku: string | null;
+  release_year: number | null;
+  featured: boolean;
+  limited: boolean;
+  pre_order: boolean;
+  image: string | null;
+  tags: string[];
 }
 
 export default function EditCatalogText() {
@@ -26,6 +36,41 @@ export default function EditCatalogText() {
   const [draftDesc, setDraftDesc] = useState<string>("");
   const [draftTitle, setDraftTitle] = useState<string>("");
   const [draftArtist, setDraftArtist] = useState<string>("");
+  const [draftFormat, setDraftFormat] = useState<"vinyl" | "cassette" | "cd" | "">("");
+  const [draftPrice, setDraftPrice] = useState<string>("");
+  const [draftStock, setDraftStock] = useState<string>("");
+  const [draftSKU, setDraftSKU] = useState<string>("");
+  const [draftActive, setDraftActive] = useState<boolean>(true);
+  const [draftFeatured, setDraftFeatured] = useState<boolean>(false);
+  const [draftLimited, setDraftLimited] = useState<boolean>(false);
+  const [draftPreOrder, setDraftPreOrder] = useState<boolean>(false);
+  const [draftReleaseYear, setDraftReleaseYear] = useState<string>("");
+  const [draftTagsInput, setDraftTagsInput] = useState<string>("");
+  const [draftImage, setDraftImage] = useState<string>("");
+  const fileRef = useRef<HTMLInputElement>(null);
+
+  const onImageFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !selected) return;
+    try {
+      const ext = file.type.split("/")[1] || "jpg";
+      const path = `images/${selected.id}-${Date.now()}.${ext}`;
+      const { error: uploadError } = await supabase.storage
+        .from("products")
+        .upload(path, file, { contentType: file.type });
+      if (uploadError) throw uploadError;
+      const { data: publicUrlData } = supabase.storage.from("products").getPublicUrl(path);
+      if (publicUrlData?.publicUrl) {
+        setDraftImage(publicUrlData.publicUrl);
+        toast({ title: "Image uploaded", description: "Preview updated" });
+      }
+    } catch (err: any) {
+      console.error("Image upload failed", err);
+      toast({ title: "Image upload failed", description: err.message ?? "Try a different image", variant: "destructive" });
+    } finally {
+      if (fileRef.current) fileRef.current.value = "";
+    }
+  };
 
   useEffect(() => {
     let ignore = false;
@@ -33,7 +78,7 @@ export default function EditCatalogText() {
       setLoading(true);
       const { data, error } = await supabase
         .from("products")
-        .select("id,title,artist,format,description,active")
+        .select("id,title,artist,format,description,active,price,stock,sku,release_year,featured,limited,pre_order,image,tags")
         .order("created_at", { ascending: false });
       if (!ignore) {
         if (error) {
@@ -66,19 +111,61 @@ export default function EditCatalogText() {
     setDraftDesc(p.description || "");
     setDraftTitle(p.title || "");
     setDraftArtist(p.artist || "");
+    setDraftFormat((p.format as any) || "vinyl");
+    setDraftPrice(p.price != null ? String(p.price) : "");
+    setDraftStock(p.stock != null ? String(p.stock) : "");
+    setDraftSKU(p.sku || "");
+    setDraftActive(!!p.active);
+    setDraftFeatured(!!p.featured);
+    setDraftLimited(!!p.limited);
+    setDraftPreOrder(!!p.pre_order);
+    setDraftReleaseYear(p.release_year != null ? String(p.release_year) : "");
+    setDraftTagsInput(Array.isArray(p.tags) ? p.tags.join(", ") : "");
+    setDraftImage(p.image || "");
   };
 
   const onSave = async () => {
     if (!selected) return;
     try {
       setSaving(true);
+      const tagsArray = (draftTagsInput || "")
+        .split(",")
+        .map((t) => t.trim())
+        .filter(Boolean);
+      const payload = {
+        title: draftTitle,
+        artist: draftArtist,
+        description: draftDesc,
+        format: draftFormat || null,
+        price: Number(draftPrice || 0),
+        stock: parseInt(draftStock || "0", 10),
+        sku: draftSKU || null,
+        active: draftActive,
+        featured: draftFeatured,
+        limited: draftLimited,
+        pre_order: draftPreOrder,
+        release_year: draftReleaseYear ? parseInt(draftReleaseYear, 10) : null,
+        image: draftImage || null,
+        tags: tagsArray,
+      } as Partial<ProductRow> & { [k: string]: any };
+
       const { error } = await supabase
         .from("products")
-        .update({ description: draftDesc, title: draftTitle, artist: draftArtist })
+        .update(payload)
         .eq("id", selected.id);
       if (error) throw error;
-      setProducts(prev => prev.map(pr => pr.id === selected.id ? { ...pr, description: draftDesc, title: draftTitle, artist: draftArtist } : pr));
-      toast({ title: "Saved", description: "Catalog text updated" });
+
+      setProducts((prev) =>
+        prev.map((pr) =>
+          pr.id === selected.id
+            ? {
+                ...pr,
+                ...payload,
+              }
+            : pr
+        )
+      );
+      toast({ title: "Saved", description: "Listing updated" });
     } catch (e: any) {
       console.error("Save failed", e);
       toast({ title: "Save failed", description: e.message ?? "Please try again", variant: "destructive" });
@@ -92,6 +179,17 @@ export default function EditCatalogText() {
     setDraftDesc(selected.description || "");
     setDraftTitle(selected.title || "");
     setDraftArtist(selected.artist || "");
+    setDraftFormat((selected.format as any) || "vinyl");
+    setDraftPrice(selected.price != null ? String(selected.price) : "");
+    setDraftStock(selected.stock != null ? String(selected.stock) : "");
+    setDraftSKU(selected.sku || "");
+    setDraftActive(!!selected.active);
+    setDraftFeatured(!!selected.featured);
+    setDraftLimited(!!selected.limited);
+    setDraftPreOrder(!!selected.pre_order);
+    setDraftReleaseYear(selected.release_year != null ? String(selected.release_year) : "");
+    setDraftTagsInput(Array.isArray(selected.tags) ? selected.tags.join(", ") : "");
+    setDraftImage(selected.image || "");
   };
 
   return (
@@ -140,34 +238,114 @@ export default function EditCatalogText() {
                     <div className="text-sm text-muted-foreground">Editing</div>
                     <div className="font-semibold">{selected.artist} – {selected.title}</div>
                   </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    <Input
-                      value={draftTitle}
-                      onChange={(e) => setDraftTitle(e.target.value)}
-                      placeholder="Title"
-                      aria-label="Title"
-                    />
-                    <Input
-                      value={draftArtist}
-                      onChange={(e) => setDraftArtist(e.target.value)}
-                      placeholder="Artist"
-                      aria-label="Artist"
-                    />
-                  </div>
-                  <Textarea
-                    rows={12}
-                    value={draftDesc}
-                    onChange={(e) => setDraftDesc(e.target.value)}
-                    aria-label="Catalog description"
-                    placeholder="Enter the catalog listing text (description)"
-                  />
-                  <div className="flex gap-2">
-                    <Button onClick={onSave} disabled={saving}>
-                      Save
-                    </Button>
-                    <Button variant="outline" onClick={onRevert} disabled={saving}>
-                      Revert
-                    </Button>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-3">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <Input
+                          value={draftTitle}
+                          onChange={(e) => setDraftTitle(e.target.value)}
+                          placeholder="Title"
+                          aria-label="Title"
+                        />
+                        <Input
+                          value={draftArtist}
+                          onChange={(e) => setDraftArtist(e.target.value)}
+                          placeholder="Artist"
+                          aria-label="Artist"
+                        />
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <Select value={draftFormat || undefined} onValueChange={(v: any) => setDraftFormat(v)}>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Format" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="vinyl">Vinyl</SelectItem>
+                            <SelectItem value="cassette">Cassette</SelectItem>
+                            <SelectItem value="cd">CD</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <Input
+                          type="text"
+                          inputMode="decimal"
+                          placeholder="Price (e.g. 24.99)"
+                          aria-label="Price"
+                          value={draftPrice}
+                          onChange={(e) => setDraftPrice(e.target.value)}
+                        />
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                        <Input
+                          type="number"
+                          placeholder="Stock"
+                          aria-label="Stock"
+                          value={draftStock}
+                          onChange={(e) => setDraftStock(e.target.value)}
+                        />
+                        <Input
+                          placeholder="SKU"
+                          aria-label="SKU"
+                          value={draftSKU}
+                          onChange={(e) => setDraftSKU(e.target.value)}
+                        />
+                        <Input
+                          type="number"
+                          placeholder="Release Year"
+                          aria-label="Release Year"
+                          value={draftReleaseYear}
+                          onChange={(e) => setDraftReleaseYear(e.target.value)}
+                        />
+                      </div>
+
+                      <Input
+                        placeholder="Tags (comma separated)"
+                        aria-label="Tags"
+                        value={draftTagsInput}
+                        onChange={(e) => setDraftTagsInput(e.target.value)}
+                      />
+
+                      <div className="flex flex-wrap gap-4 text-sm">
+                        <label className="flex items-center gap-2"><input type="checkbox" checked={draftActive} onChange={(e) => setDraftActive(e.target.checked)} /> Active</label>
+                        <label className="flex items-center gap-2"><input type="checkbox" checked={draftFeatured} onChange={(e) => setDraftFeatured(e.target.checked)} /> Featured</label>
+                        <label className="flex items-center gap-2"><input type="checkbox" checked={draftLimited} onChange={(e) => setDraftLimited(e.target.checked)} /> Limited</label>
+                        <label className="flex items-center gap-2"><input type="checkbox" checked={draftPreOrder} onChange={(e) => setDraftPreOrder(e.target.checked)} /> Pre-Order</label>
+                      </div>
+
+                      <Textarea
+                        rows={10}
+                        value={draftDesc}
+                        onChange={(e) => setDraftDesc(e.target.value)}
+                        aria-label="Catalog description"
+                        placeholder="Enter the catalog listing text (description)"
+                      />
+
+                      <div className="flex gap-2">
+                        <Button onClick={onSave} disabled={saving}>Save</Button>
+                        <Button variant="outline" onClick={onRevert} disabled={saving}>Revert</Button>
+                      </div>
+                    </div>
+
+                    <div className="space-y-3">
+                      <div className="aspect-square rounded-md overflow-hidden border border-border bg-muted flex items-center justify-center">
+                        {draftImage ? (
+                          <img src={draftImage} alt="Product image" className="w-full h-full object-cover" />
+                        ) : (
+                          <div className="text-center text-muted-foreground text-sm p-4">No image</div>
+                        )}
+                      </div>
+                      <Input
+                        placeholder="Image URL (optional)"
+                        aria-label="Image URL"
+                        value={draftImage}
+                        onChange={(e) => setDraftImage(e.target.value)}
+                      />
+                      <div className="flex gap-2">
+                        <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={onImageFile} />
+                        <Button type="button" variant="outline" onClick={() => fileRef.current?.click()}>Upload Image</Button>
+                      </div>
+                    </div>
                   </div>
                 </>
               ) : (
