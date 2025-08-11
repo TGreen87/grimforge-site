@@ -6,11 +6,12 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-interface PriceRequest {
+interface RegenRequest {
   title: string;
   artist: string;
   format?: "vinyl" | "cassette" | "cd";
-  cost?: number | null;
+  tags?: string[];
+  existing?: string;
 }
 
 function parseOutputText(obj: any): string {
@@ -31,7 +32,6 @@ serve(async (req) => {
 
   const OPENAI_API_KEY = Deno.env.get("OPENAI_API_KEY");
   if (!OPENAI_API_KEY) {
-    console.error("Missing OPENAI_API_KEY secret");
     return new Response(JSON.stringify({ error: "Missing OPENAI_API_KEY" }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -39,9 +39,7 @@ serve(async (req) => {
   }
 
   try {
-    const body = (await req.json()) as PriceRequest;
-    const { title, artist, format = "vinyl", cost = null } = body || {};
-
+    const { title, artist, format = "vinyl", tags = [], existing = "" } = (await req.json()) as RegenRequest;
     if (!title || !artist) {
       return new Response(JSON.stringify({ error: "title and artist are required" }), {
         status: 400,
@@ -49,28 +47,28 @@ serve(async (req) => {
       });
     }
 
-    const prompt = `Research current Australia market price for ${artist} - ${title} (${format}). Consider:\n- Primary comps: Australian retailers, Discogs AU, local eBay AU sold listings\n- Condition: New retail (sealed) unless known otherwise\n- Typical indie record store margins in AU; if cost provided, consider reasonable retail margin\n- Include GST considerations implicitly in retail price\nReturn STRICT JSON ONLY with keys:\n{\n  "suggested_price": number, // in AUD\n  "currency": "AUD",\n  "reasoning": string, // 1-2 sentences max\n  "sources": [{"title": string, "url": string}] // up to 5\n}\n${cost !== null ? `Cost basis (seller reported): AUD ${cost}. Prefer suggested_price >= cost * 1.25 unless market contradicts.` : ""}`;
+    const instructions = `Write a concise, music-focused product description for a record store listing.\nConstraints:\n- 120–220 characters.\n- Describe sound/genre/subgenres, scene/region if relevant, edition/pressing cues.\n- Avoid artwork/visual terms entirely.\n- Tone should fit extreme/underground metal retail (no "cosmic" unless clearly accurate).\n- Return JSON only: {"description": "..."}`;
+
+    const userInput = `Title: ${title}\nArtist: ${artist}\nFormat: ${format}\nTags: ${(tags || []).join(", ")}\nExisting (optional): ${existing}`;
 
     const payload = {
       model: "gpt-5",
       input: [
-        { role: "system", content: [{ type: "text", text: "Be precise and concise. Return JSON only." }] },
-        { role: "user", content: [{ type: "input_text", text: prompt }] },
+        { role: "system", content: [{ type: "text", text: instructions }] },
+        { role: "user", content: [{ type: "input_text", text: userInput }] },
       ],
-      tools: [{ type: "web_search_preview" }],
-      tool_choice: "auto",
-      temperature: 0.2,
+      temperature: 0.5,
       store: false,
     } as const;
 
-    const aiResp = await fetch("https://api.openai.com/v1/responses", {
+    const resp = await fetch("https://api.openai.com/v1/responses", {
       method: "POST",
       headers: { Authorization: `Bearer ${OPENAI_API_KEY}`, "Content-Type": "application/json" },
       body: JSON.stringify(payload),
     });
 
-    if (!aiResp.ok) {
-      const err = await aiResp.text();
+    if (!resp.ok) {
+      const err = await resp.text();
       console.error("OpenAI Responses error", err);
       return new Response(JSON.stringify({ error: "AI error", details: err }), {
         status: 500,
@@ -78,27 +76,21 @@ serve(async (req) => {
       });
     }
 
-    const data = await aiResp.json();
+    const data = await resp.json();
     const text = parseOutputText(data);
 
-    let parsed: any = {};
+    let description = "";
     try {
       const match = text && text.match(/\{[\s\S]*\}/);
-      parsed = JSON.parse(match ? match[0] : text || "{}");
+      const parsed = JSON.parse(match ? match[0] : text || "{}");
+      description = typeof parsed.description === "string" ? parsed.description : "";
     } catch (_) {}
 
-    const result = {
-      suggested_price: typeof parsed.suggested_price === "number" ? parsed.suggested_price : null,
-      currency: "AUD" as const,
-      reasoning: typeof parsed.reasoning === "string" ? parsed.reasoning : "Pricing based on recent AU market comps.",
-      sources: Array.isArray(parsed.sources) ? parsed.sources.slice(0, 5).filter((s: any) => s && s.url && s.title) : [],
-    };
-
-    return new Response(JSON.stringify(result), {
+    return new Response(JSON.stringify({ description }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (error: any) {
-    console.error("price-research-au error", error);
+    console.error("regenerate-description error", error);
     return new Response(JSON.stringify({ error: "Unexpected error", details: error?.message }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },

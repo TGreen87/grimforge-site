@@ -140,7 +140,7 @@ const AdminDashboard = () => {
             </TabsTrigger>
             <TabsTrigger value="catalog" className="flex items-center gap-2">
               <FileText className="h-4 w-4" />
-              Catalog Text
+              Edit Listing
             </TabsTrigger>
             <TabsTrigger value="settings" className="flex items-center gap-2">
               <Settings className="h-4 w-4" />

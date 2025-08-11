@@ -6,16 +6,26 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+function parseOutputText(obj: any): string {
+  if (!obj) return "";
+  if (typeof obj.output_text === "string" && obj.output_text) return obj.output_text;
+  const content = obj.content;
+  if (Array.isArray(content)) {
+    const t = content.find((c) => c.type === "output_text" || c.type === "text");
+    if (t?.text) return t.text;
+  }
+  return "";
+}
+
 serve(async (req) => {
-  // CORS preflight
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const apiKey = Deno.env.get("PERPLEXITY_API_KEY");
+    const apiKey = Deno.env.get("OPENAI_API_KEY");
     if (!apiKey) {
-      return new Response(JSON.stringify({ error: "Missing PERPLEXITY_API_KEY" }), {
+      return new Response(JSON.stringify({ error: "Missing OPENAI_API_KEY" }), {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -29,37 +39,30 @@ serve(async (req) => {
       });
     }
 
-    // Build prompt asking strictly for JSON output
-    const prompt = `Extract 5-10 SEO-friendly music product tags from the following details. 
-- Use concise lowercase words, allow hyphens, no emojis, no prefixes, no numbering.
-- Avoid duplicates and very generic words (music, album).
-- Return ONLY valid JSON in the form: {"tags":["tag1","tag2",...]}
+    const instructions = `Extract 5-10 SEO-friendly music product tags from the following details.\n- Use concise lowercase words, allow hyphens, no emojis, no prefixes, no numbering.\n- Avoid duplicates and very generic words (music, album).\n- Return ONLY valid JSON in the form: {"tags":["tag1","tag2",...]}`;
 
-Text:\n${text}`;
+    const payload = {
+      model: "gpt-5",
+      input: [
+        { role: "system", content: [{ type: "text", text: "Be precise and concise. Output JSON only." }] },
+        { role: "user", content: [ { type: "input_text", text: instructions + "\n\nText:\n" + text } ] },
+      ],
+      temperature: 0.2,
+      store: false,
+    } as const;
 
-    const response = await fetch("https://api.perplexity.ai/chat/completions", {
+    const response = await fetch("https://api.openai.com/v1/responses", {
       method: "POST",
       headers: {
         Authorization: `Bearer ${apiKey}`,
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({
-        model: "llama-3.1-sonar-small-128k-online",
-        messages: [
-          { role: "system", content: "Be precise and concise. Output JSON only." },
-          { role: "user", content: prompt },
-        ],
-        temperature: 0.2,
-        top_p: 0.9,
-        max_tokens: 400,
-        return_images: false,
-        return_related_questions: false,
-      }),
+      body: JSON.stringify(payload),
     });
 
     if (!response.ok) {
       const errText = await response.text();
-      console.error("Perplexity error:", errText);
+      console.error("OpenAI Responses error:", errText);
       return new Response(JSON.stringify({ error: "AI service error" }), {
         status: 502,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -67,16 +70,15 @@ Text:\n${text}`;
     }
 
     const data = await response.json();
-    const content = data?.choices?.[0]?.message?.content ?? "";
+    const textOut = parseOutputText(data);
 
     let tags: string[] = [];
     try {
-      const parsed = JSON.parse(typeof content === "string" ? content : JSON.stringify(content));
+      const parsed = JSON.parse(textOut || "{}");
       const arr = parsed?.tags;
       if (Array.isArray(arr)) tags = arr.map((t: unknown) => String(t)).filter(Boolean);
     } catch (_) {
-      // Try to extract JSON substring if model wrapped it
-      const match = typeof content === "string" ? content.match(/\{[\s\S]*\}/) : null;
+      const match = typeof textOut === "string" ? textOut.match(/\{[\s\S]*\}/) : null;
       if (match) {
         try {
           const parsed = JSON.parse(match[0]);
@@ -84,11 +86,6 @@ Text:\n${text}`;
           if (Array.isArray(arr)) tags = arr.map((t: unknown) => String(t)).filter(Boolean);
         } catch {}
       }
-    }
-
-    // Basic fallback to ensure response shape
-    if (!Array.isArray(tags) || tags.length === 0) {
-      tags = [];
     }
 
     return new Response(JSON.stringify({ tags }), {

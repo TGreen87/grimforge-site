@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-
+import { brand } from "@/config/brand";
 interface ProductRow {
   id: string;
   title: string;
@@ -48,6 +48,23 @@ export default function EditCatalogText() {
   const [draftTagsInput, setDraftTagsInput] = useState<string>("");
   const [draftImage, setDraftImage] = useState<string>("");
   const fileRef = useRef<HTMLInputElement>(null);
+  const [regenLoading, setRegenLoading] = useState(false);
+  const [priceLoading, setPriceLoading] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+
+  const generateSku = () => {
+    const initials = (brand.name || "Store")
+      .split(/\s+/)
+      .map((w) => w[0])
+      .join("")
+      .toUpperCase()
+      .slice(0, 4);
+    const yr = (draftReleaseYear || String(new Date().getFullYear())).replace(/[^0-9]/g, "");
+    const fmtMap: Record<string, string> = { vinyl: "VNL", cassette: "CST", cd: "CD" };
+    const fmt = fmtMap[(draftFormat || "vinyl").toLowerCase()] || "VNL";
+    const rand = Math.random().toString(36).slice(2, 6).toUpperCase();
+    return `${initials}-${yr}-${fmt}-${rand}`;
+  };
 
   const onImageFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -192,11 +209,102 @@ export default function EditCatalogText() {
     setDraftImage(selected.image || "");
   };
 
+  const handleRegenerateDescription = async () => {
+    if (!draftTitle || !draftArtist) {
+      toast({ title: "Missing details", description: "Provide title and artist first.", variant: "destructive" });
+      return;
+    }
+    try {
+      setRegenLoading(true);
+      const tags = (draftTagsInput || "")
+        .split(",")
+        .map((t) => t.trim())
+        .filter(Boolean);
+      const { data, error } = await supabase.functions.invoke("regenerate-description", {
+        body: {
+          title: draftTitle,
+          artist: draftArtist,
+          format: draftFormat || "vinyl",
+          tags,
+          existing: draftDesc,
+        },
+      });
+      if (error) throw error;
+      const next = (data as any)?.description || "";
+      if (next) {
+        setDraftDesc(next);
+        toast({ title: "Description updated" });
+      } else {
+        toast({ title: "No description returned", variant: "destructive" });
+      }
+    } catch (e: any) {
+      console.error("Regenerate description failed", e);
+      toast({ title: "Failed to regenerate description", description: e.message ?? "Try again later", variant: "destructive" });
+    } finally {
+      setRegenLoading(false);
+    }
+  };
+
+  const handleRecommendPrice = async () => {
+    if (!draftTitle || !draftArtist) {
+      toast({ title: "Missing details", description: "Provide title and artist first.", variant: "destructive" });
+      return;
+    }
+    try {
+      setPriceLoading(true);
+      const { data, error } = await supabase.functions.invoke("price-research-au", {
+        body: {
+          title: draftTitle,
+          artist: draftArtist,
+          format: draftFormat || "vinyl",
+          cost: draftPrice ? Number(draftPrice) : null,
+        },
+      });
+      if (error) throw error;
+      const suggested = (data as any)?.suggested_price;
+      if (typeof suggested === "number" && !Number.isNaN(suggested)) {
+        setDraftPrice(String(Number(suggested.toFixed(2))));
+        toast({ title: "Price suggestion applied", description: `AUD ${suggested.toFixed(2)}` });
+      } else {
+        toast({ title: "No price suggestion returned", variant: "destructive" });
+      }
+    } catch (e: any) {
+      console.error("Get recommended price failed", e);
+      toast({ title: "Failed to get price", description: e.message ?? "Try again later", variant: "destructive" });
+    } finally {
+      setPriceLoading(false);
+    }
+  };
+
+  const handleGenerateSku = () => {
+    const sku = generateSku();
+    setDraftSKU(sku);
+    toast({ title: "SKU generated", description: sku });
+  };
+
+  const handleDelete = async () => {
+    if (!selected) return;
+    if (!confirm("Delete this listing? This cannot be undone.")) return;
+    try {
+      setDeleting(true);
+      const { error } = await supabase.from("products").delete().eq("id", selected.id);
+      if (error) throw error;
+      setProducts((prev) => prev.filter((p) => p.id !== selected.id));
+      setSelectedId(null);
+      toast({ title: "Listing deleted" });
+    } catch (e: any) {
+      console.error("Delete failed", e);
+      toast({ title: "Delete failed", description: e.message ?? "Try again later", variant: "destructive" });
+    } finally {
+      setDeleting(false);
+    }
+  };
+
   return (
     <section className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle>Edit Catalog Listing Text</CardTitle>
+          <CardTitle>Edit Listing</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -299,18 +407,36 @@ export default function EditCatalogText() {
                         />
                       </div>
 
+                      <div className="flex flex-wrap gap-2">
+                        <Button type="button" variant="outline" onClick={handleRecommendPrice} disabled={priceLoading}>
+                          {priceLoading ? "Getting price…" : "Get Recommended Price (AUD)"}
+                        </Button>
+                        <Button type="button" variant="outline" onClick={handleGenerateSku}>
+                          Generate SKU
+                        </Button>
+                      </div>
+                      <p className="text-xs text-muted-foreground">Pricing is in AUD; considers AU retailers, Discogs AU, and typical indie margins.</p>
+
                       <Input
                         placeholder="Tags (comma separated)"
                         aria-label="Tags"
                         value={draftTagsInput}
                         onChange={(e) => setDraftTagsInput(e.target.value)}
                       />
+                      <p className="text-xs text-muted-foreground">Add 5–10 concise music tags (e.g., black metal, raw, demo, US).</p>
 
                       <div className="flex flex-wrap gap-4 text-sm">
                         <label className="flex items-center gap-2"><input type="checkbox" checked={draftActive} onChange={(e) => setDraftActive(e.target.checked)} /> Active</label>
                         <label className="flex items-center gap-2"><input type="checkbox" checked={draftFeatured} onChange={(e) => setDraftFeatured(e.target.checked)} /> Featured</label>
                         <label className="flex items-center gap-2"><input type="checkbox" checked={draftLimited} onChange={(e) => setDraftLimited(e.target.checked)} /> Limited</label>
                         <label className="flex items-center gap-2"><input type="checkbox" checked={draftPreOrder} onChange={(e) => setDraftPreOrder(e.target.checked)} /> Pre-Order</label>
+                      </div>
+
+                      <div className="flex flex-wrap gap-2 items-center">
+                        <Button type="button" variant="outline" onClick={handleRegenerateDescription} disabled={regenLoading}>
+                          {regenLoading ? "Regenerating…" : "Regenerate Description"}
+                        </Button>
+                        <p className="text-xs text-muted-foreground">Music-focused, 120–220 chars. Avoid artwork terms.</p>
                       </div>
 
                       <Textarea
@@ -324,6 +450,7 @@ export default function EditCatalogText() {
                       <div className="flex gap-2">
                         <Button onClick={onSave} disabled={saving}>Save</Button>
                         <Button variant="outline" onClick={onRevert} disabled={saving}>Revert</Button>
+                        <Button variant="outline" onClick={handleDelete} disabled={deleting}>Delete</Button>
                       </div>
                     </div>
 
