@@ -1,13 +1,13 @@
 project_id = "shbalyvvquvtvnkrsxtx"
 
 [functions.generate-tags]
-verify_jwt = false
+verify_jwt = true
 
 [functions.product-autofill-from-image]
-verify_jwt = false
+verify_jwt = true
 
 [functions.price-research-au]
-verify_jwt = false
+verify_jwt = true
 
 [functions.regenerate-description]
-verify_jwt = false
+verify_jwt = true
