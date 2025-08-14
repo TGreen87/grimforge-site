@@ -1,12 +1,7 @@
 import ProductCard from "./ProductCard";
+import ComingSoonCard from "./ComingSoonCard";
 import CatalogFilters from "./CatalogFilters";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-const album1 = "/assets/album-1.jpg";
-const album2 = "/assets/album-2.jpg";
-const album3 = "/assets/album-3.jpg";
-const album4 = "/assets/album-4.jpg";
-const album5 = "/assets/album-5.jpg";
-const album6 = "/assets/album-6.jpg";
 import { useState, useMemo, useEffect } from "react";
 import { useSupabaseProducts } from "@/hooks/useSupabaseProducts";
 
@@ -49,101 +44,19 @@ const ProductCatalog = () => {
     window.addEventListener('hashchange', handleHashChange);
     return () => window.removeEventListener('hashchange', handleHashChange);
   }, []);
-  // Enhanced mock data with more properties for filtering
-  const allProducts = [
-    {
-      id: "mayhem-de-mysteriis",
-      title: "De Mysteriis Dom Sathanas",
-      artist: "Mayhem",
-      format: "vinyl" as const,
-      price: "$45.00",
-      priceNumber: 45,
-      image: album1,
-      limited: true,
-      inStock: true,
-      genre: ["Black Metal", "Raw Black Metal"],
-      grimness: 95,
-      releaseYear: 1994,
-      featured: true
-    },
-    {
-      id: "burzum-hvis-lyset",
-      title: "Hvis Lyset Tar Oss",
-      artist: "Burzum", 
-      format: "cassette" as const,
-      price: "$25.00",
-      priceNumber: 25,
-      image: album2,
-      inStock: true,
-      genre: ["Atmospheric Black Metal", "Black Metal"],
-      grimness: 85,
-      releaseYear: 1994,
-      featured: false
-    },
-    {
-      id: "emperor-nightside",
-      title: "In the Nightside Eclipse",
-      artist: "Emperor",
-      format: "cd" as const,
-      price: "$18.00",
-      priceNumber: 18,
-      image: album3,
-      inStock: true,
-      genre: ["Symphonic Black Metal", "Black Metal"],
-      grimness: 80,
-      releaseYear: 1994,
-      featured: true
-    },
-    {
-      id: "darkthrone-transilvanian",
-      title: "Transilvanian Hunger",
-      artist: "Darkthrone",
-      format: "vinyl" as const,
-      price: "$42.00",
-      priceNumber: 42,
-      image: album4,
-      preOrder: true,
-      inStock: false,
-      genre: ["Raw Black Metal", "Black Metal"],
-      grimness: 90,
-      releaseYear: 1994,
-      featured: false
-    },
-    {
-      id: "dissection-somberlain",
-      title: "The Somberlain",
-      artist: "Dissection",
-      format: "vinyl" as const,
-      price: "$48.00",
-      priceNumber: 48,
-      image: album5,
-      inStock: true,
-      genre: ["Blackened Death", "Black Metal"],
-      grimness: 75,
-      releaseYear: 1993,
-      featured: true
-    },
-    {
-      id: "darkthrone-funeral-moon",
-      title: "Under a Funeral Moon",
-      artist: "Darkthrone",
-      format: "cassette" as const,
-      price: "$22.00",
-      priceNumber: 22,
-      image: album6,
-      limited: true,
-      inStock: true,
-      genre: ["Raw Black Metal", "Black Metal"],
-      grimness: 92,
-      releaseYear: 1993,
-      featured: false
-    }
+  // Coming soon placeholders
+  const comingSoonItems = [
+    { id: "coming-soon-vinyl-1", format: "vinyl" as const },
+    { id: "coming-soon-vinyl-2", format: "vinyl" as const },
+    { id: "coming-soon-cassette-1", format: "cassette" as const },
+    { id: "coming-soon-cassette-2", format: "cassette" as const },
+    { id: "coming-soon-cd-1", format: "cd" as const },
   ];
 
   // Products from Supabase (live)
   const supabaseProducts = useSupabaseProducts();
 
-  const allProductsCombined = useMemo(() => [...allProducts, ...supabaseProducts], [supabaseProducts]);
+  const allProductsCombined = useMemo(() => [...supabaseProducts], [supabaseProducts]);
 
   // Filter and sort products
   const filteredProducts = useMemo(() => {
@@ -270,6 +183,9 @@ const ProductCatalog = () => {
                 {filteredProducts.map((product) => (
                   <ProductCard key={product.id} {...product} />
                 ))}
+                {comingSoonItems.map((item) => (
+                  <ComingSoonCard key={item.id} format={item.format} />
+                ))}
               </div>
             )}
           </TabsContent>
@@ -285,6 +201,9 @@ const ProductCatalog = () => {
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
                 {vinylProducts.map((product) => (
                   <ProductCard key={product.id} {...product} />
+                ))}
+                {comingSoonItems.filter(item => item.format === "vinyl").map((item) => (
+                  <ComingSoonCard key={item.id} format={item.format} />
                 ))}
               </div>
             )}
@@ -302,6 +221,9 @@ const ProductCatalog = () => {
                 {cassetteProducts.map((product) => (
                   <ProductCard key={product.id} {...product} />
                 ))}
+                {comingSoonItems.filter(item => item.format === "cassette").map((item) => (
+                  <ComingSoonCard key={item.id} format={item.format} />
+                ))}
               </div>
             )}
           </TabsContent>
@@ -317,6 +239,9 @@ const ProductCatalog = () => {
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
                 {cdProducts.map((product) => (
                   <ProductCard key={product.id} {...product} />
+                ))}
+                {comingSoonItems.filter(item => item.format === "cd").map((item) => (
+                  <ComingSoonCard key={item.id} format={item.format} />
                 ))}
               </div>
             )}
