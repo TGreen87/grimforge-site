@@ -4,47 +4,8 @@ const album2 = "/assets/album-2.jpg";
 const album3 = "/assets/album-3.jpg";
 
 const PreOrderSection = () => {
-  // Mock pre-order data
-  const preOrders = [
-    {
-      id: "immortal-northern-chaos",
-      title: "Northern Chaos Gods",
-      artist: "Immortal",
-      format: "vinyl" as const,
-      price: "$55.00",
-      image: album1,
-      releaseDate: "2024-03-15",
-      totalPressing: 500,
-      currentOrders: 423,
-      description: "The legendary Norse warriors return with their most glacial and atmospheric opus yet. Limited gatefold edition with frost-covered artwork.",
-      limitedEdition: true
-    },
-    {
-      id: "gorgoroth-destroyer",
-      title: "Destroyer",
-      artist: "Gorgoroth",
-      format: "cassette" as const,
-      price: "$28.00",
-      image: album2,
-      releaseDate: "2024-02-28",
-      totalPressing: 300,
-      currentOrders: 267,
-      description: "Raw and uncompromising black metal terror. Pro-dubbed cassettes with exclusive artwork and lyrics sheet.",
-      limitedEdition: true
-    },
-    {
-      id: "watain-trident-wolf",
-      title: "The Wild Hunt",
-      artist: "Watain",
-      format: "cd" as const,
-      price: "$22.00",
-      image: album3,
-      releaseDate: "2024-04-01",
-      totalPressing: 1000,
-      currentOrders: 156,
-      description: "Swedish black metal masters deliver their most ritualistic album. Digipak edition with bonus tracks and sigil artwork."
-    }
-  ];
+  // Empty pre-orders - will show coming soon message
+  const preOrders = [];
 
   return (
     <section id="preorders" className="py-20 px-4 bg-gradient-to-b from-background to-secondary/10">
@@ -61,12 +22,26 @@ const PreOrderSection = () => {
           </p>
         </div>
 
-        {/* Pre-Order Grid - Mobile responsive */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
-          {preOrders.map((preOrder) => (
-            <PreOrderCard key={preOrder.id} {...preOrder} />
-          ))}
-        </div>
+        {/* Pre-Order Grid - Coming Soon Message */}
+        {preOrders.length === 0 ? (
+          <div className="text-center py-16">
+            <div className="bg-secondary/20 border border-border rounded-lg p-8 max-w-2xl mx-auto">
+              <h3 className="gothic-heading text-2xl text-bone mb-4">
+                Pre-Orders Coming Soon
+              </h3>
+              <p className="text-muted-foreground">
+                Exclusive limited releases will be available for pre-order soon. 
+                Join our newsletter below to be notified first when they're ready.
+              </p>
+            </div>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
+            {preOrders.map((preOrder) => (
+              <PreOrderCard key={preOrder.id} {...preOrder} />
+            ))}
+          </div>
+        )}
 
         {/* Call to Action */}
         <div className="text-center mt-16">

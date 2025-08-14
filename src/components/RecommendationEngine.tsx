@@ -23,17 +23,8 @@ interface RecommendationEngineProps {
   className?: string;
 }
 
-// Mock product data for recommendations
-const mockProducts: Product[] = [
-  { id: "rec-1", title: "Eternal Darkness", artist: "Shadowmoon", format: "vinyl", price: "$34.99", image: "/assets/album-1.jpg", genre: "Black Metal", limited: true },
-  { id: "rec-2", title: "Blood Moon Rising", artist: "Crimson Tide", format: "cd", price: "$18.99", image: "/assets/album-2.jpg", genre: "Death Metal" },
-  { id: "rec-3", title: "Necromantic Ritual", artist: "Death's Embrace", format: "cassette", price: "$24.99", image: "/assets/album-3.jpg", genre: "Black Metal" },
-  { id: "rec-4", title: "Shadow's Call", artist: "Void Walker", format: "vinyl", price: "$39.99", image: "/assets/album-4.jpg", genre: "Doom Metal", limited: true },
-  { id: "rec-5", title: "Dark Prophecy", artist: "Nightmare Lord", format: "cd", price: "$21.99", image: "/assets/album-5.jpg", genre: "Gothic Metal" },
-  { id: "rec-6", title: "Abyssal Dreams", artist: "Shadowmoon", format: "vinyl", price: "$42.99", image: "/assets/album-6.jpg", genre: "Black Metal", preOrder: true },
-  { id: "rec-7", title: "Cursed Lands", artist: "Void Walker", format: "cassette", price: "$19.99", image: "/assets/album-1.jpg", genre: "Doom Metal" },
-  { id: "rec-8", title: "Infernal Symphony", artist: "Death's Embrace", format: "vinyl", price: "$36.99", image: "/assets/album-2.jpg", genre: "Black Metal", limited: true },
-];
+// Empty recommendations - will show coming soon message
+const mockProducts: Product[] = [];
 
 const RecommendationEngine = ({ 
   currentProductId, 
@@ -113,7 +104,22 @@ const RecommendationEngine = ({
     setRecommendationType(type);
   };
 
-  if (recommendations.length === 0) return null;
+  // Show coming soon message when no recommendations
+  if (recommendations.length === 0) {
+    return (
+      <Card className={`bg-card/50 border-border ${className}`}>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Sparkles className="h-5 w-5 text-accent" />
+            More Darkness Coming Soon
+          </CardTitle>
+          <p className="text-sm text-muted-foreground">
+            New releases and recommendations will appear here as our catalog grows...
+          </p>
+        </CardHeader>
+      </Card>
+    );
+  }
 
   const getRecommendationTitle = () => {
     if (currentProductId) {
