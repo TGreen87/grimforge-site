@@ -17,10 +17,20 @@ const Navigation = () => {
   const activeId = useActiveSection(sectionIds);
  
   const scrollToSection = (sectionId: string) => {
-    const element = document.getElementById(sectionId);
-    if (element) {
-      const y = element.getBoundingClientRect().top + window.pageYOffset - 80; // header offset
-      window.scrollTo({ top: y, behavior: 'smooth' });
+    // For format-specific sections, set hash and scroll to catalog
+    if (sectionId === 'vinyl' || sectionId === 'cassettes' || sectionId === 'cds') {
+      window.location.hash = sectionId;
+      const catalogElement = document.getElementById('catalog');
+      if (catalogElement) {
+        const y = catalogElement.getBoundingClientRect().top + window.pageYOffset - 80;
+        window.scrollTo({ top: y, behavior: 'smooth' });
+      }
+    } else {
+      const element = document.getElementById(sectionId);
+      if (element) {
+        const y = element.getBoundingClientRect().top + window.pageYOffset - 80; // header offset
+        window.scrollTo({ top: y, behavior: 'smooth' });
+      }
     }
   };
   return (
@@ -33,26 +43,11 @@ const Navigation = () => {
           </Link>
         </div>
 
-        {/* Mobile Navigation */}
-        <div className="flex md:hidden items-center space-x-4 text-sm">
-          <button 
-            onClick={() => scrollToSection('catalog')}
-            className="text-foreground hover:text-accent transition-colors"
-          >
-            Catalog
-          </button>
-          <button 
-            onClick={() => scrollToSection('vinyl')}
-            className="text-foreground hover:text-accent transition-colors"
-          >
-            Vinyl
-          </button>
-          <button 
-            onClick={() => scrollToSection('cassettes')}
-            className="text-foreground hover:text-accent transition-colors"
-          >
-            Cassettes
-          </button>
+        {/* Mobile Logo */}
+        <div className="flex md:hidden items-center">
+          <Link to="/" className="blackletter text-xl text-bone hover:text-accent transition-colors">
+            {brand.name}
+          </Link>
         </div>
 
         {/* Desktop Navigation */}
