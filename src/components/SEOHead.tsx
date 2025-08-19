@@ -30,7 +30,7 @@ const SEOHead = ({
     "logo": `${url}/logo.png`,
     "sameAs": [
       "https://facebook.com/obsidianriterecords",
-      "https://instagram.com/obsidianriterecords",
+      "https://www.instagram.com/obsidianriterecords?igsh=MTgxNDZwbG5hY2VtOQ%3D%3D&utm_source=qr",
       "https://twitter.com/obsidianriterecords"
     ],
     "address": {
