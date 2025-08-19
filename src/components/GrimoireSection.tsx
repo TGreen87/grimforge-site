@@ -10,16 +10,6 @@ const GrimoireSection = () => {
   // Mock blog posts data
   const posts = [
     {
-      id: 1,
-      title: "The Dark Legacy of Norwegian Black Metal",
-      excerpt: "Exploring the origins and influence of the second wave of black metal from the frozen landscapes of Norway...",
-      author: "Morgoth Scribe",
-      date: "2024-01-15",
-      readTime: "8 min read",
-      image: grimoire1,
-      tags: ["History", "Norwegian", "Black Metal"]
-    },
-    {
       id: 2,
       title: "Underground Tape Trading: The Lost Art",
       excerpt: "Before digital streaming, the underground thrived through tape trading networks that spread the darkest sounds...",
@@ -110,7 +100,7 @@ const GrimoireSection = () => {
 
         {/* Recent Posts Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
-          {posts.slice(1).map((post) => (
+          {posts.slice(1).length > 0 ? posts.slice(1).map((post) => (
             <Card key={post.id} className="bg-card/80 backdrop-blur-sm border-border hover:border-accent transition-all duration-300 group">
               <CardHeader className="p-0">
                 <img 
@@ -159,7 +149,11 @@ const GrimoireSection = () => {
                 </div>
               </CardContent>
             </Card>
-          ))}
+          )) : (
+            <div className="col-span-full text-center text-muted-foreground">
+              <p>More dark chronicles coming soon...</p>
+            </div>
+          )}
         </div>
 
         {/* View All Button */}
