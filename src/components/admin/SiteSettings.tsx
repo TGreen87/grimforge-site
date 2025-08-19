@@ -17,7 +17,7 @@ const SiteSettings = () => {
       siteName: "Obsidian Rite Records",
       tagline: "Dark Music for Dark Souls",
       description: "Australia's premier distributor of underground black metal since the darkness began.",
-      contactEmail: "contact@obsidianriterecords.com",
+      contactEmail: "arg@obsidianriterecords.com",
       currency: "USD",
       timezone: "UTC"
     },

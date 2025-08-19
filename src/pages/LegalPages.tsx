@@ -24,7 +24,7 @@ const LegalPages = () => {
         <p>We implement appropriate security measures to protect your personal information against unauthorized access, alteration, disclosure, or destruction.</p>
         
         <h2>Contact Us</h2>
-        <p>If you have any questions about this Privacy Policy, please contact us at privacy@blackritualrecords.com</p>
+        <p>If you have any questions about this Privacy Policy, please contact us at arg@obsidianriterecords.com</p>
       `
     },
     terms: {
@@ -47,7 +47,7 @@ const LegalPages = () => {
         <p>Black Ritual Records shall not be liable for any indirect, incidental, special, consequential, or punitive damages.</p>
         
         <h2>Contact Information</h2>
-        <p>For questions regarding these terms, contact us at legal@blackritualrecords.com</p>
+        <p>For questions regarding these terms, contact us at arg@obsidianriterecords.com</p>
       `
     },
     shipping: {
@@ -92,7 +92,7 @@ const LegalPages = () => {
         <p>If you receive a damaged item, please contact us immediately with photos. We will provide a replacement or full refund.</p>
         
         <h2>How to Return</h2>
-        <p>Contact our customer service at returns@blackritualrecords.com to initiate a return and receive instructions.</p>
+        <p>Contact our customer service at arg@obsidianriterecords.com to initiate a return and receive instructions.</p>
         
         <h2>Non-Returnable Items</h2>
         <p>Opened vinyl records, CDs, and cassettes cannot be returned unless defective. Digital downloads are non-returnable.</p>
@@ -161,17 +161,17 @@ const LegalPages = () => {
         <p>We're here to help with your dark musical needs. Contact us through any of the following methods:</p>
         
         <h2>Customer Service</h2>
-        <p><strong>Email:</strong> support@blackritualrecords.com</p>
+        <p><strong>Email:</strong> arg@obsidianriterecords.com</p>
         <p><strong>Hours:</strong> Monday - Friday, 9 AM - 6 PM AEST</p>
         
         <h2>Orders & Shipping</h2>
-        <p><strong>Email:</strong> orders@blackritualrecords.com</p>
+        <p><strong>Email:</strong> arg@obsidianriterecords.com</p>
         
         <h2>Returns & Refunds</h2>
-        <p><strong>Email:</strong> returns@blackritualrecords.com</p>
+        <p><strong>Email:</strong> arg@obsidianriterecords.com</p>
         
         <h2>General Inquiries</h2>
-        <p><strong>Email:</strong> info@blackritualrecords.com</p>
+        <p><strong>Email:</strong> arg@obsidianriterecords.com</p>
         
         <h2>Response Time</h2>
         <p>We typically respond to all inquiries within 24 hours during business days.</p>

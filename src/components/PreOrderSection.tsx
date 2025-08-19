@@ -54,11 +54,11 @@ const PreOrderSection = () => {
               Be the first to secure your copy of the rarest pressings.
             </p>
             <div className="flex flex-col gap-3 sm:flex-row sm:gap-4 justify-center">
-              <input 
-                type="email" 
-                placeholder="your@darkness.com"
-                className="flex-1 max-w-sm px-4 py-2 bg-secondary border border-border rounded text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-accent text-sm md:text-base"
-              />
+                <input 
+                  type="email" 
+                  placeholder="arg@obsidianriterecords.com"
+                  className="flex-1 max-w-sm px-4 py-2 bg-secondary border border-border rounded text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-accent text-sm md:text-base"
+                />
               <button 
                 className="px-6 py-2 bg-accent text-accent-foreground rounded hover:bg-accent/90 transition-colors gothic-heading text-sm md:text-base"
                 onClick={() => {

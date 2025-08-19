@@ -109,7 +109,7 @@ const CheckoutModal = ({ children }: CheckoutModalProps) => {
             value={shippingData.email}
             onChange={(e) => setShippingData(prev => ({ ...prev, email: e.target.value }))}
             className="bg-secondary/50 border-border"
-            placeholder="your@darkness.com"
+            placeholder="arg@obsidianriterecords.com"
           />
         </div>
         
