@@ -1,4 +1,4 @@
-import { Facebook, Instagram, Twitter, Mail } from "lucide-react";
+import { Facebook, Instagram, Mail } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { brand } from "@/config/brand";
 import NewsletterSignup from "@/components/NewsletterSignup";
@@ -51,7 +51,6 @@ const Footer = () => {
             <div className="flex space-x-4">
               <Facebook className="h-5 w-5 text-muted-foreground hover:text-accent cursor-pointer transition-colors" />
               <Instagram className="h-5 w-5 text-muted-foreground hover:text-accent cursor-pointer transition-colors" />
-              <Twitter className="h-5 w-5 text-muted-foreground hover:text-accent cursor-pointer transition-colors" />
               <Mail className="h-5 w-5 text-muted-foreground hover:text-accent cursor-pointer transition-colors" />
             </div>
           </div>
@@ -93,7 +92,7 @@ const Footer = () => {
         {/* Bottom Bar */}
         <div className="border-t border-border mt-8 pt-8 flex flex-col md:flex-row justify-between items-center">
           <p className="text-sm text-muted-foreground">
-            © 2024 Obsidian Rite Records. All rights reserved.
+            © 2025 Obsidian Rite Records. All rights reserved.
           </p>
           <div className="flex space-x-6 mt-4 md:mt-0">
             <Link to="/legal/privacy" className="text-sm text-muted-foreground hover:text-accent transition-colors">

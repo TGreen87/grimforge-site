@@ -30,8 +30,7 @@ const SEOHead = ({
     "logo": `${url}/logo.png`,
     "sameAs": [
       "https://facebook.com/obsidianriterecords",
-      "https://www.instagram.com/obsidianriterecords?igsh=MTgxNDZwbG5hY2VtOQ%3D%3D&utm_source=qr",
-      "https://twitter.com/obsidianriterecords"
+      "https://www.instagram.com/obsidianriterecords?igsh=MTgxNDZwbG5hY2VtOQ%3D%3D&utm_source=qr"
     ],
     "address": {
       "@type": "PostalAddress",
@@ -63,13 +62,6 @@ const SEOHead = ({
       <meta property="og:site_name" content="Obsidian Rite Records" />
       <meta property="og:locale" content="en_US" />
 
-      {/* Twitter Card Meta Tags */}
-      <meta name="twitter:card" content="summary_large_image" />
-      <meta name="twitter:title" content={fullTitle} />
-      <meta name="twitter:description" content={description} />
-      <meta name="twitter:image" content={image} />
-      <meta name="twitter:site" content="@obsidianriterecords" />
-      <meta name="twitter:creator" content="@obsidianriterecords" />
 
       {/* Additional Meta Tags */}
       <meta name="theme-color" content="#0F0F0F" />
