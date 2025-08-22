@@ -1,6 +1,6 @@
 import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { cookies } from 'next/headers'
-import type { Database } from '@/integrations/supabase/types'
+import type { Database } from '@/lib/supabase/types'
 
 /**
  * Create a Supabase client for server-side operations

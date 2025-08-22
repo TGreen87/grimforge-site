@@ -20,9 +20,9 @@
       }
     ],
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./*", "./src/*"]
     }
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
-  "exclude": ["node_modules"]
+  "include": ["next-env.d.ts", "app/**/*.ts", "app/**/*.tsx", "lib/**/*.ts", "lib/**/*.tsx", "components/**/*.ts", "components/**/*.tsx", "tests/**/*.ts", "tests/**/*.tsx", "src/integrations/**/*.ts", "integrations/**/*.ts", ".next/types/**/*.ts", "*.ts", "*.tsx"],
+  "exclude": ["node_modules", "src/pages/**/*", "src/components/**/*", "src/App.tsx", "src/main.tsx"]
 }

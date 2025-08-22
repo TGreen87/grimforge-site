@@ -10,7 +10,7 @@ export const runtime = 'nodejs'
 
 export async function POST(req: NextRequest) {
   const body = await req.text()
-  const headersList = headers()
+  const headersList = await headers()
   const signature = headersList.get('stripe-signature')
 
   if (!signature) {
@@ -299,7 +299,6 @@ export async function POST(req: NextRequest) {
             metadata: {
               failure_code: paymentIntent.last_payment_error?.code,
               failure_type: paymentIntent.last_payment_error?.type,
-              charges: paymentIntent.charges?.data?.length || 0,
             },
           })
         )
@@ -357,7 +356,6 @@ export async function POST(req: NextRequest) {
             currency: paymentIntent.currency,
             metadata: {
               order_id: paymentIntent.metadata?.order_id,
-              charges: paymentIntent.charges?.data?.length || 0,
             },
           })
         )

@@ -5,34 +5,54 @@ import { generateProductMetadata } from '@/lib/seo/metadata'
 import { ProductJsonLd, BreadcrumbJsonLd, MusicAlbumJsonLd } from '@/components/seo/JsonLd'
 
 interface ProductPageProps {
-  params: { slug: string }
+  params: Promise<{ slug: string }>
 }
 
 async function getProduct(slug: string) {
   const supabase = createClient()
   
-  const { data: product, error } = await supabase
+  // First try to find by slug (if exists)
+  let { data: product, error } = await supabase
     .from('products')
-    .select(`
-      *,
-      variants (
-        *,
-        inventory (*)
-      )
-    `)
+    .select('*')
     .eq('slug', slug)
-    .eq('status', 'active')
+    .eq('active', true)
     .single()
+  
+  // If not found by slug, try by title (for legacy support)
+  if (!product) {
+    const { data: productByTitle } = await supabase
+      .from('products')
+      .select('*')
+      .eq('title', slug.replace(/-/g, ' '))
+      .eq('active', true)
+      .single()
+    
+    product = productByTitle
+  }
   
   if (error || !product) {
     return null
   }
   
-  return product
+  // Get variants if they exist
+  const { data: variants } = await supabase
+    .from('variants')
+    .select(`
+      *,
+      inventory (*)
+    `)
+    .eq('product_id', product.id)
+  
+  return {
+    ...product,
+    variants: variants || []
+  }
 }
 
 export async function generateMetadata({ params }: ProductPageProps): Promise<Metadata> {
-  const product = await getProduct(params.slug)
+  const { slug } = await params
+  const product = await getProduct(slug)
   
   if (!product) {
     return {
@@ -49,17 +69,18 @@ export async function generateMetadata({ params }: ProductPageProps): Promise<Me
   const availability = totalInventory > 0 ? 'In Stock' : 'Out of Stock'
   
   return generateProductMetadata({
-    name: product.name,
-    description: product.description || `${product.name} - Available at Obsidian Rite Records`,
-    image: product.image_url,
-    slug: params.slug,
+    name: product.name || product.title,
+    description: product.description || `${product.name || product.title} - Available at Obsidian Rite Records`,
+    image: product.image_url || product.image,
+    slug: slug,
     price: product.price,
     availability
   })
 }
 
 export default async function ProductPage({ params }: ProductPageProps) {
-  const product = await getProduct(params.slug)
+  const { slug } = await params
+  const product = await getProduct(slug)
   
   if (!product) {
     notFound()
@@ -91,43 +112,43 @@ export default async function ProductPage({ params }: ProductPageProps) {
         items={[
           { name: 'Home', url: '/' },
           { name: 'Products', url: '/products' },
-          { name: product.name }
+          { name: product.name || product.title }
         ]}
       />
       
       {/* Product or Music Album JSON-LD */}
       {isMusicAlbum ? (
         <MusicAlbumJsonLd
-          name={product.name}
+          name={product.name || product.title}
           description={product.description || ''}
-          image={product.image_url || '/placeholder.svg'}
-          artist={product.artist || product.band || 'Various Artists'}
-          datePublished={product.release_date || product.created_at}
-          genre={product.genre ? [product.genre] : ['Black Metal', 'Metal']}
-          url={`${process.env.NEXT_PUBLIC_SITE_URL || process.env.SITE_URL_STAGING}/products/${params.slug}`}
+          image={product.image_url || product.image || '/placeholder.svg'}
+          artist={product.artist || 'Various Artists'}
+          datePublished={product.created_at}
+          genre={['Black Metal', 'Metal']}
+          url={`${process.env.NEXT_PUBLIC_SITE_URL || process.env.SITE_URL_STAGING}/products/${slug}`}
           price={lowestPrice}
           availability={availability}
         />
       ) : (
         <ProductJsonLd
-          name={product.name}
+          name={product.name || product.title}
           description={product.description || ''}
-          image={product.image_url || '/placeholder.svg'}
-          sku={product.sku || params.slug}
+          image={product.image_url || product.image || '/placeholder.svg'}
+          sku={product.sku || slug}
           price={lowestPrice}
           availability={availability}
           category={product.category || 'Merchandise'}
-          url={`${process.env.NEXT_PUBLIC_SITE_URL || process.env.SITE_URL_STAGING}/products/${params.slug}`}
+          url={`${process.env.NEXT_PUBLIC_SITE_URL || process.env.SITE_URL_STAGING}/products/${slug}`}
         />
       )}
       
       <div className="container mx-auto px-4 py-8">
-        <h1 className="text-4xl font-bold mb-4">{product.name}</h1>
+        <h1 className="text-4xl font-bold mb-4">{product.name || product.title}</h1>
         
-        {product.image_url && (
+        {(product.image_url || product.image) && (
           <img 
-            src={product.image_url} 
-            alt={product.name}
+            src={product.image_url || product.image} 
+            alt={product.name || product.title}
             className="w-full max-w-md mb-6"
           />
         )}
