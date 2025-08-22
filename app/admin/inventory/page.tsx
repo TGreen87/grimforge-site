@@ -1,0 +1,203 @@
+"use client";
+
+import React, { useState } from "react";
+import { List, useTable, TextField, NumberField } from "@refinedev/antd";
+import { Table, Space, Button, Tag, Modal, Form, InputNumber, Input, message } from "antd";
+import { PlusOutlined, EditOutlined } from "@ant-design/icons";
+import Link from "next/link";
+import { createClient } from "@/lib/supabase/client";
+import type { Inventory, ReceiveStockFormValues } from "../types";
+
+const { TextArea } = Input;
+
+export default function InventoryList() {
+  const [isReceiveStockModalOpen, setIsReceiveStockModalOpen] = useState(false);
+  const [selectedInventory, setSelectedInventory] = useState<Inventory | null>(null);
+  const [form] = Form.useForm<ReceiveStockFormValues>();
+
+  const { tableProps, tableQueryResult } = useTable<Inventory>({
+    resource: "inventory",
+    meta: {
+      select: "*, variant:variants(*, product:products(*))",
+    },
+  });
+
+  const handleReceiveStock = (inventory: Inventory) => {
+    setSelectedInventory(inventory);
+    form.setFieldsValue({
+      variant_id: inventory.variant_id,
+      quantity: 0,
+      notes: "",
+    });
+    setIsReceiveStockModalOpen(true);
+  };
+
+  const handleReceiveStockSubmit = async () => {
+    try {
+      const values = await form.validateFields();
+      const supabase = createClient();
+
+      // Create stock movement record
+      const { error: movementError } = await supabase
+        .from("stock_movements")
+        .insert({
+          variant_id: values.variant_id,
+          quantity: values.quantity,
+          movement_type: "receipt",
+          notes: values.notes || "Stock received via admin panel",
+        });
+
+      if (movementError) throw movementError;
+
+      // Update inventory
+      const { error: inventoryError } = await supabase
+        .from("inventory")
+        .update({
+          on_hand: (selectedInventory?.on_hand || 0) + values.quantity,
+          available: (selectedInventory?.available || 0) + values.quantity,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("variant_id", values.variant_id);
+
+      if (inventoryError) throw inventoryError;
+
+      message.success(`Successfully received ${values.quantity} units`);
+      setIsReceiveStockModalOpen(false);
+      form.resetFields();
+      tableQueryResult.refetch();
+    } catch (error: any) {
+      message.error(`Failed to receive stock: ${error.message}`);
+    }
+  };
+
+  return (
+    <>
+      <List
+        headerButtons={
+          <Button
+            type="primary"
+            icon={<PlusOutlined />}
+            onClick={() => {
+              setSelectedInventory(null);
+              form.resetFields();
+              setIsReceiveStockModalOpen(true);
+            }}
+          >
+            Receive Stock
+          </Button>
+        }
+      >
+        <Table {...tableProps} rowKey="id">
+          <Table.Column
+            dataIndex={["variant", "name"]}
+            title="Variant"
+            render={(value) => <TextField value={value} />}
+          />
+          <Table.Column
+            dataIndex={["variant", "product", "title"]}
+            title="Product"
+            render={(value) => <TextField value={value} />}
+          />
+          <Table.Column
+            dataIndex={["variant", "sku"]}
+            title="SKU"
+            render={(value) => <TextField value={value} />}
+          />
+          <Table.Column
+            dataIndex="on_hand"
+            title="On Hand"
+            render={(value) => (
+              <Tag color={value > 0 ? "green" : "red"}>
+                {value}
+              </Tag>
+            )}
+            sorter
+          />
+          <Table.Column
+            dataIndex="allocated"
+            title="Allocated"
+            render={(value) => <Tag>{value}</Tag>}
+          />
+          <Table.Column
+            dataIndex="available"
+            title="Available"
+            render={(value) => (
+              <Tag color={value > 0 ? "green" : "orange"}>
+                {value}
+              </Tag>
+            )}
+            sorter
+          />
+          <Table.Column
+            dataIndex="reorder_point"
+            title="Reorder Point"
+            render={(value) => (
+              <Tag color="blue">{value || "N/A"}</Tag>
+            )}
+          />
+          <Table.Column
+            title="Actions"
+            dataIndex="actions"
+            render={(_, record: Inventory) => (
+              <Space>
+                <Button
+                  size="small"
+                  type="primary"
+                  icon={<PlusOutlined />}
+                  onClick={() => handleReceiveStock(record)}
+                >
+                  Receive
+                </Button>
+                <Link href={`/admin/inventory/edit/${record.id}`}>
+                  <Button size="small" icon={<EditOutlined />} />
+                </Link>
+              </Space>
+            )}
+          />
+        </Table>
+      </List>
+
+      <Modal
+        title="Receive Stock"
+        open={isReceiveStockModalOpen}
+        onOk={handleReceiveStockSubmit}
+        onCancel={() => {
+          setIsReceiveStockModalOpen(false);
+          form.resetFields();
+        }}
+        okText="Receive"
+      >
+        <Form form={form} layout="vertical">
+          {selectedInventory && (
+            <div style={{ marginBottom: 16 }}>
+              <strong>Product:</strong> {selectedInventory.variant?.product?.title}
+              <br />
+              <strong>Variant:</strong> {selectedInventory.variant?.name}
+              <br />
+              <strong>Current Stock:</strong> {selectedInventory.on_hand}
+            </div>
+          )}
+
+          <Form.Item name="variant_id" hidden>
+            <Input />
+          </Form.Item>
+
+          <Form.Item
+            label="Quantity to Receive"
+            name="quantity"
+            rules={[
+              { required: true, message: "Quantity is required" },
+              { type: "number", min: 1, message: "Quantity must be at least 1" },
+            ]}
+          >
+            <InputNumber min={1} style={{ width: "100%" }} />
+          </Form.Item>
+
+          <Form.Item label="Notes" name="notes">
+            <TextArea rows={3} placeholder="Optional notes about this stock receipt" />
+          </Form.Item>
+        </Form>
+      </Modal>
+    </>
+  );
+}

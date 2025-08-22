@@ -1,0 +1,143 @@
+"use client";
+
+import React from "react";
+import { List, useTable, TextField, NumberField, DateField } from "@refinedev/antd";
+import { Table, Space, Button, Tag, Select } from "antd";
+import { EyeOutlined } from "@ant-design/icons";
+import Link from "next/link";
+import { useUpdate } from "@refinedev/core";
+import { message } from "antd";
+import type { Order } from "../types";
+
+const statusColors: Record<string, string> = {
+  pending: "orange",
+  paid: "green",
+  processing: "blue",
+  shipped: "purple",
+  delivered: "green",
+  cancelled: "red",
+  refunded: "gray",
+};
+
+export default function OrderList() {
+  const { tableProps, tableQueryResult } = useTable<Order>({
+    resource: "orders",
+    meta: {
+      select: "*, customer:customers(*), order_items(*, variant:variants(*))",
+    },
+    sorters: {
+      initial: [
+        {
+          field: "created_at",
+          order: "desc",
+        },
+      ],
+    },
+  });
+
+  const { mutate: updateOrder } = useUpdate();
+
+  const handleStatusChange = (orderId: string, newStatus: string) => {
+    updateOrder(
+      {
+        resource: "orders",
+        id: orderId,
+        values: {
+          status: newStatus,
+          updated_at: new Date().toISOString(),
+        },
+      },
+      {
+        onSuccess: () => {
+          message.success("Order status updated successfully");
+          tableQueryResult.refetch();
+        },
+        onError: (error: any) => {
+          message.error(`Failed to update order status: ${error.message}`);
+        },
+      }
+    );
+  };
+
+  return (
+    <List>
+      <Table {...tableProps} rowKey="id">
+        <Table.Column
+          dataIndex="id"
+          title="Order ID"
+          render={(value) => <TextField value={value?.substring(0, 8) + "..."} />}
+        />
+        <Table.Column
+          dataIndex={["customer", "email"]}
+          title="Customer"
+          render={(value) => <TextField value={value || "Guest"} />}
+        />
+        <Table.Column
+          dataIndex="status"
+          title="Status"
+          render={(value, record: Order) => (
+            <Select
+              value={value}
+              onChange={(newStatus) => handleStatusChange(record.id, newStatus)}
+              style={{ width: 120 }}
+            >
+              <Select.Option value="pending">
+                <Tag color={statusColors.pending}>Pending</Tag>
+              </Select.Option>
+              <Select.Option value="paid">
+                <Tag color={statusColors.paid}>Paid</Tag>
+              </Select.Option>
+              <Select.Option value="processing">
+                <Tag color={statusColors.processing}>Processing</Tag>
+              </Select.Option>
+              <Select.Option value="shipped">
+                <Tag color={statusColors.shipped}>Shipped</Tag>
+              </Select.Option>
+              <Select.Option value="delivered">
+                <Tag color={statusColors.delivered}>Delivered</Tag>
+              </Select.Option>
+              <Select.Option value="cancelled">
+                <Tag color={statusColors.cancelled}>Cancelled</Tag>
+              </Select.Option>
+              <Select.Option value="refunded">
+                <Tag color={statusColors.refunded}>Refunded</Tag>
+              </Select.Option>
+            </Select>
+          )}
+        />
+        <Table.Column
+          dataIndex="total"
+          title="Total"
+          render={(value) => (
+            <NumberField value={value} options={{ style: "currency", currency: "AUD" }} />
+          )}
+          sorter
+        />
+        <Table.Column
+          dataIndex="order_items"
+          title="Items"
+          render={(items: any[]) => <Tag>{items?.length || 0} items</Tag>}
+        />
+        <Table.Column
+          dataIndex="created_at"
+          title="Date"
+          render={(value) => <DateField value={value} format="YYYY-MM-DD HH:mm" />}
+          sorter
+        />
+        <Table.Column
+          title="Actions"
+          dataIndex="actions"
+          render={(_, record: Order) => (
+            <Space>
+              <Link href={`/admin/orders/show/${record.id}`}>
+                <Button size="small" icon={<EyeOutlined />}>
+                  View
+                </Button>
+              </Link>
+            </Space>
+          )}
+        />
+      </Table>
+    </List>
+  );
+}

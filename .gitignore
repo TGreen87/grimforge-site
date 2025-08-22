@@ -12,6 +12,12 @@ dist
 dist-ssr
 *.local
 
+# Next.js
+.next/
+out/
+.vercel
+next-env.d.ts
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
@@ -27,3 +33,16 @@ dist-ssr
 .env
 .env.local
 .env.*.local
+
+# Playwright
+/test-results/
+/playwright-report/
+/playwright/.cache/
+playwright-report/
+test-results/
+
+# E2E test artifacts
+*.mp4
+*.webm
+*.png
+trace.zip
