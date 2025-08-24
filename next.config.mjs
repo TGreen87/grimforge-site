@@ -1,6 +1,10 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
+  // Ensure Next resolves paths relative to this repo (avoid picking /mnt/a as root)
+  outputFileTracingRoot: process.cwd(),
+  // Disable typed routes generation which was causing bad imports into src/app
+  typedRoutes: false,
   experimental: {
     optimizeCss: true,
   },

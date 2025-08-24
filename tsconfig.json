@@ -24,6 +24,6 @@
       "@/*": ["./*", "./src/*"]
     }
   },
-  "include": ["next-env.d.ts", "app/**/*.ts", "app/**/*.tsx", "lib/**/*.ts", "lib/**/*.tsx", "components/**/*.ts", "components/**/*.tsx", "tests/**/*.ts", "tests/**/*.tsx", "src/**/*.ts", "src/**/*.tsx", "integrations/**/*.ts", ".next/types/**/*.ts", "*.ts", "*.tsx"],
+  "include": ["next-env.d.ts", "app/**/*.ts", "app/**/*.tsx", "lib/**/*.ts", "lib/**/*.tsx", "components/**/*.ts", "components/**/*.tsx", "tests/**/*.ts", "tests/**/*.tsx", "src/**/*.ts", "src/**/*.tsx", "integrations/**/*.ts", "*.ts", "*.tsx"],
   "exclude": ["node_modules", "src/App.tsx", "src/main.tsx"]
 }
