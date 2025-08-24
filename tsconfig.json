@@ -14,6 +14,7 @@
     "isolatedModules": true,
     "jsx": "preserve",
     "incremental": true,
+    "baseUrl": ".",
     "plugins": [
       {
         "name": "next"
@@ -23,6 +24,6 @@
       "@/*": ["./*", "./src/*"]
     }
   },
-  "include": ["next-env.d.ts", "app/**/*.ts", "app/**/*.tsx", "lib/**/*.ts", "lib/**/*.tsx", "components/**/*.ts", "components/**/*.tsx", "tests/**/*.ts", "tests/**/*.tsx", "src/integrations/**/*.ts", "integrations/**/*.ts", ".next/types/**/*.ts", "*.ts", "*.tsx"],
-  "exclude": ["node_modules", "src/pages/**/*", "src/components/**/*", "src/App.tsx", "src/main.tsx"]
+  "include": ["next-env.d.ts", "app/**/*.ts", "app/**/*.tsx", "lib/**/*.ts", "lib/**/*.tsx", "components/**/*.ts", "components/**/*.tsx", "tests/**/*.ts", "tests/**/*.tsx", "src/**/*.ts", "src/**/*.tsx", "integrations/**/*.ts", ".next/types/**/*.ts", "*.ts", "*.tsx"],
+  "exclude": ["node_modules", "src/App.tsx", "src/main.tsx"]
 }
