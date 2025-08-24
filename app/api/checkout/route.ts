@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { stripe, STRIPE_CONFIG } from '@/lib/stripe'
+import { getStripe, STRIPE_CONFIG } from '@/lib/stripe'
 import { createServiceClient } from '@/lib/supabase/server'
 import { writeAuditLog, createPaymentAuditLog } from '@/lib/audit-logger'
 import { v4 as uuidv4 } from 'uuid'
@@ -161,6 +161,7 @@ export async function POST(req: NextRequest) {
     // Generate idempotency key for this checkout session
     const idempotencyKey = `checkout_${order.id}_${Date.now()}`
 
+    const stripe = getStripe()
     const session = await stripe.checkout.sessions.create(
       {
         line_items: [
