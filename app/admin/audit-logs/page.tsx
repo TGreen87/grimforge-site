@@ -44,7 +44,7 @@ export default function AuditLogList() {
         <Table.Column
           dataIndex="event_type"
           title="Event Type"
-          render={(value) => (
+          render={(value: string) => (
             <Tag color={eventTypeColors[value] || "default"}>
               {value}
             </Tag>
@@ -58,12 +58,12 @@ export default function AuditLogList() {
         <Table.Column
           dataIndex="resource_type"
           title="Resource"
-          render={(value) => <TextField value={value || "N/A"} />}
+          render={(value: string | null) => <TextField value={value || "N/A"} />}
         />
         <Table.Column
           dataIndex="resource_id"
           title="Resource ID"
-          render={(value) => (
+          render={(value: string | null) => (
             <Text copyable style={{ fontSize: "12px" }}>
               {value ? value.substring(0, 8) + "..." : "N/A"}
             </Text>
@@ -72,7 +72,7 @@ export default function AuditLogList() {
         <Table.Column
           dataIndex="user_id"
           title="User ID"
-          render={(value) => (
+          render={(value: string | null) => (
             <Text style={{ fontSize: "12px" }}>
               {value ? value.substring(0, 8) + "..." : "System"}
             </Text>
@@ -81,18 +81,18 @@ export default function AuditLogList() {
         <Table.Column
           dataIndex="ip_address"
           title="IP Address"
-          render={(value) => <TextField value={value || "N/A"} />}
+          render={(value: string | null) => <TextField value={value || "N/A"} />}
         />
         <Table.Column
           dataIndex="created_at"
           title="Timestamp"
-          render={(value) => <DateField value={value} format="YYYY-MM-DD HH:mm:ss" />}
+          render={(value: string) => <DateField value={value} format="YYYY-MM-DD HH:mm:ss" />}
           sorter
         />
         <Table.Column
           dataIndex="metadata"
           title="Details"
-          render={(metadata, record: AuditLog) => (
+          render={(metadata: Record<string, unknown> | null, record: AuditLog) => (
             <Collapse ghost>
               <Panel header="View Details" key="1">
                 {record.changes && (

@@ -8,11 +8,13 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { brand } from "@/config/brand";
+type ProductFormat = 'vinyl' | 'cassette' | 'cd';
+
 interface ProductRow {
   id: string;
   title: string;
   artist: string;
-  format: string | null;
+  format: ProductFormat | null;
   description: string | null;
   active: boolean;
   price: number;
@@ -36,7 +38,7 @@ export default function EditCatalogText() {
   const [draftDesc, setDraftDesc] = useState<string>("");
   const [draftTitle, setDraftTitle] = useState<string>("");
   const [draftArtist, setDraftArtist] = useState<string>("");
-  const [draftFormat, setDraftFormat] = useState<"vinyl" | "cassette" | "cd" | "">("");
+  const [draftFormat, setDraftFormat] = useState<ProductFormat | "">("");
   const [draftPrice, setDraftPrice] = useState<string>("");
   const [draftStock, setDraftStock] = useState<string>("");
   const [draftSKU, setDraftSKU] = useState<string>("");
@@ -81,9 +83,10 @@ export default function EditCatalogText() {
         setDraftImage(publicUrlData.publicUrl);
         toast({ title: "Image uploaded", description: "Preview updated" });
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Image upload failed", err);
-      toast({ title: "Image upload failed", description: err.message ?? "Try a different image", variant: "destructive" });
+      const errorMessage = err instanceof Error ? err.message : "Try a different image";
+      toast({ title: "Image upload failed", description: errorMessage, variant: "destructive" });
     } finally {
       if (fileRef.current) fileRef.current.value = "";
     }
@@ -102,7 +105,7 @@ export default function EditCatalogText() {
           console.error("Failed to load products", error);
           toast({ title: "Failed to load", description: error.message, variant: "destructive" });
         } else {
-          setProducts(data as ProductRow[]);
+          setProducts(data || []);
         }
         setLoading(false);
       }
@@ -128,7 +131,7 @@ export default function EditCatalogText() {
     setDraftDesc(p.description || "");
     setDraftTitle(p.title || "");
     setDraftArtist(p.artist || "");
-    setDraftFormat((p.format as any) || "vinyl");
+    setDraftFormat((p.format as ProductFormat) || "vinyl");
     setDraftPrice(p.price != null ? String(p.price) : "");
     setDraftStock(p.stock != null ? String(p.stock) : "");
     setDraftSKU(p.sku || "");
@@ -164,7 +167,7 @@ export default function EditCatalogText() {
         release_year: draftReleaseYear ? parseInt(draftReleaseYear, 10) : null,
         image: draftImage || null,
         tags: tagsArray,
-      } as Partial<ProductRow> & { [k: string]: any };
+      } satisfies Partial<ProductRow> & Record<string, unknown>;
 
       const { error } = await supabase
         .from("products")
@@ -183,9 +186,10 @@ export default function EditCatalogText() {
         )
       );
       toast({ title: "Saved", description: "Listing updated" });
-    } catch (e: any) {
+    } catch (e: unknown) {
       console.error("Save failed", e);
-      toast({ title: "Save failed", description: e.message ?? "Please try again", variant: "destructive" });
+      const errorMessage = e instanceof Error ? e.message : "Please try again";
+      toast({ title: "Save failed", description: errorMessage, variant: "destructive" });
     } finally {
       setSaving(false);
     }
@@ -196,7 +200,7 @@ export default function EditCatalogText() {
     setDraftDesc(selected.description || "");
     setDraftTitle(selected.title || "");
     setDraftArtist(selected.artist || "");
-    setDraftFormat((selected.format as any) || "vinyl");
+    setDraftFormat((selected.format as ProductFormat) || "vinyl");
     setDraftPrice(selected.price != null ? String(selected.price) : "");
     setDraftStock(selected.stock != null ? String(selected.stock) : "");
     setDraftSKU(selected.sku || "");
@@ -230,16 +234,17 @@ export default function EditCatalogText() {
         },
       });
       if (error) throw error;
-      const next = (data as any)?.description || "";
+      const next = (data as { description?: string })?.description || "";
       if (next) {
         setDraftDesc(next);
         toast({ title: "Description updated" });
       } else {
         toast({ title: "No description returned", variant: "destructive" });
       }
-    } catch (e: any) {
+    } catch (e: unknown) {
       console.error("Regenerate description failed", e);
-      toast({ title: "Failed to regenerate description", description: e.message ?? "Try again later", variant: "destructive" });
+      const errorMessage = e instanceof Error ? e.message : "Try again later";
+      toast({ title: "Failed to regenerate description", description: errorMessage, variant: "destructive" });
     } finally {
       setRegenLoading(false);
     }
@@ -261,16 +266,17 @@ export default function EditCatalogText() {
         },
       });
       if (error) throw error;
-      const suggested = (data as any)?.suggested_price;
+      const suggested = (data as { suggested_price?: number })?.suggested_price;
       if (typeof suggested === "number" && !Number.isNaN(suggested)) {
         setDraftPrice(String(Number(suggested.toFixed(2))));
         toast({ title: "Price suggestion applied", description: `AUD ${suggested.toFixed(2)}` });
       } else {
         toast({ title: "No price suggestion returned", variant: "destructive" });
       }
-    } catch (e: any) {
+    } catch (e: unknown) {
       console.error("Get recommended price failed", e);
-      toast({ title: "Failed to get price", description: e.message ?? "Try again later", variant: "destructive" });
+      const errorMessage = e instanceof Error ? e.message : "Try again later";
+      toast({ title: "Failed to get price", description: errorMessage, variant: "destructive" });
     } finally {
       setPriceLoading(false);
     }
@@ -292,9 +298,10 @@ export default function EditCatalogText() {
       setProducts((prev) => prev.filter((p) => p.id !== selected.id));
       setSelectedId(null);
       toast({ title: "Listing deleted" });
-    } catch (e: any) {
+    } catch (e: unknown) {
       console.error("Delete failed", e);
-      toast({ title: "Delete failed", description: e.message ?? "Try again later", variant: "destructive" });
+      const errorMessage = e instanceof Error ? e.message : "Try again later";
+      toast({ title: "Delete failed", description: errorMessage, variant: "destructive" });
     } finally {
       setDeleting(false);
     }
@@ -312,7 +319,7 @@ export default function EditCatalogText() {
               <Input
                 placeholder="Search by title or artist"
                 value={query}
-                onChange={(e) => setQuery(e.target.value)}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setQuery(e.target.value)}
                 aria-label="Search products"
               />
               <div className="max-h-[420px] overflow-auto rounded border border-border divide-y">
@@ -351,20 +358,20 @@ export default function EditCatalogText() {
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                         <Input
                           value={draftTitle}
-                          onChange={(e) => setDraftTitle(e.target.value)}
+                          onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDraftTitle(e.target.value)}
                           placeholder="Title"
                           aria-label="Title"
                         />
                         <Input
                           value={draftArtist}
-                          onChange={(e) => setDraftArtist(e.target.value)}
+                          onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDraftArtist(e.target.value)}
                           placeholder="Artist"
                           aria-label="Artist"
                         />
                       </div>
 
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                        <Select value={draftFormat || undefined} onValueChange={(v: any) => setDraftFormat(v)}>
+                        <Select value={draftFormat || undefined} onValueChange={(v: ProductFormat) => setDraftFormat(v)}>
                           <SelectTrigger>
                             <SelectValue placeholder="Format" />
                           </SelectTrigger>
@@ -380,7 +387,7 @@ export default function EditCatalogText() {
                           placeholder="Price (e.g. 24.99)"
                           aria-label="Price"
                           value={draftPrice}
-                          onChange={(e) => setDraftPrice(e.target.value)}
+                          onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDraftPrice(e.target.value)}
                         />
                       </div>
 
@@ -390,20 +397,20 @@ export default function EditCatalogText() {
                           placeholder="Stock"
                           aria-label="Stock"
                           value={draftStock}
-                          onChange={(e) => setDraftStock(e.target.value)}
+                          onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDraftStock(e.target.value)}
                         />
                         <Input
                           placeholder="SKU"
                           aria-label="SKU"
                           value={draftSKU}
-                          onChange={(e) => setDraftSKU(e.target.value)}
+                          onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDraftSKU(e.target.value)}
                         />
                         <Input
                           type="number"
                           placeholder="Release Year"
                           aria-label="Release Year"
                           value={draftReleaseYear}
-                          onChange={(e) => setDraftReleaseYear(e.target.value)}
+                          onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDraftReleaseYear(e.target.value)}
                         />
                       </div>
 
@@ -421,15 +428,15 @@ export default function EditCatalogText() {
                         placeholder="Tags (comma separated)"
                         aria-label="Tags"
                         value={draftTagsInput}
-                        onChange={(e) => setDraftTagsInput(e.target.value)}
+                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDraftTagsInput(e.target.value)}
                       />
                       <p className="text-xs text-muted-foreground">Add 5–10 concise music tags (e.g., black metal, raw, demo, US).</p>
 
                       <div className="flex flex-wrap gap-4 text-sm">
-                        <label className="flex items-center gap-2"><input type="checkbox" checked={draftActive} onChange={(e) => setDraftActive(e.target.checked)} /> Active</label>
-                        <label className="flex items-center gap-2"><input type="checkbox" checked={draftFeatured} onChange={(e) => setDraftFeatured(e.target.checked)} /> Featured</label>
-                        <label className="flex items-center gap-2"><input type="checkbox" checked={draftLimited} onChange={(e) => setDraftLimited(e.target.checked)} /> Limited</label>
-                        <label className="flex items-center gap-2"><input type="checkbox" checked={draftPreOrder} onChange={(e) => setDraftPreOrder(e.target.checked)} /> Pre-Order</label>
+                        <label className="flex items-center gap-2"><input type="checkbox" checked={draftActive} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDraftActive(e.target.checked)} /> Active</label>
+                        <label className="flex items-center gap-2"><input type="checkbox" checked={draftFeatured} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDraftFeatured(e.target.checked)} /> Featured</label>
+                        <label className="flex items-center gap-2"><input type="checkbox" checked={draftLimited} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDraftLimited(e.target.checked)} /> Limited</label>
+                        <label className="flex items-center gap-2"><input type="checkbox" checked={draftPreOrder} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDraftPreOrder(e.target.checked)} /> Pre-Order</label>
                       </div>
 
                       <div className="flex flex-wrap gap-2 items-center">
@@ -442,7 +449,7 @@ export default function EditCatalogText() {
                       <Textarea
                         rows={10}
                         value={draftDesc}
-                        onChange={(e) => setDraftDesc(e.target.value)}
+                        onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setDraftDesc(e.target.value)}
                         aria-label="Catalog description"
                         placeholder="Enter the catalog listing text (description)"
                       />
@@ -466,7 +473,7 @@ export default function EditCatalogText() {
                         placeholder="Image URL (optional)"
                         aria-label="Image URL"
                         value={draftImage}
-                        onChange={(e) => setDraftImage(e.target.value)}
+                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDraftImage(e.target.value)}
                       />
                       <div className="flex gap-2">
                         <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={onImageFile} />

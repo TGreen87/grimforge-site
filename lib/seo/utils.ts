@@ -2,6 +2,20 @@
  * SEO utility functions for URL generation and validation
  */
 
+interface JsonLdSchema {
+  '@context'?: string
+  '@type'?: string
+  name?: string
+  headline?: string
+  image?: string | string[]
+  datePublished?: string
+  offers?: {
+    price?: string | number
+    priceCurrency?: string
+  }
+  itemListElement?: unknown[]
+}
+
 export function getSiteUrl(): string {
   return process.env.NEXT_PUBLIC_SITE_URL || 
          process.env.SITE_URL_STAGING || 
@@ -94,7 +108,7 @@ export function formatDateForSchema(date: string | Date): string {
   return dateObj.toISOString()
 }
 
-export function validateJsonLd(schema: any): boolean {
+export function validateJsonLd(schema: JsonLdSchema): boolean {
   // Basic validation for required JSON-LD properties
   if (!schema['@context']) {
     console.error('JSON-LD missing @context')

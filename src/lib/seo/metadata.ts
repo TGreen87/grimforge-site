@@ -154,7 +154,7 @@ export function generateMetadata({
     openGraph: {
       title,
       description,
-      type: type as any,
+      type: type as "website" | "article",
       url,
       images: image ? [{ url: image }] : [],
     },

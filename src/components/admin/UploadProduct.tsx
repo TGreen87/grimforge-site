@@ -10,11 +10,13 @@ import { useToast } from "@/hooks/use-toast";
 import { Upload, Tag, Wand2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
+type ProductFormat = 'vinyl' | 'cassette' | 'cd';
+
 interface NewProductForm {
   title: string;
   artist: string;
   description: string;
-  format: "vinyl" | "cassette" | "cd";
+  format: ProductFormat;
   price: number;
   cost?: number; // optional cost basis for pricing assist
   sku?: string;
@@ -116,7 +118,8 @@ const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
       const merged = Array.from(new Set([...tags, ...aiTags]));
       setForm((f) => ({ ...f, tagsInput: merged.join(", ") }));
       toast({ title: "AI tags added", description: `Added ${aiTags.length} tags` });
-    } catch (err) {
+    } catch (err: unknown) {
+      console.error("Generate tags failed", err);
       const guess = simpleTagSuggest(baseText);
       const merged = Array.from(new Set([...tags, ...guess]));
       setForm((f) => ({ ...f, tagsInput: merged.join(", ") }));
@@ -147,7 +150,7 @@ const runAutofill = async (input?: string | string[]) => {
       },
     });
     if (error) throw error;
-    const ai = data as any;
+    const ai = data as { title?: string; artist?: string; description?: string; format?: ProductFormat; tags?: string[] };
     setForm((f) => {
       const currentTags = (f.tagsInput || "").split(",").map(t => t.trim()).filter(Boolean);
       const newTags = Array.isArray(ai?.tags) ? ai.tags : [];
@@ -157,15 +160,16 @@ const runAutofill = async (input?: string | string[]) => {
         title: f.title || ai?.title || "",
         artist: f.artist || ai?.artist || "",
         description: f.description || ai?.description || "",
-        format: f.format || (ai?.format as any) || "vinyl",
+        format: f.format || ai?.format || "vinyl",
         tagsInput: mergedTags.join(", "),
       };
     });
-    const filled = ["title","artist","format","description","tags"].filter(k => !!(data as any)?.[k]).length;
+    const filled = (["title", "artist", "format", "description", "tags"] as const).filter(k => !!(data as Record<string, unknown>)?.[k]).length;
     toast({ title: "Auto-filled from context", description: `Populated ${filled} fields` });
-  } catch (e: any) {
+  } catch (e: unknown) {
     console.error("Autofill failed", e);
-    toast({ title: "Autofill failed", description: e.message ?? "Unable to extract details", variant: "destructive" });
+    const errorMessage = e instanceof Error ? e.message : "Unable to extract details";
+    toast({ title: "Autofill failed", description: errorMessage, variant: "destructive" });
   } finally {
     setAutofillLoading(false);
   }
@@ -182,7 +186,7 @@ const runAutofill = async (input?: string | string[]) => {
         body: { title: form.title, artist: form.artist, format: form.format, cost: form.cost ?? null },
       });
       if (error) throw error;
-      const res = data as any;
+      const res = data as { suggested_price?: number; reasoning?: string };
       if (typeof res?.suggested_price === "number") {
         setForm(f => ({ ...f, price: Number(res.suggested_price) }));
         const reason = (res?.reasoning || "Suggested retail for AU market").toString();
@@ -190,9 +194,10 @@ const runAutofill = async (input?: string | string[]) => {
       } else {
         toast({ title: "No price suggestion", description: "Try again with more details" });
       }
-    } catch (e: any) {
+    } catch (e: unknown) {
       console.error("Price research failed", e);
-      toast({ title: "Price research failed", description: e.message ?? "Please try again", variant: "destructive" });
+      const errorMessage = e instanceof Error ? e.message : "Please try again";
+      toast({ title: "Price research failed", description: errorMessage, variant: "destructive" });
     } finally {
       setPriceLoading(false);
     }
@@ -265,9 +270,10 @@ const runAutofill = async (input?: string | string[]) => {
 
       toast({ title: "Published", description: `${form.artist} - ${form.title} is now in the catalog` });
       setForm({ ...defaultForm });
-    } catch (e: any) {
+    } catch (e: unknown) {
       console.error("Publish failed", e);
-      toast({ title: "Publish failed", description: e.message ?? "Please try again", variant: "destructive" });
+      const errorMessage = e instanceof Error ? e.message : "Please try again";
+      toast({ title: "Publish failed", description: errorMessage, variant: "destructive" });
     }
   };
 
@@ -281,11 +287,11 @@ const runAutofill = async (input?: string | string[]) => {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="md:col-span-2 space-y-3">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <Input placeholder="Title" value={form.title} onChange={(e) => setForm(f => ({ ...f, title: e.target.value }))} aria-label="Title" />
-                <Input placeholder="Artist" value={form.artist} onChange={(e) => setForm(f => ({ ...f, artist: e.target.value }))} aria-label="Artist" />
+                <Input placeholder="Title" value={form.title} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setForm(f => ({ ...f, title: e.target.value }))} aria-label="Title" />
+                <Input placeholder="Artist" value={form.artist} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setForm(f => ({ ...f, artist: e.target.value }))} aria-label="Artist" />
               </div>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-3 items-center">
-                <Select value={form.format} onValueChange={(v: any) => setForm(f => ({ ...f, format: v }))}>
+                <Select value={form.format} onValueChange={(v: ProductFormat) => setForm(f => ({ ...f, format: v }))}>
                   <SelectTrigger>
                     <SelectValue placeholder="Format" />
                   </SelectTrigger>
@@ -296,18 +302,18 @@ const runAutofill = async (input?: string | string[]) => {
                   </SelectContent>
                 </Select>
                 <div className="flex items-center gap-2">
-                  <Input type="number" step="0.01" placeholder="Price (AUD)" value={form.price} onChange={(e) => setForm(f => ({ ...f, price: parseFloat(e.target.value) || 0 }))} aria-label="Price" />
+                  <Input type="number" step="0.01" placeholder="Price (AUD)" value={form.price} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setForm(f => ({ ...f, price: parseFloat(e.target.value) || 0 }))} aria-label="Price" />
                   <Button type="button" variant="secondary" onClick={suggestPrice} disabled={priceLoading} aria-label="Suggest price">
                     <Wand2 className="h-4 w-4 mr-2" /> Suggest
                   </Button>
                 </div>
-                <Input placeholder="SKU" value={form.sku} onChange={(e) => setForm(f => ({ ...f, sku: e.target.value }))} aria-label="SKU" />
-                <Input type="number" step="0.01" placeholder="Cost (optional)" value={form.cost ?? ""} onChange={(e) => setForm(f => ({ ...f, cost: e.target.value === "" ? undefined : parseFloat(e.target.value) || 0 }))} aria-label="Cost" />
-                <Input type="number" placeholder="Stock" value={form.stock} onChange={(e) => setForm(f => ({ ...f, stock: parseInt(e.target.value || "0", 10) }))} aria-label="Stock" />
+                <Input placeholder="SKU" value={form.sku} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setForm(f => ({ ...f, sku: e.target.value }))} aria-label="SKU" />
+                <Input type="number" step="0.01" placeholder="Cost (optional)" value={form.cost ?? ""} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setForm(f => ({ ...f, cost: e.target.value === "" ? undefined : parseFloat(e.target.value) || 0 }))} aria-label="Cost" />
+                <Input type="number" placeholder="Stock" value={form.stock} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setForm(f => ({ ...f, stock: parseInt(e.target.value || "0", 10) }))} aria-label="Stock" />
               </div>
-              <Textarea placeholder="Description" value={form.description} onChange={(e) => setForm(f => ({ ...f, description: e.target.value }))} aria-label="Description" rows={5} />
+              <Textarea placeholder="Description" value={form.description} onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setForm(f => ({ ...f, description: e.target.value }))} aria-label="Description" rows={5} />
               <div className="flex items-center gap-2">
-                <Input placeholder="Tags (comma separated)" value={form.tagsInput} onChange={(e) => setForm(f => ({ ...f, tagsInput: e.target.value }))} aria-label="Tags" />
+                <Input placeholder="Tags (comma separated)" value={form.tagsInput} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setForm(f => ({ ...f, tagsInput: e.target.value }))} aria-label="Tags" />
                 <Button type="button" variant="secondary" onClick={generateTags} aria-label="Suggest tags">
                   <Wand2 className="h-4 w-4 mr-2" /> Suggest
                 </Button>
@@ -368,16 +374,16 @@ const runAutofill = async (input?: string | string[]) => {
                 <Textarea
                   placeholder="One per line: Discogs, Bandcamp, label, retailer URLs"
                   value={form.referenceUrlsInput}
-                  onChange={(e) => setForm(f => ({ ...f, referenceUrlsInput: e.target.value }))}
+                  onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setForm(f => ({ ...f, referenceUrlsInput: e.target.value }))}
                   rows={3}
                   aria-label="Reference URLs"
                 />
                 <p className="text-xs text-muted-foreground">These help the AI verify details and avoid describing artwork.</p>
               </div>
               <div className="flex items-center gap-2">
-                <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={form.featured} onChange={(e) => setForm(f => ({ ...f, featured: e.target.checked }))} /> Featured</label>
-                <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={form.limited} onChange={(e) => setForm(f => ({ ...f, limited: e.target.checked }))} /> Limited</label>
-                <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={form.preOrder} onChange={(e) => setForm(f => ({ ...f, preOrder: e.target.checked }))} /> Pre-Order</label>
+                <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={form.featured} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setForm(f => ({ ...f, featured: e.target.checked }))} /> Featured</label>
+                <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={form.limited} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setForm(f => ({ ...f, limited: e.target.checked }))} /> Limited</label>
+                <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={form.preOrder} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setForm(f => ({ ...f, preOrder: e.target.checked }))} /> Pre-Order</label>
               </div>
               <Button type="button" onClick={publish} disabled={!canPublish}>Publish to Catalog</Button>
             </div>

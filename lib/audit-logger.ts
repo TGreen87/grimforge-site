@@ -8,8 +8,8 @@ export interface AuditLogEntry {
   order_id?: string
   resource_type?: string
   resource_id?: string
-  changes?: any
-  metadata?: any
+  changes?: Record<string, unknown>
+  metadata?: Record<string, unknown>
   ip_address?: string
   user_agent?: string
 }
@@ -71,7 +71,7 @@ export function createPaymentAuditLog({
   stripeSessionId?: string
   stripePaymentIntentId?: string
   error?: string
-  metadata?: any
+  metadata?: Record<string, unknown>
 }): AuditLogEntry {
   return {
     event_type: eventType,

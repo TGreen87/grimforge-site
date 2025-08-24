@@ -43,8 +43,8 @@ export default function InventoryList() {
         .insert({
           variant_id: values.variant_id,
           quantity: values.quantity,
-          movement_type: "receipt",
-          notes: values.notes || "Stock received via admin panel",
+          type: "receipt",
+          reason: values.notes || "Stock received via admin panel",
         });
 
       if (movementError) throw movementError;
@@ -65,8 +65,9 @@ export default function InventoryList() {
       setIsReceiveStockModalOpen(false);
       form.resetFields();
       tableQueryResult.refetch();
-    } catch (error: any) {
-      message.error(`Failed to receive stock: ${error.message}`);
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      message.error(`Failed to receive stock: ${errorMessage}`);
     }
   };
 
@@ -91,22 +92,22 @@ export default function InventoryList() {
           <Table.Column
             dataIndex={["variant", "name"]}
             title="Variant"
-            render={(value) => <TextField value={value} />}
+            render={(value: string) => <TextField value={value} />}
           />
           <Table.Column
             dataIndex={["variant", "product", "title"]}
             title="Product"
-            render={(value) => <TextField value={value} />}
+            render={(value: string) => <TextField value={value} />}
           />
           <Table.Column
             dataIndex={["variant", "sku"]}
             title="SKU"
-            render={(value) => <TextField value={value} />}
+            render={(value: string) => <TextField value={value} />}
           />
           <Table.Column
             dataIndex="on_hand"
             title="On Hand"
-            render={(value) => (
+            render={(value: number) => (
               <Tag color={value > 0 ? "green" : "red"}>
                 {value}
               </Tag>
@@ -116,12 +117,12 @@ export default function InventoryList() {
           <Table.Column
             dataIndex="allocated"
             title="Allocated"
-            render={(value) => <Tag>{value}</Tag>}
+            render={(value: number) => <Tag>{value}</Tag>}
           />
           <Table.Column
             dataIndex="available"
             title="Available"
-            render={(value) => (
+            render={(value: number) => (
               <Tag color={value > 0 ? "green" : "orange"}>
                 {value}
               </Tag>
@@ -131,7 +132,7 @@ export default function InventoryList() {
           <Table.Column
             dataIndex="reorder_point"
             title="Reorder Point"
-            render={(value) => (
+            render={(value: number | null) => (
               <Tag color="blue">{value || "N/A"}</Tag>
             )}
           />

@@ -26,30 +26,30 @@ export default function ProductList() {
         <Table.Column
           dataIndex="title"
           title="Title"
-          render={(value) => <TextField value={value} />}
+          render={(value: string) => <TextField value={value} />}
           sorter
         />
         <Table.Column
           dataIndex="artist"
           title="Artist"
-          render={(value) => <TextField value={value} />}
+          render={(value: string) => <TextField value={value} />}
           sorter
         />
         <Table.Column
           dataIndex="format"
           title="Format"
-          render={(value) => <TagField value={value} />}
+          render={(value: string) => <TagField value={value} />}
         />
         <Table.Column
           dataIndex="price"
           title="Price"
-          render={(value) => <NumberField value={value} options={{ style: "currency", currency: "AUD" }} />}
+          render={(value: number) => <NumberField value={value} options={{ style: "currency", currency: "AUD" }} />}
           sorter
         />
         <Table.Column
           dataIndex="stock"
           title="Stock"
-          render={(value) => (
+          render={(value: number) => (
             <Tag color={value > 0 ? "green" : "red"}>
               {value}
             </Tag>
@@ -59,17 +59,17 @@ export default function ProductList() {
         <Table.Column
           dataIndex="active"
           title="Active"
-          render={(value) => <BooleanField value={value} />}
+          render={(value: boolean) => <BooleanField value={value} />}
         />
         <Table.Column
           dataIndex="featured"
           title="Featured"
-          render={(value) => <BooleanField value={value} />}
+          render={(value: boolean) => <BooleanField value={value} />}
         />
         <Table.Column
           dataIndex="created_at"
           title="Created"
-          render={(value) => <DateField value={value} format="YYYY-MM-DD" />}
+          render={(value: string) => <DateField value={value} format="YYYY-MM-DD" />}
           sorter
         />
         <Table.Column

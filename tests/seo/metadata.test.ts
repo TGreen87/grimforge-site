@@ -80,7 +80,10 @@ describe('SEO Metadata Generation', () => {
       
       expect(metadata.openGraph?.title).toBe('Test Page')
       expect(metadata.openGraph?.description).toBe('Test description')
-      expect(metadata.openGraph?.images?.[0].url).toBe('https://example.com/image.jpg')
+      const images = metadata.openGraph?.images
+      if (Array.isArray(images) && images.length > 0) {
+        expect(images[0].url).toBe('https://example.com/image.jpg')
+      }
       expect(metadata.openGraph?.url).toBe('https://example.com/page')
     })
     

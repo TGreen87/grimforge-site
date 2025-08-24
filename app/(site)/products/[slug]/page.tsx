@@ -3,51 +3,42 @@ import { notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { generateProductMetadata } from '@/lib/seo/metadata'
 import { ProductJsonLd, BreadcrumbJsonLd, MusicAlbumJsonLd } from '@/components/seo/JsonLd'
+import { getProduct } from './metadata'
+
+interface Inventory {
+  available?: number
+}
+
+interface Variant {
+  id: string
+  name: string
+  price: number
+  inventory?: Inventory
+  format?: string
+  product_id?: string
+}
+
+interface Product {
+  id: string
+  name?: string
+  title: string
+  description?: string
+  image_url?: string
+  image?: string
+  price: number
+  sku?: string
+  category?: string
+  tags?: string[]
+  format?: string[]
+  artist?: string
+  created_at?: string
+  active: boolean
+  slug?: string
+  variants?: Variant[]
+}
 
 interface ProductPageProps {
   params: Promise<{ slug: string }>
-}
-
-async function getProduct(slug: string) {
-  const supabase = createClient()
-  
-  // First try to find by slug (if exists)
-  let { data: product, error } = await supabase
-    .from('products')
-    .select('*')
-    .eq('slug', slug)
-    .eq('active', true)
-    .single()
-  
-  // If not found by slug, try by title (for legacy support)
-  if (!product) {
-    const { data: productByTitle } = await supabase
-      .from('products')
-      .select('*')
-      .eq('title', slug.replace(/-/g, ' '))
-      .eq('active', true)
-      .single()
-    
-    product = productByTitle
-  }
-  
-  if (error || !product) {
-    return null
-  }
-  
-  // Get variants if they exist
-  const { data: variants } = await supabase
-    .from('variants')
-    .select(`
-      *,
-      inventory (*)
-    `)
-    .eq('product_id', product.id)
-  
-  return {
-    ...product,
-    variants: variants || []
-  }
 }
 
 export async function generateMetadata({ params }: ProductPageProps): Promise<Metadata> {
@@ -62,7 +53,7 @@ export async function generateMetadata({ params }: ProductPageProps): Promise<Me
   }
   
   // Calculate availability based on inventory
-  const totalInventory = product.variants?.reduce((acc: number, variant: any) => {
+  const totalInventory = product.variants?.reduce((acc: number, variant: Variant) => {
     return acc + (variant.inventory?.available || 0)
   }, 0) || 0
   
@@ -71,7 +62,7 @@ export async function generateMetadata({ params }: ProductPageProps): Promise<Me
   return generateProductMetadata({
     name: product.name || product.title,
     description: product.description || `${product.name || product.title} - Available at Obsidian Rite Records`,
-    image: product.image_url || product.image,
+    image: product.image_url || product.image || undefined,
     slug: slug,
     price: product.price,
     availability
@@ -87,12 +78,12 @@ export default async function ProductPage({ params }: ProductPageProps) {
   }
   
   // Calculate availability and price for structured data
-  const totalInventory = product.variants?.reduce((acc: number, variant: any) => {
+  const totalInventory = product.variants?.reduce((acc: number, variant: Variant) => {
     return acc + (variant.inventory?.available || 0)
   }, 0) || 0
   
   const availability = totalInventory > 0 ? 'InStock' : 'OutOfStock'
-  const lowestPrice = product.variants?.reduce((min: number, variant: any) => {
+  const lowestPrice = product.variants?.reduce((min: number, variant: Variant) => {
     return variant.price < min ? variant.price : min
   }, product.variants[0]?.price || product.price) || product.price
   
@@ -147,7 +138,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
         
         {(product.image_url || product.image) && (
           <img 
-            src={product.image_url || product.image} 
+            src={product.image_url || product.image || ''} 
             alt={product.name || product.title}
             className="w-full max-w-md mb-6"
           />
@@ -167,7 +158,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
           <div className="mb-6">
             <h2 className="text-2xl font-semibold mb-3">Available Formats</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {product.variants.map((variant: any) => (
+              {product.variants.map((variant: Variant) => (
                 <div key={variant.id} className="border p-4 rounded">
                   <h3 className="font-semibold">{variant.name}</h3>
                   <p className="text-lg">${variant.price} AUD</p>

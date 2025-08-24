@@ -74,8 +74,8 @@ export interface Order {
   currency: string;
   stripe_session_id?: string | null;
   stripe_payment_intent_id?: string | null;
-  shipping_address?: any;
-  billing_address?: any;
+  shipping_address?: Address;
+  billing_address?: Address;
   notes?: string | null;
   created_at: string;
   updated_at: string;
@@ -132,8 +132,8 @@ export interface AuditLog {
   user_id?: string | null;
   resource_type?: string | null;
   resource_id?: string | null;
-  changes?: any;
-  metadata?: any;
+  changes?: Record<string, unknown>;
+  metadata?: Record<string, unknown>;
   ip_address?: string | null;
   user_agent?: string | null;
   created_at: string;

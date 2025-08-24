@@ -14,8 +14,31 @@ import { useCart } from "@/contexts/CartContext";
 import { useWishlist } from "@/contexts/WishlistContext";
 import { useToast } from "@/hooks/use-toast";
 
+// Product interface
+interface Product {
+  id: string;
+  title: string;
+  artist: string;
+  format: string;
+  price: number;
+  image: string;
+  images: string[];
+  description: string;
+  trackListing: string[];
+  genre: string;
+  releaseYear: number;
+  label: string;
+  catalog: string;
+  weight: string;
+  limitedEdition: boolean;
+  stock: number;
+  rating: number;
+  reviews: number;
+  originalPrice?: number;
+}
+
 // Empty product database - only real products from Supabase
-const productDatabase = {};
+const productDatabase: Record<string, Product> = {};
 
 const ProductDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -30,19 +53,38 @@ const ProductDetail = () => {
     return <Navigate to="/404" replace />;
   }
 
-  let product: any = productDatabase[id as keyof typeof productDatabase];
+  let product: Product | undefined = productDatabase[id];
   
   // Fallback: try dynamic products uploaded via Admin (stored in localStorage)
   if (!product) {
     try {
+      interface LocalStorageRecord {
+        id?: string;
+        title?: string;
+        artist?: string;
+        format?: string;
+        price?: number;
+        image?: string;
+        description?: string;
+        tracks?: string[];
+        tags?: string[];
+        genre?: string;
+        releaseYear?: number;
+        label?: string;
+        sku?: string;
+        weight?: string;
+        limited?: boolean;
+        stock?: number;
+      }
+      
       const recordsRaw = localStorage.getItem('orr_records');
-      const records = recordsRaw ? JSON.parse(recordsRaw) as any[] : [];
+      const records = recordsRaw ? JSON.parse(recordsRaw) as LocalStorageRecord[] : [];
       const rec = records.find((r) => r.id === id || (typeof r.id === 'string' && r.id.startsWith(id + '-')));
       if (rec) {
-        const fmt = (rec.format ?? 'vinyl').toString().toLowerCase();
+        const fmt = String(rec.format ?? 'vinyl').toLowerCase();
         const formatProper = fmt === 'vinyl' ? 'Vinyl' : fmt === 'cd' ? 'CD' : 'Cassette';
         product = {
-          id: rec.id,
+          id: rec.id ?? id,
           title: rec.title ?? 'Untitled',
           artist: rec.artist ?? 'Unknown',
           format: formatProper,
@@ -208,9 +250,9 @@ const ProductDetail = () => {
 
                 <div className="flex items-center gap-4 mb-6">
                   <span className="text-3xl font-bold">${product.price}</span>
-                  {(product as any).originalPrice && (
+                  {product.originalPrice && (
                     <span className="text-xl text-muted-foreground line-through">
-                      ${(product as any).originalPrice}
+                      ${product.originalPrice}
                     </span>
                   )}
                 </div>
@@ -290,7 +332,7 @@ const ProductDetail = () => {
               
               <TabsContent value="tracks" className="mt-6">
                 <div className="space-y-2">
-                  {product.trackListing.map((track, index) => (
+                  {product.trackListing.map((track: string, index: number) => (
                     <div key={index} className="flex items-center justify-between p-3 bg-muted/30 rounded-md">
                       <span>{track}</span>
                       <Button variant="ghost" size="sm">

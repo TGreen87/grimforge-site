@@ -21,28 +21,28 @@ export default function VariantList() {
         <Table.Column
           dataIndex="name"
           title="Name"
-          render={(value) => <TextField value={value} />}
+          render={(value: string) => <TextField value={value} />}
         />
         <Table.Column
           dataIndex={["product", "title"]}
           title="Product"
-          render={(value) => <TextField value={value} />}
+          render={(value: string) => <TextField value={value} />}
         />
         <Table.Column
           dataIndex="sku"
           title="SKU"
-          render={(value) => <TextField value={value} />}
+          render={(value: string) => <TextField value={value} />}
         />
         <Table.Column
           dataIndex="price"
           title="Price"
-          render={(value) => <NumberField value={value} options={{ style: "currency", currency: "AUD" }} />}
+          render={(value: number) => <NumberField value={value} options={{ style: "currency", currency: "AUD" }} />}
         />
         <Table.Column
           dataIndex={["inventory", "on_hand"]}
           title="On Hand"
-          render={(value) => (
-            <Tag color={value > 0 ? "green" : "red"}>
+          render={(value: number | null) => (
+            <Tag color={value && value > 0 ? "green" : "red"}>
               {value || 0}
             </Tag>
           )}
@@ -50,13 +50,13 @@ export default function VariantList() {
         <Table.Column
           dataIndex={["inventory", "allocated"]}
           title="Allocated"
-          render={(value) => <Tag>{value || 0}</Tag>}
+          render={(value: number | null) => <Tag>{value || 0}</Tag>}
         />
         <Table.Column
           dataIndex={["inventory", "available"]}
           title="Available"
-          render={(value) => (
-            <Tag color={value > 0 ? "green" : "red"}>
+          render={(value: number | null) => (
+            <Tag color={value && value > 0 ? "green" : "red"}>
               {value || 0}
             </Tag>
           )}
@@ -64,7 +64,7 @@ export default function VariantList() {
         <Table.Column
           dataIndex="active"
           title="Active"
-          render={(value) => <BooleanField value={value} />}
+          render={(value: boolean) => <BooleanField value={value} />}
         />
         <Table.Column
           title="Actions"

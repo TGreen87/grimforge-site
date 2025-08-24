@@ -1,5 +1,7 @@
 import React from 'react'
-import type { Product, Article, WithContext, Organization, BreadcrumbList } from 'schema-dts'
+import type { Product, Article, WithContext, Organization, BreadcrumbList, MusicAlbum } from 'schema-dts'
+
+// Using schema-dts MusicAlbum type with proper typing
 
 interface OrganizationJsonLdProps {
   name?: string
@@ -73,7 +75,7 @@ export function ProductJsonLd({
 }: ProductJsonLdProps) {
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || process.env.SITE_URL_STAGING
   
-  const schema: WithContext<Product> = {
+  const schema: WithContext<Product> & { aggregateRating?: unknown } = {
     '@context': 'https://schema.org',
     '@type': 'Product',
     name,
@@ -103,8 +105,8 @@ export function ProductJsonLd({
   if (aggregateRating) {
     schema.aggregateRating = {
       '@type': 'AggregateRating',
-      ratingValue: aggregateRating.ratingValue.toString(),
-      reviewCount: aggregateRating.reviewCount.toString()
+      ratingValue: aggregateRating.ratingValue,
+      reviewCount: aggregateRating.reviewCount
     }
   }
 
@@ -235,7 +237,7 @@ export function MusicAlbumJsonLd({
 }: MusicAlbumJsonLdProps) {
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || process.env.SITE_URL_STAGING
   
-  const schema: any = {
+  const schema: WithContext<MusicAlbum> = {
     '@context': 'https://schema.org',
     '@type': 'MusicAlbum',
     name,

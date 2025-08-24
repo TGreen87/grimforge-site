@@ -58,7 +58,7 @@ export function generateMetadata({
         }
       ],
       locale: 'en_AU',
-      type: type as any
+      type: type as 'website' | 'article'
     },
     twitter: {
       card: 'summary_large_image',
@@ -94,7 +94,7 @@ export function generateMetadata({
       publishedTime,
       modifiedTime: modifiedTime || publishedTime,
       authors: author ? [author] : [siteName]
-    } as any
+    }
   }
 
   // Add product-specific metadata
@@ -102,7 +102,7 @@ export function generateMetadata({
     metadata.openGraph = {
       ...metadata.openGraph,
       type: 'website' // OpenGraph doesn't have a product type, but we handle this via JSON-LD
-    } as any
+    }
   }
 
   return metadata

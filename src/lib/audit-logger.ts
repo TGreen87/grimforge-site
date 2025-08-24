@@ -24,7 +24,7 @@ interface AuditLogEntry {
   action: AuditAction
   resourceType: ResourceType
   resourceId?: string
-  metadata?: Record<string, any>
+  metadata?: Record<string, unknown>
   userId?: string
   userEmail?: string
   ipAddress?: string
@@ -60,7 +60,7 @@ class AuditLogger {
   async logProductChange(
     action: AuditAction,
     productId: string,
-    changes?: Record<string, any>,
+    changes?: Record<string, unknown>,
     userId?: string
   ): Promise<void> {
     await this.log({
@@ -75,7 +75,7 @@ class AuditLogger {
   async logOrderChange(
     action: AuditAction,
     orderId: string,
-    changes?: Record<string, any>,
+    changes?: Record<string, unknown>,
     userId?: string
   ): Promise<void> {
     await this.log({
@@ -90,7 +90,7 @@ class AuditLogger {
   async logInventoryChange(
     action: AuditAction,
     variantId: string,
-    changes?: Record<string, any>,
+    changes?: Record<string, unknown>,
     userId?: string
   ): Promise<void> {
     await this.log({
@@ -105,7 +105,7 @@ class AuditLogger {
   async logCustomerChange(
     action: AuditAction,
     customerId: string,
-    changes?: Record<string, any>,
+    changes?: Record<string, unknown>,
     userId?: string
   ): Promise<void> {
     await this.log({
@@ -120,7 +120,7 @@ class AuditLogger {
   async logUserActivity(
     action: 'login' | 'logout',
     userId: string,
-    metadata?: Record<string, any>
+    metadata?: Record<string, unknown>
   ): Promise<void> {
     await this.log({
       action,

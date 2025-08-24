@@ -7,7 +7,7 @@ import { EyeOutlined } from "@ant-design/icons";
 import Link from "next/link";
 import { useUpdate } from "@refinedev/core";
 import { message } from "antd";
-import type { Order } from "../types";
+import type { Order, OrderItem } from "../types";
 
 const statusColors: Record<string, string> = {
   pending: "orange",
@@ -52,8 +52,9 @@ export default function OrderList() {
           message.success("Order status updated successfully");
           tableQueryResult.refetch();
         },
-        onError: (error: any) => {
-          message.error(`Failed to update order status: ${error.message}`);
+        onError: (error: unknown) => {
+          const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+          message.error(`Failed to update order status: ${errorMessage}`);
         },
       }
     );
@@ -65,17 +66,17 @@ export default function OrderList() {
         <Table.Column
           dataIndex="id"
           title="Order ID"
-          render={(value) => <TextField value={value?.substring(0, 8) + "..."} />}
+          render={(value: string) => <TextField value={value?.substring(0, 8) + "..."} />}
         />
         <Table.Column
           dataIndex={["customer", "email"]}
           title="Customer"
-          render={(value) => <TextField value={value || "Guest"} />}
+          render={(value: string | null) => <TextField value={value || "Guest"} />}
         />
         <Table.Column
           dataIndex="status"
           title="Status"
-          render={(value, record: Order) => (
+          render={(value: string, record: Order) => (
             <Select
               value={value}
               onChange={(newStatus) => handleStatusChange(record.id, newStatus)}
@@ -108,7 +109,7 @@ export default function OrderList() {
         <Table.Column
           dataIndex="total"
           title="Total"
-          render={(value) => (
+          render={(value: number) => (
             <NumberField value={value} options={{ style: "currency", currency: "AUD" }} />
           )}
           sorter
@@ -116,12 +117,12 @@ export default function OrderList() {
         <Table.Column
           dataIndex="order_items"
           title="Items"
-          render={(items: any[]) => <Tag>{items?.length || 0} items</Tag>}
+          render={(items: OrderItem[] | null) => <Tag>{items?.length || 0} items</Tag>}
         />
         <Table.Column
           dataIndex="created_at"
           title="Date"
-          render={(value) => <DateField value={value} format="YYYY-MM-DD HH:mm" />}
+          render={(value: string) => <DateField value={value} format="YYYY-MM-DD HH:mm" />}
           sorter
         />
         <Table.Column
