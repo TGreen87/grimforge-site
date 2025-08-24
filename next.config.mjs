@@ -5,8 +5,6 @@ const nextConfig = {
   outputFileTracingRoot: process.cwd(),
   // Disable typed routes generation which was causing bad imports into src/app
   typedRoutes: false,
-  // Prevent Next from treating legacy Vite React Router files under pages/ as routes
-  pageExtensions: ['mdx'],
   // Don't fail the build on type or ESLint issues in CI until we fix all TS
   typescript: {
     ignoreBuildErrors: true,
