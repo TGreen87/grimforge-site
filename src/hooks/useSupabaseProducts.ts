@@ -1,5 +1,20 @@
 import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { getSupabaseBrowserClient } from "@/integrations/supabase/browser";
+
+interface SupabaseProductRow {
+  id: string;
+  title?: string;
+  artist?: string;
+  format?: string;
+  price?: number;
+  image?: string;
+  limited?: boolean;
+  pre_order?: boolean;
+  stock?: number;
+  tags?: string[];
+  release_year?: number;
+  featured?: boolean;
+}
 
 export interface CatalogProduct {
   id: string;
@@ -21,7 +36,7 @@ export interface CatalogProduct {
 export function useSupabaseProducts() {
   const [products, setProducts] = useState<CatalogProduct[]>([]);
 
-  const mapRow = (r: any): CatalogProduct => ({
+  const mapRow = (r: SupabaseProductRow): CatalogProduct => ({
     id: r.id,
     title: r.title ?? "Untitled",
     artist: r.artist ?? "Unknown",
@@ -40,8 +55,10 @@ export function useSupabaseProducts() {
 
   useEffect(() => {
     let isMounted = true;
+    const supabase = getSupabaseBrowserClient();
 
     const fetchProducts = async () => {
+      const supabase = getSupabaseBrowserClient();
       const { data, error } = await supabase
         .from("products")
         .select("*")

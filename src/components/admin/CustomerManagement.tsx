@@ -8,7 +8,21 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useToast } from "@/hooks/use-toast";
 
-const mockCustomers = [
+interface Customer {
+  id: string;
+  name: string;
+  email: string;
+  role: "customer" | "wholesale" | "admin";
+  joinedAt: string;
+  totalOrders: number;
+  totalSpent: number;
+  lastOrder: string;
+  status: "active" | "inactive";
+  favoriteGenres: string[];
+  wishlist: number;
+}
+
+const mockCustomers: Customer[] = [
   {
     id: "1",
     name: "Mortis Blackheart",
@@ -81,7 +95,7 @@ const CustomerManagement = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [roleFilter, setRoleFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
-  const [selectedCustomer, setSelectedCustomer] = useState<any>(null);
+  const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
   const { toast } = useToast();
 
   const filteredCustomers = customers
@@ -118,13 +132,13 @@ const CustomerManagement = () => {
     );
   };
 
-  const getCustomerValue = (customer: any) => {
+  const getCustomerValue = (customer: Customer) => {
     if (customer.totalSpent > 1000) return { label: "High Value", color: "text-green-500" };
     if (customer.totalSpent > 200) return { label: "Medium Value", color: "text-blue-500" };
     return { label: "New Customer", color: "text-muted-foreground" };
   };
 
-  const sendEmail = (customer: any, type: string) => {
+  const sendEmail = (customer: Customer, type: string) => {
     toast({
       title: "Email Sent",
       description: `${type} email sent to ${customer.name}`,

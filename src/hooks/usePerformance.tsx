@@ -6,6 +6,26 @@ interface PerformanceMetrics {
   memoryUsage?: number;
 }
 
+interface PerformanceMemory {
+  usedJSHeapSize: number;
+  totalJSHeapSize: number;
+  jsHeapSizeLimit: number;
+}
+
+interface ExtendedPerformance extends Performance {
+  memory?: PerformanceMemory;
+}
+
+interface NetworkConnection {
+  effectiveType?: string;
+  addEventListener: (event: string, handler: () => void) => void;
+  removeEventListener: (event: string, handler: () => void) => void;
+}
+
+interface ExtendedNavigator extends Navigator {
+  connection?: NetworkConnection;
+}
+
 export const usePerformance = () => {
   const [metrics, setMetrics] = useState<PerformanceMetrics | null>(null);
 
@@ -17,7 +37,7 @@ export const usePerformance = () => {
       
       let memoryUsage;
       if ('memory' in performance) {
-        memoryUsage = (performance as any).memory.usedJSHeapSize / 1024 / 1024; // MB
+        memoryUsage = (performance as ExtendedPerformance).memory!.usedJSHeapSize / 1024 / 1024; // MB
       }
 
       setMetrics({
@@ -69,7 +89,7 @@ export const useNetworkStatus = () => {
 
     // Get connection type if available
     if ('connection' in navigator) {
-      const connection = (navigator as any).connection;
+      const connection = (navigator as ExtendedNavigator).connection!;
       setConnectionType(connection.effectiveType || 'unknown');
       
       const handleConnectionChange = () => {

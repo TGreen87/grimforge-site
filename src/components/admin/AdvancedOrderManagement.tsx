@@ -9,7 +9,32 @@ import { Textarea } from "@/components/ui/textarea";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useToast } from "@/hooks/use-toast";
 
-const mockOrders = [
+interface OrderItem {
+  title: string;
+  artist: string;
+  format: string;
+  price: number;
+  quantity: number;
+}
+
+type OrderStatus = 'pending' | 'processing' | 'shipped' | 'delivered';
+
+interface Order {
+  id: string;
+  customer: string;
+  email: string;
+  total: number;
+  status: OrderStatus;
+  date: string;
+  items: OrderItem[];
+  shipping: {
+    address: string;
+    method: string;
+    tracking: string | null;
+  };
+}
+
+const mockOrders: Order[] = [
   { 
     id: "ORD-001", 
     customer: "Mortis Blackheart", 
@@ -73,8 +98,8 @@ const statusConfig = {
 const AdvancedOrderManagement = () => {
   const [orders, setOrders] = useState(mockOrders);
   const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState("all");
-  const [selectedOrder, setSelectedOrder] = useState<any>(null);
+  const [statusFilter, setStatusFilter] = useState<'all' | OrderStatus>('all');
+  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const { toast } = useToast();
 
   const filteredOrders = orders
@@ -85,7 +110,7 @@ const AdvancedOrderManagement = () => {
     )
     .filter(order => statusFilter === "all" || order.status === statusFilter);
 
-  const updateOrderStatus = (orderId: string, newStatus: string) => {
+  const updateOrderStatus = (orderId: string, newStatus: OrderStatus) => {
     setOrders(prev => prev.map(order => 
       order.id === orderId ? { ...order, status: newStatus } : order
     ));
@@ -95,14 +120,14 @@ const AdvancedOrderManagement = () => {
     });
   };
 
-  const sendCustomerEmail = (order: any, type: string) => {
+  const sendCustomerEmail = (order: Order, type: string) => {
     toast({
       title: "Email Sent",
       description: `${type} email sent to ${order.customer}`,
     });
   };
 
-  const printDocument = (order: any, type: string) => {
+  const printDocument = (order: Order, type: string) => {
     toast({
       title: "Print Document",
       description: `${type} for order ${order.id} ready to print`,
@@ -132,12 +157,12 @@ const AdvancedOrderManagement = () => {
           <Input
             placeholder="Search orders..."
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value)}
             className="pl-10"
           />
         </div>
         
-        <Select value={statusFilter} onValueChange={setStatusFilter}>
+        <Select value={statusFilter} onValueChange={(value: 'all' | OrderStatus) => setStatusFilter(value)}>
           <SelectTrigger>
             <SelectValue placeholder="Filter by status" />
           </SelectTrigger>
@@ -171,7 +196,7 @@ const AdvancedOrderManagement = () => {
             </thead>
             <tbody>
               {filteredOrders.map((order) => {
-                const statusInfo = statusConfig[order.status as keyof typeof statusConfig];
+                const statusInfo = statusConfig[order.status];
                 const StatusIcon = statusInfo.icon;
                 
                 return (
@@ -238,7 +263,7 @@ const AdvancedOrderManagement = () => {
                                         </tr>
                                       </thead>
                                       <tbody>
-                                        {selectedOrder.items.map((item: any, index: number) => (
+                                        {selectedOrder.items.map((item, index: number) => (
                                           <tr key={index} className="border-t border-border">
                                             <td className="p-3">
                                               <div>
@@ -263,7 +288,7 @@ const AdvancedOrderManagement = () => {
                                   <div className="flex gap-2">
                                     <Select 
                                       value={selectedOrder.status} 
-                                      onValueChange={(status) => updateOrderStatus(selectedOrder.id, status)}
+                                      onValueChange={(status: OrderStatus) => updateOrderStatus(selectedOrder.id, status)}
                                     >
                                       <SelectTrigger className="w-48">
                                         <SelectValue />

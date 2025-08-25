@@ -36,73 +36,72 @@ const RecommendationEngine = ({
   const [recommendationType, setRecommendationType] = useState<string>("");
 
   useEffect(() => {
-    generateRecommendations();
-  }, [currentProductId, JSON.stringify(userGenres), JSON.stringify(userPurchaseHistory)]);
+    const generateRecommendations = () => {
+      let recommended: Product[] = [];
+      let type = "";
 
-  const generateRecommendations = () => {
-    let recommended: Product[] = [];
-    let type = "";
+      if (currentProductId) {
+        // Product page recommendations
+        const currentProduct = mockProducts.find(p => p.id === currentProductId);
+        if (currentProduct) {
+          // Same artist recommendations
+          const sameArtist = mockProducts.filter(p => 
+            p.artist === currentProduct.artist && p.id !== currentProductId
+          );
+          
+          // Same genre recommendations  
+          const sameGenre = mockProducts.filter(p => 
+            p.genre === currentProduct.genre && 
+            p.id !== currentProductId && 
+            !sameArtist.find(sa => sa.id === p.id)
+          );
 
-    if (currentProductId) {
-      // Product page recommendations
-      const currentProduct = mockProducts.find(p => p.id === currentProductId);
-      if (currentProduct) {
-        // Same artist recommendations
-        const sameArtist = mockProducts.filter(p => 
-          p.artist === currentProduct.artist && p.id !== currentProductId
-        );
-        
-        // Same genre recommendations  
-        const sameGenre = mockProducts.filter(p => 
-          p.genre === currentProduct.genre && 
-          p.id !== currentProductId && 
-          !sameArtist.find(sa => sa.id === p.id)
+          // Format preferences (if user likes vinyl, recommend more vinyl)
+          const sameFormat = mockProducts.filter(p => 
+            p.format === currentProduct.format && 
+            p.id !== currentProductId &&
+            !sameArtist.find(sa => sa.id === p.id) &&
+            !sameGenre.find(sg => sg.id === p.id)
+          );
+
+          recommended = [
+            ...sameArtist.slice(0, 2),
+            ...sameGenre.slice(0, 2), 
+            ...sameFormat.slice(0, 2)
+          ].slice(0, 6);
+
+          type = currentProduct.artist;
+        }
+      } else {
+        // Homepage recommendations based on user preferences
+        const genreRecommendations = mockProducts.filter(p => 
+          userGenres.includes(p.genre) && 
+          !userPurchaseHistory.includes(p.id)
         );
 
-        // Format preferences (if user likes vinyl, recommend more vinyl)
-        const sameFormat = mockProducts.filter(p => 
-          p.format === currentProduct.format && 
-          p.id !== currentProductId &&
-          !sameArtist.find(sa => sa.id === p.id) &&
-          !sameGenre.find(sg => sg.id === p.id)
-        );
+        // Add some trending/featured items
+        const trending = mockProducts.filter(p => p.limited || p.preOrder);
 
         recommended = [
-          ...sameArtist.slice(0, 2),
-          ...sameGenre.slice(0, 2), 
-          ...sameFormat.slice(0, 2)
+          ...genreRecommendations.slice(0, 4),
+          ...trending.slice(0, 2)
         ].slice(0, 6);
 
-        type = currentProduct.artist;
+        type = "your dark tastes";
       }
-    } else {
-      // Homepage recommendations based on user preferences
-      const genreRecommendations = mockProducts.filter(p => 
-        userGenres.includes(p.genre) && 
-        !userPurchaseHistory.includes(p.id)
+
+      // Add some randomization to keep it fresh - ensure unique IDs
+      const shuffled = recommended.sort(() => Math.random() - 0.5);
+      const unique = shuffled.filter((item, index, self) =>
+        index === self.findIndex((i) => i.id === item.id)
       );
 
-      // Add some trending/featured items
-      const trending = mockProducts.filter(p => p.limited || p.preOrder);
+      setRecommendations(unique);
+      setRecommendationType(type);
+    };
 
-      recommended = [
-        ...genreRecommendations.slice(0, 4),
-        ...trending.slice(0, 2)
-      ].slice(0, 6);
-
-      type = "your dark tastes";
-    }
-
-    // Add some randomization to keep it fresh - ensure unique IDs
-    const shuffled = recommended.sort(() => Math.random() - 0.5);
-    // Ensure unique IDs for React keys by adding index to prevent duplicates
-    const uniqueRecommendations = shuffled.map((item, index) => ({
-      ...item,
-      id: `${item.id}-rec-${index}`
-    }));
-    setRecommendations(uniqueRecommendations);
-    setRecommendationType(type);
-  };
+    generateRecommendations();
+  }, [currentProductId, userGenres, userPurchaseHistory]);
 
   // Show coming soon message when no recommendations
   if (recommendations.length === 0) {

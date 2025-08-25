@@ -49,7 +49,8 @@ function csvToRecords(csv: string): RecordItem[] {
     const cols = line.split(",");
     const title = cols[idx("title")]?.trim() || `Untitled ${i+1}`;
     const artist = cols[idx("artist")]?.trim() || "Unknown";
-    const formatStr = (cols[idx("format")]?.trim().toLowerCase() || "vinyl") as RecordItem["format"];
+    const formatStr = cols[idx("format")]?.trim().toLowerCase() || "vinyl";
+    const validFormat: RecordItem["format"] = ["vinyl", "cassette", "cd"].includes(formatStr) ? (formatStr as RecordItem["format"]) : "vinyl";
     const price = parseFloat(cols[idx("price")] || "0");
     const sku = cols[idx("sku")]?.trim();
     const stock = parseInt(cols[idx("stock")] || "0", 10);
@@ -60,20 +61,20 @@ function csvToRecords(csv: string): RecordItem[] {
       id: `${title.toLowerCase().replace(/[^a-z0-9]+/g, "-")}-${Date.now()}-${i}`,
       title,
       artist,
-      format: ["vinyl","cassette","cd"].includes(formatStr) ? formatStr : "vinyl",
+      format: validFormat,
       price: isNaN(price) ? 0 : price,
       sku,
       stock: isNaN(stock) ? 0 : stock,
       active: true,
       image: "/assets/album-2.jpg",
       external: { bandcamp, discogs, spotify }
-    } as RecordItem;
+    } satisfies RecordItem;
   });
 }
 
 const RecordsManager = () => {
   const { toast } = useToast();
-  const [records, setRecords] = useState<RecordItem[]>(() => getJSON(storageKeys.records, [] as RecordItem[]));
+  const [records, setRecords] = useState<RecordItem[]>(() => getJSON(storageKeys.records, []));
   const [form, setForm] = useState<RecordItem>({ ...defaultRecord });
   const [query, setQuery] = useState("");
   const fileRef = useRef<HTMLInputElement>(null);
@@ -156,9 +157,9 @@ const RecordsManager = () => {
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-6 gap-3">
-            <Input placeholder="Title" aria-label="Title" value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))} className="md:col-span-2" />
-            <Input placeholder="Artist" aria-label="Artist" value={form.artist} onChange={e => setForm(f => ({ ...f, artist: e.target.value }))} className="md:col-span-2" />
-            <Select value={form.format} onValueChange={(v: any) => setForm(f => ({ ...f, format: v }))}>
+            <Input placeholder="Title" aria-label="Title" value={form.title} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setForm(f => ({ ...f, title: e.target.value }))} className="md:col-span-2" />
+            <Input placeholder="Artist" aria-label="Artist" value={form.artist} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setForm(f => ({ ...f, artist: e.target.value }))} className="md:col-span-2" />
+            <Select value={form.format} onValueChange={(v: "vinyl" | "cassette" | "cd") => setForm(f => ({ ...f, format: v }))}>
               <SelectTrigger>
                 <SelectValue placeholder="Format" />
               </SelectTrigger>
@@ -168,14 +169,14 @@ const RecordsManager = () => {
                 <SelectItem value="cd">CD</SelectItem>
               </SelectContent>
             </Select>
-            <Input type="number" step="0.01" placeholder="Price" aria-label="Price" value={form.price} onChange={e => setForm(f => ({ ...f, price: parseFloat(e.target.value) || 0 }))} />
-            <Input placeholder="SKU" aria-label="SKU" value={form.sku} onChange={e => setForm(f => ({ ...f, sku: e.target.value }))} />
-            <Input type="number" placeholder="Stock" aria-label="Stock" value={form.stock} onChange={e => setForm(f => ({ ...f, stock: parseInt(e.target.value || "0", 10) }))} />
+            <Input type="number" step="0.01" placeholder="Price" aria-label="Price" value={form.price} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setForm(f => ({ ...f, price: parseFloat(e.target.value) || 0 }))} />
+            <Input placeholder="SKU" aria-label="SKU" value={form.sku} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setForm(f => ({ ...f, sku: e.target.value }))} />
+            <Input type="number" placeholder="Stock" aria-label="Stock" value={form.stock} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setForm(f => ({ ...f, stock: parseInt(e.target.value || "0", 10) }))} />
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-            <Input placeholder="Bandcamp URL" aria-label="Bandcamp URL" value={form.external?.bandcamp || ""} onChange={e => setForm(f => ({ ...f, external: { ...f.external, bandcamp: e.target.value } }))} />
-            <Input placeholder="Discogs URL" aria-label="Discogs URL" value={form.external?.discogs || ""} onChange={e => setForm(f => ({ ...f, external: { ...f.external, discogs: e.target.value } }))} />
-            <Input placeholder="Spotify URL" aria-label="Spotify URL" value={form.external?.spotify || ""} onChange={e => setForm(f => ({ ...f, external: { ...f.external, spotify: e.target.value } }))} />
+            <Input placeholder="Bandcamp URL" aria-label="Bandcamp URL" value={form.external?.bandcamp || ""} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setForm(f => ({ ...f, external: { ...f.external, bandcamp: e.target.value } }))} />
+            <Input placeholder="Discogs URL" aria-label="Discogs URL" value={form.external?.discogs || ""} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setForm(f => ({ ...f, external: { ...f.external, discogs: e.target.value } }))} />
+            <Input placeholder="Spotify URL" aria-label="Spotify URL" value={form.external?.spotify || ""} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setForm(f => ({ ...f, external: { ...f.external, spotify: e.target.value } }))} />
           </div>
           <div className="flex gap-2">
             <Button onClick={addRecord}>
@@ -191,7 +192,7 @@ const RecordsManager = () => {
       </Card>
 
       <div className="flex items-center justify-between">
-        <Input placeholder="Search records..." aria-label="Search records" value={query} onChange={e => setQuery(e.target.value)} className="max-w-sm" />
+        <Input placeholder="Search records..." aria-label="Search records" value={query} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setQuery(e.target.value)} className="max-w-sm" />
         <div className="text-sm text-muted-foreground">{filtered.length} of {records.length} records</div>
       </div>
 

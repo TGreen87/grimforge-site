@@ -103,9 +103,10 @@ const ChartTooltip = RechartsPrimitive.Tooltip
 interface TooltipPayload {
   dataKey?: string
   name?: string
-  value?: any
-  payload?: any
+  value?: string | number
+  payload?: Record<string, string | number | boolean>
   color?: string
+  [key: string]: unknown
 }
 
 const ChartTooltipContent = React.forwardRef<
@@ -119,8 +120,8 @@ const ChartTooltipContent = React.forwardRef<
     indicator?: "line" | "dot" | "dashed"
     nameKey?: string
     labelKey?: string
-    labelFormatter?: (value: any, payload: TooltipPayload[]) => React.ReactNode
-    formatter?: (value: any, name: string, item: any, index: number, payload: any) => React.ReactNode
+    labelFormatter?: (value: string | number, payload: TooltipPayload[]) => React.ReactNode
+    formatter?: (value: string | number, name: string, item: Record<string, string | number | boolean>, index: number, payload: Record<string, string | number | boolean>) => React.ReactNode
     color?: string
     labelClassName?: string
   }
@@ -161,7 +162,7 @@ const ChartTooltipContent = React.forwardRef<
       if (labelFormatter) {
         return (
           <div className={cn("font-medium", labelClassName)}>
-            {labelFormatter(value, payload)}
+            {labelFormatter(value as string | number, payload)}
           </div>
         )
       }
@@ -252,7 +253,7 @@ const ChartTooltipContent = React.forwardRef<
                       </div>
                       {item.value && (
                         <span className="font-mono font-medium tabular-nums text-foreground">
-                          {item.value.toLocaleString()}
+                          {typeof item.value === 'number' ? item.value.toLocaleString() : item.value}
                         </span>
                       )}
                     </div>
@@ -274,6 +275,7 @@ interface LegendPayload {
   dataKey?: string
   value?: string
   color?: string
+  [key: string]: unknown
 }
 
 const ChartLegendContent = React.forwardRef<
@@ -338,7 +340,7 @@ ChartLegendContent.displayName = "ChartLegend"
 // Helper to extract item config from a payload.
 function getPayloadConfigFromPayload(
   config: ChartConfig,
-  payload: unknown,
+  payload: Record<string, unknown> | null,
   key: string
 ) {
   if (typeof payload !== "object" || payload === null) {
@@ -349,24 +351,22 @@ function getPayloadConfigFromPayload(
     "payload" in payload &&
     typeof payload.payload === "object" &&
     payload.payload !== null
-      ? payload.payload
+      ? payload.payload as Record<string, unknown>
       : undefined
 
   let configLabelKey: string = key
 
   if (
     key in payload &&
-    typeof payload[key as keyof typeof payload] === "string"
+    typeof payload[key] === "string"
   ) {
-    configLabelKey = payload[key as keyof typeof payload] as string
+    configLabelKey = payload[key] as string
   } else if (
     payloadPayload &&
     key in payloadPayload &&
-    typeof payloadPayload[key as keyof typeof payloadPayload] === "string"
+    typeof payloadPayload[key] === "string"
   ) {
-    configLabelKey = payloadPayload[
-      key as keyof typeof payloadPayload
-    ] as string
+    configLabelKey = payloadPayload[key] as string
   }
 
   return configLabelKey in config

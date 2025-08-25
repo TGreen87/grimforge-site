@@ -5,7 +5,7 @@ const album3 = "/assets/album-3.jpg";
 
 const PreOrderSection = () => {
   // Empty pre-orders - will show coming soon message
-  const preOrders = [];
+  const preOrders: never[] = [];
 
   return (
     <section id="preorders" className="py-20 px-4 bg-gradient-to-b from-background to-secondary/10">

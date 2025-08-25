@@ -4,8 +4,18 @@ import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Badge } from "@/components/ui/badge";
 import { useWishlist } from "@/contexts/WishlistContext";
-import { useCart } from "@/contexts/CartContext";
+import { useCart, type CartItem } from "@/contexts/CartContext";
 import { useToast } from "@/hooks/use-toast";
+
+interface WishlistItem {
+  id: string;
+  title: string;
+  artist: string;
+  format: string;
+  price: number;
+  image: string;
+  addedAt: string;
+}
 
 const WishlistDrawer = () => {
   const { items, removeItem, getTotalItems } = useWishlist();
@@ -13,7 +23,7 @@ const WishlistDrawer = () => {
   const { toast } = useToast();
   const [isOpen, setIsOpen] = useState(false);
 
-  const handleMoveToCart = (item: any) => {
+  const handleMoveToCart = (item: WishlistItem) => {
     addToCart({
       id: item.id,
       title: item.title,
@@ -31,7 +41,7 @@ const WishlistDrawer = () => {
     });
   };
 
-  const handleRemoveItem = (item: any) => {
+  const handleRemoveItem = (item: WishlistItem) => {
     removeItem(item.id);
     toast({
       title: "Removed from Wishlist",

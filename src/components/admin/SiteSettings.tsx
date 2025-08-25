@@ -52,11 +52,11 @@ const SiteSettings = () => {
     }
   });
 
-  const updateSetting = (section: string, key: string, value: any) => {
+  const updateSetting = <T extends keyof typeof settings>(section: T, key: string, value: string | number | boolean) => {
     setSettings(prev => ({
       ...prev,
       [section]: {
-        ...prev[section as keyof typeof prev],
+        ...prev[section],
         [key]: value
       }
     }));
@@ -103,7 +103,7 @@ const SiteSettings = () => {
                   <Input
                     id="siteName"
                     value={settings.general.siteName}
-                    onChange={(e) => updateSetting('general', 'siteName', e.target.value)}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateSetting('general', 'siteName', e.target.value)}
                   />
                 </div>
                 <div className="space-y-2">
@@ -111,7 +111,7 @@ const SiteSettings = () => {
                   <Input
                     id="tagline"
                     value={settings.general.tagline}
-                    onChange={(e) => updateSetting('general', 'tagline', e.target.value)}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateSetting('general', 'tagline', e.target.value)}
                   />
                 </div>
               </div>
@@ -122,7 +122,7 @@ const SiteSettings = () => {
                   id="description"
                   rows={3}
                   value={settings.general.description}
-                  onChange={(e) => updateSetting('general', 'description', e.target.value)}
+                  onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => updateSetting('general', 'description', e.target.value)}
                 />
               </div>
 
@@ -133,12 +133,12 @@ const SiteSettings = () => {
                     id="contactEmail"
                     type="email"
                     value={settings.general.contactEmail}
-                    onChange={(e) => updateSetting('general', 'contactEmail', e.target.value)}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateSetting('general', 'contactEmail', e.target.value)}
                   />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="currency">Currency</Label>
-                  <Select value={settings.general.currency} onValueChange={(value) => updateSetting('general', 'currency', value)}>
+                  <Select value={settings.general.currency} onValueChange={(value: string) => updateSetting('general', 'currency', value)}>
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
@@ -169,7 +169,7 @@ const SiteSettings = () => {
                 <Input
                   id="metaTitle"
                   value={settings.seo.metaTitle}
-                  onChange={(e) => updateSetting('seo', 'metaTitle', e.target.value)}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateSetting('seo', 'metaTitle', e.target.value)}
                 />
               </div>
 
@@ -179,7 +179,7 @@ const SiteSettings = () => {
                   id="metaDescription"
                   rows={3}
                   value={settings.seo.metaDescription}
-                  onChange={(e) => updateSetting('seo', 'metaDescription', e.target.value)}
+                  onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => updateSetting('seo', 'metaDescription', e.target.value)}
                 />
               </div>
 
@@ -188,7 +188,7 @@ const SiteSettings = () => {
                 <Input
                   id="keywords"
                   value={settings.seo.keywords}
-                  onChange={(e) => updateSetting('seo', 'keywords', e.target.value)}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateSetting('seo', 'keywords', e.target.value)}
                   placeholder="Separate keywords with commas"
                 />
               </div>
@@ -201,7 +201,7 @@ const SiteSettings = () => {
                   </div>
                   <Switch
                     checked={settings.seo.enableSitemap}
-                    onCheckedChange={(checked) => updateSetting('seo', 'enableSitemap', checked)}
+                    onCheckedChange={(checked: boolean) => updateSetting('seo', 'enableSitemap', checked)}
                   />
                 </div>
 
@@ -212,7 +212,7 @@ const SiteSettings = () => {
                   </div>
                   <Switch
                     checked={settings.seo.enableRobots}
-                    onCheckedChange={(checked) => updateSetting('seo', 'enableRobots', checked)}
+                    onCheckedChange={(checked: boolean) => updateSetting('seo', 'enableRobots', checked)}
                   />
                 </div>
               </div>
@@ -234,7 +234,7 @@ const SiteSettings = () => {
                   </div>
                   <Switch
                     checked={settings.features.enableWishlist}
-                    onCheckedChange={(checked) => updateSetting('features', 'enableWishlist', checked)}
+                    onCheckedChange={(checked: boolean) => updateSetting('features', 'enableWishlist', checked)}
                   />
                 </div>
 
@@ -245,7 +245,7 @@ const SiteSettings = () => {
                   </div>
                   <Switch
                     checked={settings.features.enableReviews}
-                    onCheckedChange={(checked) => updateSetting('features', 'enableReviews', checked)}
+                    onCheckedChange={(checked: boolean) => updateSetting('features', 'enableReviews', checked)}
                   />
                 </div>
 
@@ -256,7 +256,7 @@ const SiteSettings = () => {
                   </div>
                   <Switch
                     checked={settings.features.enableNewsletter}
-                    onCheckedChange={(checked) => updateSetting('features', 'enableNewsletter', checked)}
+                    onCheckedChange={(checked: boolean) => updateSetting('features', 'enableNewsletter', checked)}
                   />
                 </div>
 
@@ -267,7 +267,7 @@ const SiteSettings = () => {
                   </div>
                   <Switch
                     checked={settings.features.enablePreorders}
-                    onCheckedChange={(checked) => updateSetting('features', 'enablePreorders', checked)}
+                    onCheckedChange={(checked: boolean) => updateSetting('features', 'enablePreorders', checked)}
                   />
                 </div>
 
@@ -278,7 +278,7 @@ const SiteSettings = () => {
                   </div>
                   <Switch
                     checked={settings.features.maintenanceMode}
-                    onCheckedChange={(checked) => updateSetting('features', 'maintenanceMode', checked)}
+                    onCheckedChange={(checked: boolean) => updateSetting('features', 'maintenanceMode', checked)}
                   />
                 </div>
               </div>
@@ -301,7 +301,7 @@ const SiteSettings = () => {
                   id="freeShippingThreshold"
                   type="number"
                   value={settings.shipping.freeShippingThreshold}
-                  onChange={(e) => updateSetting('shipping', 'freeShippingThreshold', parseFloat(e.target.value))}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateSetting('shipping', 'freeShippingThreshold', parseFloat(e.target.value))}
                 />
               </div>
 
@@ -313,7 +313,7 @@ const SiteSettings = () => {
                     type="number"
                     step="0.01"
                     value={settings.shipping.standardRate}
-                    onChange={(e) => updateSetting('shipping', 'standardRate', parseFloat(e.target.value))}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateSetting('shipping', 'standardRate', parseFloat(e.target.value))}
                   />
                 </div>
                 <div className="space-y-2">
@@ -323,7 +323,7 @@ const SiteSettings = () => {
                     type="number"
                     step="0.01"
                     value={settings.shipping.expressRate}
-                    onChange={(e) => updateSetting('shipping', 'expressRate', parseFloat(e.target.value))}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateSetting('shipping', 'expressRate', parseFloat(e.target.value))}
                   />
                 </div>
                 <div className="space-y-2">
@@ -333,7 +333,7 @@ const SiteSettings = () => {
                     type="number"
                     step="0.01"
                     value={settings.shipping.overnightRate}
-                    onChange={(e) => updateSetting('shipping', 'overnightRate', parseFloat(e.target.value))}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateSetting('shipping', 'overnightRate', parseFloat(e.target.value))}
                   />
                 </div>
               </div>
@@ -345,7 +345,7 @@ const SiteSettings = () => {
                 </div>
                 <Switch
                   checked={settings.shipping.internationalShipping}
-                  onCheckedChange={(checked) => updateSetting('shipping', 'internationalShipping', checked)}
+                  onCheckedChange={(checked: boolean) => updateSetting('shipping', 'internationalShipping', checked)}
                 />
               </div>
 
@@ -357,7 +357,7 @@ const SiteSettings = () => {
                     type="number"
                     step="0.01"
                     value={settings.shipping.internationalRate}
-                    onChange={(e) => updateSetting('shipping', 'internationalRate', parseFloat(e.target.value))}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateSetting('shipping', 'internationalRate', parseFloat(e.target.value))}
                   />
                 </div>
               )}
@@ -382,7 +382,7 @@ const SiteSettings = () => {
                   </div>
                   <Switch
                     checked={settings.payments.enableStripe}
-                    onCheckedChange={(checked) => updateSetting('payments', 'enableStripe', checked)}
+                    onCheckedChange={(checked: boolean) => updateSetting('payments', 'enableStripe', checked)}
                   />
                 </div>
 
@@ -393,7 +393,7 @@ const SiteSettings = () => {
                   </div>
                   <Switch
                     checked={settings.payments.enablePaypal}
-                    onCheckedChange={(checked) => updateSetting('payments', 'enablePaypal', checked)}
+                    onCheckedChange={(checked: boolean) => updateSetting('payments', 'enablePaypal', checked)}
                   />
                 </div>
               </div>
@@ -406,7 +406,7 @@ const SiteSettings = () => {
                     type="number"
                     step="0.1"
                     value={settings.payments.taxRate}
-                    onChange={(e) => updateSetting('payments', 'taxRate', parseFloat(e.target.value))}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateSetting('payments', 'taxRate', parseFloat(e.target.value))}
                   />
                 </div>
                 <div className="space-y-2">
@@ -416,7 +416,7 @@ const SiteSettings = () => {
                     type="number"
                     step="0.1"
                     value={settings.payments.processingFee}
-                    onChange={(e) => updateSetting('payments', 'processingFee', parseFloat(e.target.value))}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateSetting('payments', 'processingFee', parseFloat(e.target.value))}
                   />
                 </div>
               </div>

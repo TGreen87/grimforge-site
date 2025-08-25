@@ -20,6 +20,7 @@ interface EmailData {
   total?: number;
   shippingAddress?: string;
   estimatedDelivery?: string;
+  type?: "order_confirmation" | "shipping_update" | "restock_alert" | "promotional" | "wishlist_reminder";
 }
 
 class EmailNotificationService {
@@ -182,7 +183,7 @@ class EmailNotificationService {
     return this.sendEmail({
       ...emailData,
       type: "order_confirmation"
-    } as any);
+    });
   }
 
   async sendShippingUpdate(emailData: EmailData): Promise<boolean> {
@@ -192,7 +193,7 @@ class EmailNotificationService {
     return this.sendEmail({
       ...emailData,
       type: "shipping_update"
-    } as any);
+    });
   }
 
   async sendRestockAlert(emailData: EmailData): Promise<boolean> {
@@ -202,7 +203,7 @@ class EmailNotificationService {
     return this.sendEmail({
       ...emailData,
       type: "restock_alert"
-    } as any);
+    });
   }
 
   async sendWishlistReminder(emailData: EmailData): Promise<boolean> {
@@ -212,7 +213,7 @@ class EmailNotificationService {
     return this.sendEmail({
       ...emailData,
       type: "wishlist_reminder"
-    } as any);
+    });
   }
 
   private processTemplate(template: string, data: EmailData): string {
