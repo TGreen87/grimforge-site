@@ -1,9 +1,9 @@
 import { AuthProvider } from "@refinedev/core";
-import { createClient } from "@/lib/supabase/client";
+import { getSupabaseBrowserClient } from "@/integrations/supabase/browser";
 
 export const authProvider: AuthProvider = {
   login: async ({ email, password }) => {
-    const supabase = createClient();
+    const supabase = getSupabaseBrowserClient();
     
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
@@ -45,7 +45,7 @@ export const authProvider: AuthProvider = {
   },
   
   logout: async () => {
-    const supabase = createClient();
+    const supabase = getSupabaseBrowserClient();
     const { error } = await supabase.auth.signOut();
 
     if (error) {
@@ -65,7 +65,7 @@ export const authProvider: AuthProvider = {
   },
   
   check: async () => {
-    const supabase = createClient();
+    const supabase = getSupabaseBrowserClient();
     const { data: { session } } = await supabase.auth.getSession();
 
     if (!session) {
@@ -95,7 +95,7 @@ export const authProvider: AuthProvider = {
   },
   
   getPermissions: async () => {
-    const supabase = createClient();
+    const supabase = getSupabaseBrowserClient();
     const { data: { session } } = await supabase.auth.getSession();
 
     if (!session) {
@@ -112,7 +112,7 @@ export const authProvider: AuthProvider = {
   },
   
   getIdentity: async () => {
-    const supabase = createClient();
+    const supabase = getSupabaseBrowserClient();
     const { data: { session } } = await supabase.auth.getSession();
 
     if (!session) {

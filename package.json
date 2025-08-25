@@ -4,6 +4,7 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
+    "prebuild": "node scripts/check-env.mjs",
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
@@ -54,7 +55,6 @@
     "@refinedev/nextjs-router": "^6.2.3",
     "@refinedev/react-hook-form": "^4.10.2",
     "@refinedev/supabase": "^5.9.8",
-    "@supabase/auth-helpers-nextjs": "^0.10.0",
     "@supabase/ssr": "^0.7.0",
     "@supabase/supabase-js": "^2.54.0",
     "@tanstack/react-query": "^5.56.2",

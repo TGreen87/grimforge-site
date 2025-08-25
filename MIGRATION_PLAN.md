@@ -322,7 +322,7 @@ CREATE POLICY "Block unauthenticated writes" ON products
 ### Step 5.1: Install Dependencies
 ```bash
 npm install @supabase/supabase-js@2.56.x
-npm install @supabase/auth-helpers-nextjs
+# Removed: @supabase/auth-helpers-nextjs (use @supabase/ssr instead)
 ```
 
 ### Step 5.2: Server-Only Client Helper

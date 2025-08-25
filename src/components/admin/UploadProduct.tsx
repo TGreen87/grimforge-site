@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 
 import { Upload, Tag, Wand2 } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { getSupabaseBrowserClient } from "@/integrations/supabase/browser";
 
 type ProductFormat = 'vinyl' | 'cassette' | 'cd';
 
@@ -67,6 +67,7 @@ function simpleTagSuggest(text: string) {
 }
 
 export default function UploadProduct() {
+  const supabase = getSupabaseBrowserClient();
   const { toast } = useToast();
   const [form, setForm] = useState<NewProductForm>({ ...defaultForm });
   const fileRef = useRef<HTMLInputElement>(null);

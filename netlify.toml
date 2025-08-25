@@ -3,7 +3,7 @@
   publish = ".next"
 
 [build.environment]
-  NODE_VERSION = "22"
+  NODE_VERSION = "20"
   NEXT_RUNTIME = "v5"
 
 [[plugins]]
@@ -23,3 +23,6 @@
   port = 8888
   publish = ".next"
   autoLaunch = false
+
+[context.branch-deploy]
+  ignore = "git diff --quiet $CACHED_COMMIT_REF $COMMIT_REF"

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { getSupabaseBrowserClient } from "@/integrations/supabase/browser";
 
 interface SupabaseProductRow {
   id: string;
@@ -55,8 +55,10 @@ export function useSupabaseProducts() {
 
   useEffect(() => {
     let isMounted = true;
+    const supabase = getSupabaseBrowserClient();
 
     const fetchProducts = async () => {
+      const supabase = getSupabaseBrowserClient();
       const { data, error } = await supabase
         .from("products")
         .select("*")

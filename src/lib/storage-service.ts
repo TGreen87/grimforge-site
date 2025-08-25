@@ -1,7 +1,7 @@
-import { createClient } from '@/lib/supabase/client'
+import { getSupabaseBrowserClient } from '@/integrations/supabase/browser'
 
 export class StorageService {
-  private supabase = createClient()
+  private get supabase() { return getSupabaseBrowserClient() }
   private bucketName = 'products'
 
   async uploadFile(

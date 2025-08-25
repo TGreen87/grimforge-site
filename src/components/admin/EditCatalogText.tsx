@@ -5,7 +5,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
+import { getSupabaseBrowserClient } from "@/integrations/supabase/browser";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { brand } from "@/config/brand";
 type ProductFormat = 'vinyl' | 'cassette' | 'cd';
@@ -74,6 +74,7 @@ export default function EditCatalogText() {
     try {
       const ext = file.type.split("/")[1] || "jpg";
       const path = `images/${selected.id}-${Date.now()}.${ext}`;
+      const supabase = getSupabaseBrowserClient();
       const { error: uploadError } = await supabase.storage
         .from("products")
         .upload(path, file, { contentType: file.type });
@@ -95,6 +96,7 @@ export default function EditCatalogText() {
   useEffect(() => {
     let ignore = false;
     const load = async () => {
+      const supabase = getSupabaseBrowserClient();
       setLoading(true);
       const { data, error } = await supabase
         .from("products")
@@ -169,6 +171,7 @@ export default function EditCatalogText() {
         tags: tagsArray,
       } satisfies Partial<ProductRow> & Record<string, unknown>;
 
+      const supabase = getSupabaseBrowserClient();
       const { error } = await supabase
         .from("products")
         .update(payload)
@@ -293,6 +296,7 @@ export default function EditCatalogText() {
     if (!confirm("Delete this listing? This cannot be undone.")) return;
     try {
       setDeleting(true);
+      const supabase = getSupabaseBrowserClient();
       const { error } = await supabase.from("products").delete().eq("id", selected.id);
       if (error) throw error;
       setProducts((prev) => prev.filter((p) => p.id !== selected.id));

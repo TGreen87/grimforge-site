@@ -1,9 +1,9 @@
 import { MetadataRoute } from 'next'
-import { createClient } from '@/lib/supabase/server'
+import { getSupabaseServerClient } from '@/integrations/supabase/server'
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || process.env.SITE_URL_STAGING || 'https://obsidianriterecords.com'
-  const supabase = createClient()
+  const supabase = getSupabaseServerClient()
   
   // Get all products
   const { data: products } = await supabase

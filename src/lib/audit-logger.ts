@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/client'
+import { getSupabaseBrowserClient } from '@/integrations/supabase/browser'
 import { type Database } from '@/lib/supabase/types'
 
 type AuditAction = 
@@ -32,7 +32,7 @@ interface AuditLogEntry {
 }
 
 class AuditLogger {
-  private supabase = createClient()
+  private get supabase() { return getSupabaseBrowserClient() }
 
   async log(entry: AuditLogEntry): Promise<void> {
     try {

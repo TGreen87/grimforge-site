@@ -1,8 +1,8 @@
 import { dataProvider as supabaseDataProvider } from "@refinedev/supabase";
-import { createClient } from "@/lib/supabase/client";
+import { getSupabaseBrowserClient } from "@/integrations/supabase/browser";
 
 export const dataProvider = () => {
-  const supabase = createClient();
+  const supabase = getSupabaseBrowserClient();
   
   return supabaseDataProvider(supabase);
 };

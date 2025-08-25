@@ -5,7 +5,7 @@ import { List, useTable, TextField, NumberField } from "@refinedev/antd";
 import { Table, Space, Button, Tag, Modal, Form, InputNumber, Input, message } from "antd";
 import { PlusOutlined, EditOutlined } from "@ant-design/icons";
 import Link from "next/link";
-import { createClient } from "@/lib/supabase/client";
+import { getSupabaseBrowserClient } from "@/integrations/supabase/browser";
 import type { Inventory, ReceiveStockFormValues } from "../types";
 
 const { TextArea } = Input;
@@ -35,7 +35,7 @@ export default function InventoryList() {
   const handleReceiveStockSubmit = async () => {
     try {
       const values = await form.validateFields();
-      const supabase = createClient();
+      const supabase = getSupabaseBrowserClient();
 
       // Create stock movement record
       const { error: movementError } = await supabase

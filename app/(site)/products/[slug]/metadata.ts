@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server'
+import { getSupabaseServerClient } from '@/integrations/supabase/server'
 
 interface Inventory {
   available?: number
@@ -33,7 +33,7 @@ interface Product {
 }
 
 export async function getProduct(slug: string) {
-  const supabase = createClient()
+  const supabase = getSupabaseServerClient()
   
   // First try to find by slug (if exists)
   const { data: product, error } = await supabase
