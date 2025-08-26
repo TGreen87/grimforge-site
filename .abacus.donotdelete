@@ -1,0 +1,123 @@
+{
+  "project_name": "grimforge-site",
+  "project_description": "GrimForge - Premium tabletop gaming accessories and miniatures marketplace",
+  "project_type": "Next.js E-commerce Site",
+  "created_date": "2025-08-26",
+  "last_modified": "2025-08-26",
+  "version": "2.0.0",
+  "framework": "Next.js 15",
+  "migration_status": "completed",
+  "key_features": [
+    "E-commerce marketplace for tabletop gaming accessories",
+    "Product catalog with advanced search and filtering",
+    "User authentication and account management",
+    "Shopping cart and wishlist functionality",
+    "Admin dashboard for product management",
+    "Responsive design with modern UI components",
+    "Integration with Supabase for backend services",
+    "Payment processing with Stripe integration",
+    "SEO optimization and performance monitoring"
+  ],
+  "tech_stack": {
+    "frontend": "Next.js 15 with App Router",
+    "styling": "Tailwind CSS with shadcn/ui components",
+    "backend": "Supabase (PostgreSQL, Auth, Storage)",
+    "payments": "Stripe",
+    "deployment": "Netlify",
+    "package_manager": "Yarn",
+    "typescript": "5.x"
+  },
+  "project_structure": {
+    "app/": "Next.js 15 App Router pages and layouts",
+    "components/": "Reusable UI components including shadcn/ui",
+    "hooks/": "Custom React hooks for state management",
+    "contexts/": "React context providers for global state",
+    "lib/": "Utility functions and configurations",
+    "config/": "Application configuration files",
+    "src/": "Legacy source files (being phased out)"
+  },
+  "migration_notes": {
+    "from": "Vite + React SPA",
+    "to": "Next.js 15 with App Router",
+    "key_changes": [
+      "Migrated from pages router to app router structure",
+      "Updated all components to use Next.js 15 conventions",
+      "Implemented new shadcn/ui component library",
+      "Restructured file organization for better maintainability",
+      "Updated TypeScript configurations for Next.js",
+      "Migrated routing from React Router to Next.js routing",
+      "Updated build and deployment configurations"
+    ],
+    "files_migrated": 118,
+    "components_added": 65,
+    "hooks_created": 12,
+    "contexts_updated": 4
+  },
+  "deployment": {
+    "platform": "Netlify",
+    "build_command": "yarn build",
+    "publish_directory": ".next",
+    "environment_variables": [
+      "NEXT_PUBLIC_SUPABASE_URL",
+      "NEXT_PUBLIC_SUPABASE_ANON_KEY",
+      "STRIPE_PUBLIC_KEY",
+      "STRIPE_SECRET_KEY"
+    ]
+  },
+  "performance_optimizations": [
+    "Image optimization with Next.js Image component",
+    "Code splitting with dynamic imports",
+    "Static generation for product pages",
+    "Incremental static regeneration for catalog",
+    "Bundle analysis and optimization"
+  ],
+  "seo_features": [
+    "Dynamic meta tags for products",
+    "Structured data for rich snippets",
+    "XML sitemap generation",
+    "Open Graph and Twitter Card support",
+    "Canonical URLs for duplicate content"
+  ],
+  "accessibility": [
+    "ARIA labels and roles",
+    "Keyboard navigation support",
+    "Screen reader compatibility",
+    "Color contrast compliance",
+    "Focus management"
+  ],
+  "testing": {
+    "unit_tests": "Jest + React Testing Library",
+    "e2e_tests": "Playwright",
+    "coverage_target": "80%"
+  },
+  "monitoring": {
+    "analytics": "Google Analytics 4",
+    "error_tracking": "Sentry",
+    "performance": "Web Vitals"
+  },
+  "security": [
+    "Content Security Policy headers",
+    "HTTPS enforcement",
+    "Input validation and sanitization",
+    "Rate limiting on API routes",
+    "Secure authentication with Supabase"
+  ],
+  "future_enhancements": [
+    "Progressive Web App (PWA) features",
+    "Advanced product recommendations",
+    "Multi-language support (i18n)",
+    "Advanced analytics dashboard",
+    "Inventory management system",
+    "Customer review and rating system",
+    "Wishlist sharing functionality",
+    "Advanced search with filters",
+    "Product comparison feature",
+    "Loyalty program integration"
+  ],
+  "maintenance": {
+    "dependency_updates": "Monthly",
+    "security_patches": "As needed",
+    "performance_audits": "Quarterly",
+    "backup_strategy": "Daily automated backups via Supabase"
+  }
+}
