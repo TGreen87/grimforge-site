@@ -1,3 +1,5 @@
+'use client'
+
 import ProductCard from "./ProductCard";
 import ComingSoonCard from "./ComingSoonCard";
 import CatalogFilters from "./CatalogFilters";

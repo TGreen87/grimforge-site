@@ -1,6 +1,3 @@
-'use client'
-
-
 import dynamic from 'next/dynamic'
 
 // Dynamic imports to prevent SSR issues

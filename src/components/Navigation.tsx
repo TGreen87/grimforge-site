@@ -1,5 +1,7 @@
+'use client'
+
 import { ShoppingCart, Search, Menu } from "lucide-react";
-import { Link } from "react-router-dom";
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import CartDrawer from "./CartDrawer";
 import WishlistDrawer from "./WishlistDrawer";

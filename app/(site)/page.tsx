@@ -2,11 +2,11 @@ import dynamic from 'next/dynamic'
 import { Suspense } from 'react'
 
 // Dynamic imports for better performance
-const HeroSection = dynamic(() => import('@/components/hero-section'), {
+const HeroSection = dynamic(() => import('@/src/components/HeroSection'), {
   loading: () => <div className="h-96 bg-gray-100 animate-pulse" />
 })
 
-const FeaturedProducts = dynamic(() => import('@/src/components/FeaturedProducts'), {
+const ProductCatalog = dynamic(() => import('@/src/components/ProductCatalog'), {
   loading: () => <div className="h-64 bg-gray-100 animate-pulse" />
 })
 
@@ -22,7 +22,7 @@ export default function HomePage() {
       </Suspense>
       
       <Suspense fallback={<div className="h-64 bg-gray-100 animate-pulse" />}>
-        <FeaturedProducts />
+        <ProductCatalog />
       </Suspense>
       
       <Suspense fallback={<div className="h-32 bg-gray-100 animate-pulse" />}>
