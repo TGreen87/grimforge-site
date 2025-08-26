@@ -1,13 +1,5 @@
-// Temporarily disable all dynamic imports to isolate build issues
-// import dynamic from 'next/dynamic'
-
-// const Navigation = dynamic(() => import('@/src/components/Navigation'), {
-//   loading: () => <div>Loading navigation...</div>
-// })
-
-// const Footer = dynamic(() => import('@/src/components/Footer'), {
-//   loading: () => <div>Loading footer...</div>
-// })
+import Navigation from '@/src/components/Navigation'
+import Footer from '@/src/components/Footer'
 
 export default function SiteLayout({
   children,
@@ -15,18 +7,12 @@ export default function SiteLayout({
   children: React.ReactNode
 }) {
   return (
-    <div className="min-h-screen flex flex-col">
-      <header>
-        <nav className="p-4 bg-gray-100">
-          <h1>Obsidian Rite Records</h1>
-        </nav>
-      </header>
-      <main className="flex-1">
+    <div className="min-h-screen">
+      <Navigation />
+      <main className="relative">
         {children}
       </main>
-      <footer className="p-4 bg-gray-100">
-        <p>&copy; 2024 Obsidian Rite Records</p>
-      </footer>
+      <Footer />
     </div>
   )
 }
