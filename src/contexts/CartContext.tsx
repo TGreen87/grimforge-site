@@ -1,5 +1,5 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from "react";
-import { storageKeys, getJSON, setJSON } from "@/lib/storage";
+import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import { storageKeys, getJSON, setJSON } from "@/src/lib/storage";
 
 export interface CartItem {
   id: string;
@@ -23,10 +23,30 @@ interface CartContextType {
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
+export const useCart = () => {
+  const context = useContext(CartContext);
+  if (context === undefined) {
+    throw new Error('useCart must be used within a CartProvider');
+  }
+  return context;
+};
+
 export const CartProvider = ({ children }: { children: ReactNode }) => {
-  const [items, setItems] = useState<CartItem[]>(() => getJSON<CartItem[]>(storageKeys.cart, []));
+  const [items, setItems] = useState<CartItem[]>([]);
 
   useEffect(() => {
+    // Only run on client side
+    if (typeof window === 'undefined') return;
+    
+    // Initialize from localStorage on client side
+    const storedItems = getJSON<CartItem[]>(storageKeys.cart, []);
+    setItems(storedItems);
+  }, []);
+
+  useEffect(() => {
+    // Only save to localStorage on client side
+    if (typeof window === 'undefined') return;
+    
     setJSON(storageKeys.cart, items);
   }, [items]);
   const addItem = (newItem: Omit<CartItem, "quantity">) => {

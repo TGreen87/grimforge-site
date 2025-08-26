@@ -80,8 +80,8 @@ describe('JSON-LD Structured Data', () => {
       
       expect(jsonLd.aggregateRating).toBeDefined()
       expect(jsonLd.aggregateRating['@type']).toBe('AggregateRating')
-      expect(jsonLd.aggregateRating.ratingValue).toBe('4.5')
-      expect(jsonLd.aggregateRating.reviewCount).toBe('23')
+      expect(jsonLd.aggregateRating.ratingValue).toBe(4.5)
+      expect(jsonLd.aggregateRating.reviewCount).toBe(23)
     })
   })
   

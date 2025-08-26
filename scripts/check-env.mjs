@@ -1,3 +1,16 @@
+import { config } from 'dotenv'
+import { fileURLToPath } from 'url'
+import { dirname, join } from 'path'
+
+// Get the directory of this script
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = dirname(__filename)
+const projectRoot = join(__dirname, '..')
+
+// Load environment variables from .env files
+config({ path: join(projectRoot, '.env.local') })
+config({ path: join(projectRoot, '.env') })
+
 // Skip in Netlify deploy previews to avoid failing PR builds
 if (process.env.NETLIFY === 'true' && process.env.CONTEXT === 'deploy-preview') {
   console.log('Skipping env check for deploy-preview context.');

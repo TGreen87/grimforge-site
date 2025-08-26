@@ -41,6 +41,8 @@
     "integrations/**/*.ts",
     "lib/**/*.ts",
     "lib/**/*.tsx",
+    "src/**/*.ts",
+    "src/**/*.tsx",
     "middleware.ts",
     "next-env.d.ts",
     ".next/types/**/*.ts"
@@ -48,7 +50,6 @@
   "exclude": [
     "node_modules",
     ".next/types/**",
-    "src/**",
     "tests/**",
     "e2e/**"
   ]

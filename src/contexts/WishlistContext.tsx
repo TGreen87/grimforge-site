@@ -1,5 +1,5 @@
-import { createContext, useContext, useState, ReactNode } from "react";
-import { storageKeys, getJSON, setJSON, migrateKey } from "@/lib/storage";
+import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import { storageKeys, getJSON, setJSON, migrateKey } from "@/src/lib/storage";
 
 interface WishlistItem {
   id: string;
@@ -22,15 +22,32 @@ interface WishlistContextType {
 
 const WishlistContext = createContext<WishlistContextType | undefined>(undefined);
 
+export const useWishlist = () => {
+  const context = useContext(WishlistContext);
+  if (context === undefined) {
+    throw new Error('useWishlist must be used within a WishlistProvider');
+  }
+  return context;
+};
+
 export const WishlistProvider = ({ children }: { children: ReactNode }) => {
-  const [items, setItems] = useState<WishlistItem[]>(() => {
+  const [items, setItems] = useState<WishlistItem[]>([]);
+
+  useEffect(() => {
+    // Only run on client side
+    if (typeof window === 'undefined') return;
+    
     // Migrate from legacy key then load
     migrateKey("blackplague_wishlist", storageKeys.wishlist);
-    return getJSON<WishlistItem[]>(storageKeys.wishlist, []);
-  });
+    const storedItems = getJSON<WishlistItem[]>(storageKeys.wishlist, []);
+    setItems(storedItems);
+  }, []);
 
   const saveToStorage = (newItems: WishlistItem[]) => {
-    setJSON(storageKeys.wishlist, newItems);
+    // Only save to localStorage on client side
+    if (typeof window !== 'undefined') {
+      setJSON(storageKeys.wishlist, newItems);
+    }
     setItems(newItems);
   };
 
