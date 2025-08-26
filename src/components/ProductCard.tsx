@@ -22,7 +22,7 @@ interface ProductCardProps {
 }
 
 const ProductCard = ({ id, title, artist, format, price, image, limited, preOrder }: ProductCardProps) => {
-  const navigate = useNavigate();
+  const router = useRouter();
   const { addItem } = useCart();
   const { addItem: addToWishlist, removeItem: removeFromWishlist, isInWishlist } = useWishlist();
   const { toast } = useToast();
@@ -82,7 +82,7 @@ const ProductCard = ({ id, title, artist, format, price, image, limited, preOrde
   };
 
   const handleCardClick = () => {
-    navigate(`/product/${originalId}`);
+    router.push(`/product/${originalId}`);
   };
 
   return (
@@ -131,7 +131,7 @@ const ProductCard = ({ id, title, artist, format, price, image, limited, preOrde
               className="h-8 w-8 md:h-9 md:w-9 border-frost text-frost hover:bg-frost hover:text-background p-0"
               onClick={(e) => {
                 e.stopPropagation();
-                navigate(`/product/${originalId}`);
+                router.push(`/product/${originalId}`);
               }}
             >
               <Eye className="h-3.5 w-3.5 md:h-4 md:w-4" />

@@ -7,13 +7,13 @@ import { brand } from "@/config/brand";
 import NewsletterSignup from "@/components/NewsletterSignup";
 
 const Footer = () => {
-  const location = useLocation();
-  const navigate = useNavigate();
+  const pathname = usePathname();
+  const router = useRouter();
 
   const scrollToSection = (sectionId: string) => {
     // If we're not on the home page, navigate there first
-    if (location.pathname !== '/') {
-      navigate('/');
+    if (pathname !== '/') {
+      router.push('/');
       // Wait for navigation to complete, then scroll
       setTimeout(() => {
         handleScroll(sectionId);
@@ -74,11 +74,11 @@ const Footer = () => {
           <div className="space-y-4">
             <h3 className="gothic-heading text-bone">Information</h3>
             <ul className="space-y-2 text-sm text-muted-foreground">
-              <li><Link to="/legal/shipping" className="hover:text-accent transition-colors">Shipping Info</Link></li>
-              <li><Link to="/legal/returns" className="hover:text-accent transition-colors">Returns</Link></li>
-              <li><Link to="/legal/size-guide" className="hover:text-accent transition-colors">Size Guide</Link></li>
-              <li><Link to="/legal/care" className="hover:text-accent transition-colors">Care Instructions</Link></li>
-              <li><Link to="/legal/contact" className="hover:text-accent transition-colors">Contact</Link></li>
+              <li><Link href="/legal/shipping" className="hover:text-accent transition-colors">Shipping Info</Link></li>
+              <li><Link href="/legal/returns" className="hover:text-accent transition-colors">Returns</Link></li>
+              <li><Link href="/legal/size-guide" className="hover:text-accent transition-colors">Size Guide</Link></li>
+              <li><Link href="/legal/care" className="hover:text-accent transition-colors">Care Instructions</Link></li>
+              <li><Link href="/legal/contact" className="hover:text-accent transition-colors">Contact</Link></li>
             </ul>
           </div>
 
@@ -98,13 +98,13 @@ const Footer = () => {
             © 2025 Obsidian Rite Records. All rights reserved.
           </p>
           <div className="flex space-x-6 mt-4 md:mt-0">
-            <Link to="/legal/privacy" className="text-sm text-muted-foreground hover:text-accent transition-colors">
+            <Link href="/legal/privacy" className="text-sm text-muted-foreground hover:text-accent transition-colors">
               Privacy Policy
             </Link>
-            <Link to="/legal/terms" className="text-sm text-muted-foreground hover:text-accent transition-colors">
+            <Link href="/legal/terms" className="text-sm text-muted-foreground hover:text-accent transition-colors">
               Terms of Service
             </Link>
-            <Link to="/legal/shipping" className="text-sm text-muted-foreground hover:text-accent transition-colors">
+            <Link href="/legal/shipping" className="text-sm text-muted-foreground hover:text-accent transition-colors">
               Shipping Info
             </Link>
           </div>
