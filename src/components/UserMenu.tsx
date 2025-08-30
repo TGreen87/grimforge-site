@@ -23,7 +23,7 @@ const UserMenu = () => {
 
   const getRoleLabel = () => {
     switch (user.role) {
-      case "admin": return "Dark Lord";
+      case "admin": return "Admin";
       case "wholesale": return "Distributor";
       default: return "Cultist";
     }
