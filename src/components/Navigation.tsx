@@ -40,15 +40,15 @@ const Navigation = () => {
       <div className="container mx-auto px-4 h-16 flex items-center justify-between">
         {/* Logo - Desktop Only */}
         <div className="hidden md:flex items-center">
-          <Link href="/" className="blackletter text-2xl text-bone hover:text-accent transition-colors">
-            {brand.name}
+          <Link href="/" className="flex items-center hover:opacity-80 transition-opacity">
+            <img src="/logo.png" alt={brand.name} className="h-8 w-auto" />
           </Link>
         </div>
 
         {/* Mobile Logo */}
         <div className="flex md:hidden items-center">
-          <Link href="/" className="blackletter text-xl text-bone hover:text-accent transition-colors">
-            {brand.name}
+          <Link href="/" className="flex items-center hover:opacity-80 transition-opacity">
+            <img src="/logo.png" alt={brand.name} className="h-6 w-auto" />
           </Link>
         </div>
 
