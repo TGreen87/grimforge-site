@@ -18,8 +18,8 @@ export default function SiteLayout({
 }
 
 export const metadata = {
-  title: 'GrimForge - Premium Tabletop Gaming Accessories',
-  description: 'Discover premium miniatures, dice, and gaming accessories for your tabletop adventures.',
+  title: 'Obsidian Rite Records - Dark Music for Dark Souls',
+  description: 'Obsidian Rite Records is an independent underground metal record label. Discover exclusive releases, limited edition vinyl, cassettes, and merchandise from the darkest corners of the metal underground.',
 }
 
 // Disable static generation for now to avoid SSR issues with contexts

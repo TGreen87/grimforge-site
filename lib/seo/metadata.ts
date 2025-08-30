@@ -25,8 +25,8 @@ export function generateMetadata({
   keywords,
   noindex = false
 }: GenerateMetadataParams): Metadata {
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || process.env.SITE_URL_STAGING || 'https://grimforge.com'
-  const siteName = 'Grimforge'
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || process.env.SITE_URL_STAGING || 'https://obsidianriterecords.com'
+  const siteName = 'Obsidian Rite Records'
   const defaultImage = `${siteUrl}/og-image.jpg`
   
   const finalUrl = url || siteUrl
@@ -110,8 +110,8 @@ export function generateMetadata({
 
 export function generateSiteMetadata(): Metadata {
   const metadata = generateMetadata({
-    title: 'Grimforge - Dark Music for Dark Souls',
-    description: 'Grimforge is an independent underground metal record label. Discover exclusive releases, limited edition vinyl, cassettes, and merchandise from the darkest corners of the metal underground.',
+    title: 'Obsidian Rite Records - Dark Music for Dark Souls',
+    description: 'Obsidian Rite Records is an independent underground metal record label. Discover exclusive releases, limited edition vinyl, cassettes, and merchandise from the darkest corners of the metal underground.',
     keywords: [
       'black metal',
       'underground metal',

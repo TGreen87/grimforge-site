@@ -50,7 +50,7 @@ const Navigation = () => {
               className="mr-3"
             />
             <span className="blackletter text-2xl text-bone hover:text-accent transition-colors">
-              Grimforge
+              Obsidian Rite Records
             </span>
           </Link>
         </div>
@@ -66,7 +66,7 @@ const Navigation = () => {
               className="mr-2"
             />
             <span className="blackletter text-xl text-bone hover:text-accent transition-colors">
-              Grimforge
+              Obsidian Rite Records
             </span>
           </Link>
         </div>
