@@ -20,7 +20,7 @@ interface WishlistContextType {
   clearWishlist: () => void;
 }
 
-const WishlistContext = createContext<WishlistContextType | undefined>(undefined);
+export const WishlistContext = createContext<WishlistContextType | undefined>(undefined);
 
 export const useWishlist = () => {
   const context = useContext(WishlistContext);

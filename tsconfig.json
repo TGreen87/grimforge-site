@@ -29,7 +29,9 @@
       "@/src/*": ["./src/*"],
       "@/app/*": ["./app/*"],
       "@/components/*": ["./src/components/*"],
-      "@/lib/*": ["./src/lib/*"]
+      "@/lib/*": ["./src/lib/*"],
+      "@/contexts/*": ["./src/contexts/*"],
+      "@/hooks/*": ["./src/hooks/*"]
     }
   },
   "include": [
