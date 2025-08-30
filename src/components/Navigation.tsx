@@ -43,15 +43,12 @@ const Navigation = () => {
         <div className="hidden md:flex items-center">
           <Link href="/" className="flex items-center hover:opacity-80 transition-opacity">
             <Image 
-              src="/logo.png" 
+              src="/assets/ORR_Logo.png" 
               alt={brand.name}
-              width={40}
-              height={40}
-              className="mr-3"
+              width={50}
+              height={50}
+              className="object-contain"
             />
-            <span className="blackletter text-2xl text-bone hover:text-accent transition-colors">
-              Obsidian Rite Records
-            </span>
           </Link>
         </div>
 
@@ -59,15 +56,12 @@ const Navigation = () => {
         <div className="flex md:hidden items-center">
           <Link href="/" className="flex items-center hover:opacity-80 transition-opacity">
             <Image 
-              src="/logo.png" 
+              src="/assets/ORR_Logo.png" 
               alt={brand.name}
-              width={32}
-              height={32}
-              className="mr-2"
+              width={40}
+              height={40}
+              className="object-contain"
             />
-            <span className="blackletter text-xl text-bone hover:text-accent transition-colors">
-              Obsidian Rite Records
-            </span>
           </Link>
         </div>
 
