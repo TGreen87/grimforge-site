@@ -80,9 +80,8 @@ const UserMenu = () => {
         {user.role === "admin" && (
           <DropdownMenuItem asChild>
             <Link 
-              to="/admin" 
+              href="/admin" 
               className="text-accent hover:bg-secondary cursor-pointer flex items-center w-full"
-              onClick={() => console.log("UserMenu: Navigating to admin dashboard")}
             >
               <Crown className="mr-2 h-4 w-4" />
               <span>Admin Dashboard</span>

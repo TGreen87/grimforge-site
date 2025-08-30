@@ -115,7 +115,19 @@ export const authProvider: AuthProvider = {
     try {
       const supabase = getSupabaseBrowserClient();
       
-      // Use getUser() instead of getSession() for better reliability in edge runtime
+      // First try to get session, then fallback to getUser()
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (session?.user) {
+        return {
+          id: session.user.id,
+          name: session.user.email || session.user.user_metadata?.full_name || 'Admin User',
+          avatar: session.user.user_metadata?.avatar_url,
+          email: session.user.email,
+        };
+      }
+
+      // Fallback to getUser() for edge cases
       const { data: { user }, error } = await supabase.auth.getUser();
 
       if (error || !user) {

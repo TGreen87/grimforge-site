@@ -1,0 +1,16 @@
+{
+    "name": "Obsidian Rite Records",
+    "short_name": "Obsidian Rite",
+    "description": "Underground Black Metal Record Label",
+    "icons": [
+        {
+            "src": "/favicon.ico",
+            "sizes": "any",
+            "type": "image/x-icon"
+        }
+    ],
+    "theme_color": "#000000",
+    "background_color": "#000000",
+    "display": "standalone",
+    "start_url": "/"
+}
