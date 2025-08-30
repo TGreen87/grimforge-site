@@ -112,18 +112,27 @@ export const authProvider: AuthProvider = {
   },
   
   getIdentity: async () => {
-    const supabase = getSupabaseBrowserClient();
-    const { data: { session } } = await supabase.auth.getSession();
+    try {
+      const supabase = getSupabaseBrowserClient();
+      
+      // Use getUser() instead of getSession() for better reliability in edge runtime
+      const { data: { user }, error } = await supabase.auth.getUser();
 
-    if (!session) {
+      if (error || !user) {
+        console.warn('Failed to get user identity:', error?.message);
+        return null;
+      }
+
+      return {
+        id: user.id,
+        name: user.email || user.user_metadata?.full_name || 'Admin User',
+        avatar: user.user_metadata?.avatar_url,
+        email: user.email,
+      };
+    } catch (error) {
+      console.error('Error getting user identity:', error);
       return null;
     }
-
-    return {
-      id: session.user.id,
-      name: session.user.email,
-      avatar: session.user.user_metadata?.avatar_url,
-    };
   },
   
   onError: async (error) => {
