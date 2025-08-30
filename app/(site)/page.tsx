@@ -1,10 +1,10 @@
 'use client'
 
-import HeroSection from '@/src/components/HeroSection'
-import ProductCatalog from '@/src/components/ProductCatalog'
-import PreOrderSection from '@/src/components/PreOrderSection'
-import GrimoireSection from '@/src/components/GrimoireSection'
-import RecommendationEngine from '@/src/components/RecommendationEngine'
+import HeroSection from '@/components/HeroSection'
+import ProductCatalog from '@/components/ProductCatalog'
+import PreOrderSection from '@/components/PreOrderSection'
+import GrimoireSection from '@/components/GrimoireSection'
+import RecommendationEngine from '@/components/RecommendationEngine'
 
 export default function HomePage() {
   return (
