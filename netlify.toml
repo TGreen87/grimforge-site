@@ -1,6 +1,8 @@
 [build]
   command = "npm run build"
   publish = ".next"
+  
+# Force clean rebuild - updated 2025-08-30
 
 [build.environment]
   NODE_VERSION = "20"
