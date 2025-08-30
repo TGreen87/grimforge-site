@@ -17,7 +17,7 @@ export function ProductJsonLd({
   price,
   availability,
   sku,
-  brand = 'Grimforge Studios',
+  brand = 'Obsidian Rite Records',
 }: ProductJsonLdProps) {
   const jsonLd = {
     '@context': 'https://schema.org',
@@ -64,7 +64,7 @@ export function ArticleJsonLd({
   image,
   datePublished,
   dateModified,
-  author = 'Grimforge Studios',
+  author = 'Obsidian Rite Records',
 }: ArticleJsonLdProps) {
   const jsonLd = {
     '@context': 'https://schema.org',
@@ -80,7 +80,7 @@ export function ArticleJsonLd({
     },
     publisher: {
       '@type': 'Organization',
-      name: 'Grimforge Studios',
+      name: 'Obsidian Rite Records',
     },
   }
 

@@ -36,10 +36,10 @@ export default function LoginPage() {
       >
         <div style={{ textAlign: 'center', marginBottom: 24 }}>
           <Title level={2} style={{ color: '#8B0000', marginBottom: 8 }}>
-            Grimforge Admin
+            Obsidian Rite Records Admin
           </Title>
           <p style={{ color: '#666', margin: 0 }}>
-            Enter the realm of darkness
+            Enter the realm of metal
           </p>
         </div>
         
@@ -60,7 +60,7 @@ export default function LoginPage() {
           >
             <Input 
               prefix={<UserOutlined />} 
-              placeholder="admin@grimforge.com" 
+              placeholder="arg@obsidianriterecords.com" 
             />
           </Form.Item>
 

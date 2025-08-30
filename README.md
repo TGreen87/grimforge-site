@@ -1,6 +1,6 @@
-# Grimforge Site
+# Obsidian Rite Records
 
-A Next.js 15 application for the Grimforge tabletop gaming platform.
+A Next.js 15 e-commerce application for Obsidian Rite Records - Australian Black Metal Label.
 
 ## Quick Start
 

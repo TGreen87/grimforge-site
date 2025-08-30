@@ -29,7 +29,7 @@
       "@/src/*": ["./src/*"],
       "@/app/*": ["./app/*"],
       "@/components/*": ["./src/components/*"],
-      "@/lib/*": ["./src/lib/*", "./lib/*"],
+      "@/lib/*": ["./lib/*", "./src/lib/*"],
       "@/contexts/*": ["./src/contexts/*"],
       "@/hooks/*": ["./src/hooks/*"],
       "@/config/*": ["./src/config/*"],

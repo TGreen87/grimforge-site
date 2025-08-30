@@ -42,14 +42,32 @@ const Navigation = () => {
         {/* Logo - Desktop Only */}
         <div className="hidden md:flex items-center">
           <Link href="/" className="flex items-center hover:opacity-80 transition-opacity">
-            <img src="/logo.png" alt={brand.name} className="h-8 w-auto" />
+            <div className="relative h-8 w-auto">
+              <Image 
+                src="/ORR_Logo.png" 
+                alt="Obsidian Rite Records" 
+                height={32}
+                width={120}
+                className="h-8 w-auto object-contain"
+                priority
+              />
+            </div>
           </Link>
         </div>
 
         {/* Mobile Logo */}
         <div className="flex md:hidden items-center">
           <Link href="/" className="flex items-center hover:opacity-80 transition-opacity">
-            <img src="/logo.png" alt={brand.name} className="h-6 w-auto" />
+            <div className="relative h-6 w-auto">
+              <Image 
+                src="/ORR_Logo.png" 
+                alt="Obsidian Rite Records" 
+                height={24}
+                width={90}
+                className="h-6 w-auto object-contain"
+                priority
+              />
+            </div>
           </Link>
         </div>
 
