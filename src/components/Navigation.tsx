@@ -2,6 +2,7 @@
 
 import { ShoppingCart, Search, Menu } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import CartDrawer from "./CartDrawer";
 import WishlistDrawer from "./WishlistDrawer";
@@ -40,15 +41,33 @@ const Navigation = () => {
       <div className="container mx-auto px-4 h-16 flex items-center justify-between">
         {/* Logo - Desktop Only */}
         <div className="hidden md:flex items-center">
-          <Link href="/" className="blackletter text-2xl text-bone hover:text-accent transition-colors">
-            {brand.name}
+          <Link href="/" className="flex items-center hover:opacity-80 transition-opacity">
+            <Image 
+              src="/logo.png" 
+              alt={brand.name}
+              width={40}
+              height={40}
+              className="mr-3"
+            />
+            <span className="blackletter text-2xl text-bone hover:text-accent transition-colors">
+              Grimforge
+            </span>
           </Link>
         </div>
 
         {/* Mobile Logo */}
         <div className="flex md:hidden items-center">
-          <Link href="/" className="blackletter text-xl text-bone hover:text-accent transition-colors">
-            {brand.name}
+          <Link href="/" className="flex items-center hover:opacity-80 transition-opacity">
+            <Image 
+              src="/logo.png" 
+              alt={brand.name}
+              width={32}
+              height={32}
+              className="mr-2"
+            />
+            <span className="blackletter text-xl text-bone hover:text-accent transition-colors">
+              Grimforge
+            </span>
           </Link>
         </div>
 

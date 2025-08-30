@@ -25,8 +25,8 @@ export function generateMetadata({
   keywords,
   noindex = false
 }: GenerateMetadataParams): Metadata {
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || process.env.SITE_URL_STAGING || 'https://obsidianriterecords.com'
-  const siteName = 'Obsidian Rite Records'
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || process.env.SITE_URL_STAGING || 'https://grimforge.com'
+  const siteName = 'Grimforge'
   const defaultImage = `${siteUrl}/og-image.jpg`
   
   const finalUrl = url || siteUrl
@@ -109,9 +109,9 @@ export function generateMetadata({
 }
 
 export function generateSiteMetadata(): Metadata {
-  return generateMetadata({
-    title: 'Obsidian Rite Records - Underground Black Metal Label',
-    description: 'Obsidian Rite Records is an independent underground black metal record label. Discover exclusive releases, limited edition vinyl, cassettes, and merchandise from the darkest corners of the metal underground.',
+  const metadata = generateMetadata({
+    title: 'Grimforge - Dark Music for Dark Souls',
+    description: 'Grimforge is an independent underground metal record label. Discover exclusive releases, limited edition vinyl, cassettes, and merchandise from the darkest corners of the metal underground.',
     keywords: [
       'black metal',
       'underground metal',
@@ -127,6 +127,21 @@ export function generateSiteMetadata(): Metadata {
       'independent record label'
     ]
   })
+  
+  // Add favicon and icon metadata
+  return {
+    ...metadata,
+    icons: {
+      icon: [
+        { url: '/favicon.ico', sizes: '32x32', type: 'image/x-icon' },
+        { url: '/icon-192.png', sizes: '192x192', type: 'image/png' },
+        { url: '/icon-512.png', sizes: '512x512', type: 'image/png' }
+      ],
+      apple: [
+        { url: '/icon-192.png', sizes: '192x192', type: 'image/png' }
+      ]
+    }
+  }
 }
 
 export function generateProductMetadata({

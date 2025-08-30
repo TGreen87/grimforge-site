@@ -119,7 +119,18 @@ export function RefineProvider({ children }: { children: React.ReactNode }) {
             >
               <Authenticated
                 key="authenticated-routes"
-                fallback={<div>Loading...</div>}
+                fallback={<div className="flex items-center justify-center min-h-screen">
+                  <div className="text-center">
+                    <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-red-600 mx-auto mb-4"></div>
+                    <p className="text-lg">Loading admin panel...</p>
+                  </div>
+                </div>}
+                loading={<div className="flex items-center justify-center min-h-screen">
+                  <div className="text-center">
+                    <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-red-600 mx-auto mb-4"></div>
+                    <p className="text-lg">Authenticating...</p>
+                  </div>
+                </div>}
               >
                 {children}
               </Authenticated>
