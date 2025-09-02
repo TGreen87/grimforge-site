@@ -17,7 +17,11 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
-        <OrganizationJsonLd />
+        <OrganizationJsonLd
+          url={(process.env.NEXT_PUBLIC_SITE_URL || process.env.SITE_URL_STAGING || 'https://obsidianriterecords.com')}
+          name="Obsidian Rite Records"
+          description="Independent underground metal label. Limited vinyl, cassettes, and merchandise from the darkest corners of the metal underground."
+        />
       </head>
       <body className={inter.className}>
         <Providers>

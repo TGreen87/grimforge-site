@@ -20,3 +20,6 @@ const Toggle = React.forwardRef<
 Toggle.displayName = TogglePrimitive.Root.displayName
 
 export { Toggle }
+
+// Re-export variants so other UI primitives can import from this entry
+export { toggleVariants } from "./variants/toggle-variants"

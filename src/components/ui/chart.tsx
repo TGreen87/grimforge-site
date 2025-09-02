@@ -121,7 +121,13 @@ const ChartTooltipContent = React.forwardRef<
     nameKey?: string
     labelKey?: string
     labelFormatter?: (value: string | number, payload: TooltipPayload[]) => React.ReactNode
-    formatter?: (value: string | number, name: string, item: Record<string, string | number | boolean>, index: number, payload: Record<string, string | number | boolean>) => React.ReactNode
+    formatter?: (
+      value: string | number,
+      name: string,
+      item: TooltipPayload,
+      index: number,
+      payload: TooltipPayload["payload"]
+    ) => React.ReactNode
     color?: string
     labelClassName?: string
   }

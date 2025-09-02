@@ -23,9 +23,17 @@ export async function writeAuditLog(entry: AuditLogEntry): Promise<void> {
     const supabase = createServiceClient()
     
     const { error } = await supabase
-      .from('audit_log')
+      .from('audit_logs')
       .insert({
-        ...entry,
+        event_type: entry.event_type,
+        event_id: entry.event_id,
+        user_id: entry.user_id,
+        resource_type: entry.resource_type,
+        resource_id: entry.resource_id,
+        changes: (entry.changes as any) ?? null,
+        metadata: (entry.metadata as any) ?? null,
+        ip_address: entry.ip_address as any,
+        user_agent: entry.user_agent,
         created_at: new Date().toISOString(),
       })
 

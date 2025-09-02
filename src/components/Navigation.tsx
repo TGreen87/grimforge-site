@@ -43,11 +43,11 @@ const Navigation = () => {
         <div className="hidden md:flex items-center">
           <Link href="/" className="flex items-center hover:opacity-80 transition-opacity">
             <div className="relative h-8 w-auto">
-              <Image 
-                src="/ORR_Logo.png" 
-                alt="Obsidian Rite Records" 
+              <Image
+                src="/ORR_Logo.png"
+                alt={brand.name}
                 height={32}
-                width={120}
+                width={200}
                 className="h-8 w-auto object-contain"
                 priority
               />
@@ -59,11 +59,11 @@ const Navigation = () => {
         <div className="flex md:hidden items-center">
           <Link href="/" className="flex items-center hover:opacity-80 transition-opacity">
             <div className="relative h-6 w-auto">
-              <Image 
-                src="/ORR_Logo.png" 
-                alt="Obsidian Rite Records" 
+              <Image
+                src="/ORR_Logo.png"
+                alt={brand.name}
                 height={24}
-                width={90}
+                width={150}
                 className="h-6 w-auto object-contain"
                 priority
               />
@@ -122,7 +122,12 @@ const Navigation = () => {
           <WishlistDrawer />
           <CartDrawer />
           {isAuthenticated ? (
-            <UserMenu />
+            <>
+              <Link href="/admin" className="hidden md:block text-sm underline-offset-4 hover:underline">
+                Admin
+              </Link>
+              <UserMenu />
+            </>
           ) : (
             <AuthModal />
           )}

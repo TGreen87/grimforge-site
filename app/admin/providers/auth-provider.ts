@@ -65,33 +65,41 @@ export const authProvider: AuthProvider = {
   },
   
   check: async () => {
-    const supabase = getSupabaseBrowserClient();
-    const { data: { session } } = await supabase.auth.getSession();
+    try {
+      const supabase = getSupabaseBrowserClient();
+      const { data: { session } } = await supabase.auth.getSession();
 
-    if (!session) {
+      if (!session) {
+        return {
+          authenticated: false,
+          redirectTo: "/admin/login",
+        };
+      }
+
+      // Check admin role
+      const { data: roleData } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', session.user.id)
+        .single();
+
+      if (roleData?.role !== 'admin') {
+        return {
+          authenticated: false,
+          redirectTo: "/admin/login",
+        };
+      }
+
+      return {
+        authenticated: true,
+      };
+    } catch (error) {
+      console.warn('Admin auth check failed:', (error as Error)?.message);
       return {
         authenticated: false,
         redirectTo: "/admin/login",
       };
     }
-
-    // Check admin role
-    const { data: roleData } = await supabase
-      .from('user_roles')
-      .select('role')
-      .eq('user_id', session.user.id)
-      .single();
-
-    if (roleData?.role !== 'admin') {
-      return {
-        authenticated: false,
-        redirectTo: "/admin/login",
-      };
-    }
-
-    return {
-      authenticated: true,
-    };
   },
   
   getPermissions: async () => {

@@ -4,20 +4,31 @@ import { getSupabaseServerClient } from '@/integrations/supabase/server'
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || process.env.SITE_URL_STAGING || 'https://obsidianriterecords.com'
   const supabase = getSupabaseServerClient()
+
+  let products: { slug: string; updated_at: string }[] | null = null
+  let articles: { slug: string; updated_at: string }[] | null = null
+
+  try {
+    const { data } = await supabase
+      .from('products')
+      .select('slug, updated_at')
+      .eq('status', 'active')
+      .order('updated_at', { ascending: false })
+    products = data
+  } catch {
+    products = []
+  }
   
-  // Get all products
-  const { data: products } = await supabase
-    .from('products')
-    .select('slug, updated_at')
-    .eq('status', 'active')
-    .order('updated_at', { ascending: false })
-  
-  // Get all articles if they exist
-  const { data: articles } = await supabase
-    .from('articles')
-    .select('slug, updated_at')
-    .eq('published', true)
-    .order('updated_at', { ascending: false })
+  try {
+    const { data } = await supabase
+      .from('articles')
+      .select('slug, updated_at')
+      .eq('published', true)
+      .order('updated_at', { ascending: false })
+    articles = data
+  } catch {
+    articles = []
+  }
   
   const routes: MetadataRoute.Sitemap = [
     {

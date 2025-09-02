@@ -17,7 +17,7 @@
     "resolveJsonModule": true,
     "isolatedModules": true,
     "jsx": "preserve",
-    "incremental": true,
+    "incremental": false,
     "baseUrl": ".",
     "plugins": [
       {
@@ -57,6 +57,9 @@
     "node_modules",
     ".next/types/**",
     "tests/**",
-    "e2e/**"
+    "e2e/**",
+    "src/__legacy_pages/**",
+    "src/App.tsx",
+    "src/main.tsx"
   ]
 }

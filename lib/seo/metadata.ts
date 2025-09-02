@@ -25,11 +25,18 @@ export function generateMetadata({
   keywords,
   noindex = false
 }: GenerateMetadataParams): Metadata {
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || process.env.SITE_URL_STAGING || 'https://obsidianriterecords.com'
+  const siteUrlEnv = process.env.NEXT_PUBLIC_SITE_URL || process.env.SITE_URL_STAGING || 'https://obsidianriterecords.com'
+  const safeMetadataBase = (() => {
+    try {
+      return new URL(siteUrlEnv)
+    } catch {
+      return new URL('https://obsidianriterecords.com')
+    }
+  })()
   const siteName = 'Obsidian Rite Records'
-  const defaultImage = `${siteUrl}/og-image.jpg`
+  const defaultImage = `${siteUrlEnv}/og-image.jpg`
   
-  const finalUrl = url || siteUrl
+  const finalUrl = url || siteUrlEnv
   const finalImage = image || defaultImage
 
   const metadata: Metadata = {
@@ -38,9 +45,11 @@ export function generateMetadata({
       template: `%s | ${siteName}`
     },
     description,
-    keywords: keywords?.join(', '),
+    ...(keywords && keywords.length > 0
+      ? { keywords: keywords.join(', ') }
+      : {}),
     authors: author ? [{ name: author }] : [{ name: siteName }],
-    metadataBase: new URL(siteUrl),
+    metadataBase: safeMetadataBase,
     alternates: {
       canonical: finalUrl
     },
@@ -79,10 +88,12 @@ export function generateMetadata({
       }
     },
     verification: {
-      google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION,
-      other: {
-        'facebook-domain-verification': process.env.NEXT_PUBLIC_FACEBOOK_DOMAIN_VERIFICATION
-      }
+      ...(process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION
+        ? { google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION }
+        : {}),
+      ...(process.env.NEXT_PUBLIC_FACEBOOK_DOMAIN_VERIFICATION
+        ? { other: { 'facebook-domain-verification': process.env.NEXT_PUBLIC_FACEBOOK_DOMAIN_VERIFICATION } }
+        : {}),
     }
   }
 

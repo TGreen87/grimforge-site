@@ -8,7 +8,7 @@ if (!stripeSecretKey) {
 }
 
 export const stripe = new Stripe(stripeSecretKey, {
-  apiVersion: '2024-12-18.acacia',
+  // Rely on account default API version to avoid TS literal mismatches
   typescript: true,
 })
 

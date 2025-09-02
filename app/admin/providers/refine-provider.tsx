@@ -5,6 +5,7 @@ import { RefineKbar, RefineKbarProvider } from "@refinedev/kbar";
 import routerProvider from "@refinedev/nextjs-router";
 import { ThemedLayoutV2, ThemedSiderV2, ThemedTitleV2 } from "@refinedev/antd";
 import { App as AntdAppWrapper, ConfigProvider } from "antd";
+import { brand } from "@/config/brand";
 import { 
   ShoppingCartOutlined, 
   AppstoreOutlined, 
@@ -110,7 +111,7 @@ export function RefineProvider({ children }: { children: React.ReactNode }) {
                   Title={() => (
                     <ThemedTitleV2 
                       collapsed={false} 
-                      text="Grimforge Admin" 
+                      text={`${brand.shortName} Admin`} 
                       icon={<DashboardOutlined />}
                     />
                   )}

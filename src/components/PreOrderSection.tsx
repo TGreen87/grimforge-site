@@ -5,7 +5,7 @@ const album3 = "/assets/album-3.jpg";
 
 const PreOrderSection = () => {
   // Empty pre-orders - will show coming soon message
-  const preOrders: never[] = [];
+  const preOrders: Array<Record<string, any>> = [];
 
   return (
     <section id="preorders" className="py-20 px-4 bg-gradient-to-b from-background to-secondary/10">
@@ -35,13 +35,7 @@ const PreOrderSection = () => {
               </p>
             </div>
           </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
-            {preOrders.map((preOrder) => (
-              <PreOrderCard key={preOrder.id} {...preOrder} />
-            ))}
-          </div>
-        )}
+        ) : null}
 
         {/* Call to Action */}
         <div className="text-center mt-16">

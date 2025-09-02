@@ -68,15 +68,19 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    // Check inventory availability
-    if (variant.inventory.available < quantity) {
+    // Check inventory availability (handle potential array shape from join)
+    const available = Array.isArray((variant as any).inventory)
+      ? ((variant as any).inventory[0]?.available ?? 0)
+      : ((variant as any).inventory?.available ?? 0)
+
+    if (available < quantity) {
       await writeAuditLog(
         createPaymentAuditLog({
           eventType: 'checkout.insufficient_inventory',
           metadata: {
             variant_id,
             requested_quantity: quantity,
-            available_quantity: variant.inventory.available,
+            available_quantity: available,
           },
         })
       )
@@ -222,7 +226,9 @@ export async function POST(req: NextRequest) {
       .update({
         stripe_session_id: session.id,
         metadata: {
-          ...order.metadata,
+          ...((order as any).metadata && typeof (order as any).metadata === 'object' && !Array.isArray((order as any).metadata)
+            ? ((order as any).metadata as Record<string, unknown>)
+            : {}),
           stripe_session_url: session.url,
           stripe_session_expires_at: session.expires_at,
         },

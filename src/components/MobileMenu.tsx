@@ -10,7 +10,7 @@ interface MobileMenuProps {
   isAuthenticated: boolean;
 }
 
-const MobileMenu = ({ scrollToSection }: MobileMenuProps) => {
+const MobileMenu = ({ scrollToSection, isAuthenticated }: MobileMenuProps) => {
   return (
     <Sheet>
       <SheetTrigger asChild>
@@ -39,6 +39,17 @@ const MobileMenu = ({ scrollToSection }: MobileMenuProps) => {
               </button>
             </SheetClose>
           ))}
+          {isAuthenticated && (
+            <SheetClose asChild>
+              <a
+                href="/admin"
+                className="block w-full text-left px-3 py-2 rounded hover:bg-muted transition-colors"
+                aria-label="Go to Admin"
+              >
+                Admin
+              </a>
+            </SheetClose>
+          )}
         </nav>
       </SheetContent>
     </Sheet>

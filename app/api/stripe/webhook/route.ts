@@ -20,11 +20,11 @@ export async function POST(req: NextRequest) {
     )
   }
 
+  const stripe = getStripe()
   let event: Stripe.Event
 
   try {
     // Verify webhook signature
-    const stripe = getStripe()
     event = stripe.webhooks.constructEvent(
       body,
       signature,
@@ -90,9 +90,9 @@ export async function POST(req: NextRequest) {
         }
 
         // Retrieve full session details with line items
-        const fullSession = await stripe.checkout.sessions.retrieve(session.id, {
+        const fullSession = (await stripe.checkout.sessions.retrieve(session.id, {
           expand: ['line_items', 'payment_intent', 'customer', 'total_details'],
-        })
+        })) as Stripe.Checkout.Session
 
         // Calculate tax amount from Stripe
         const taxAmount = fullSession.total_details?.amount_tax || 0
@@ -106,19 +106,21 @@ export async function POST(req: NextRequest) {
             status: 'paid',
             payment_status: 'paid',
             email: fullSession.customer_email || session.customer_email || '',
-            stripe_payment_intent_id: fullSession.payment_intent?.id || session.payment_intent,
+            stripe_payment_intent_id: (typeof fullSession.payment_intent === 'string'
+              ? fullSession.payment_intent
+              : fullSession.payment_intent?.id) || (session.payment_intent as string | undefined),
             tax: taxAmount / 100, // Convert from cents to dollars
             shipping: shippingAmount / 100,
             total: totalAmount / 100,
             metadata: {
               stripe_session_id: session.id,
-              stripe_customer_id: fullSession.customer,
+              stripe_customer_id: (typeof fullSession.customer === 'string' ? fullSession.customer : fullSession.customer?.id) || null,
               stripe_payment_status: session.payment_status,
               stripe_payment_method_types: session.payment_method_types,
-              shipping_details: fullSession.shipping_details,
+              shipping_address: fullSession.customer_details?.address || null,
               customer_details: fullSession.customer_details,
               completed_at: new Date().toISOString(),
-            },
+            } as any,
             updated_at: new Date().toISOString(),
           })
           .eq('id', orderId)
@@ -171,18 +173,18 @@ export async function POST(req: NextRequest) {
           }
 
           // Save shipping address if provided
-          if (fullSession.shipping_details && customerId) {
-            const shipping = fullSession.shipping_details
+          if (fullSession.customer_details?.address && customerId) {
+            const shipping = fullSession.customer_details.address
             await supabase
               .from('addresses')
               .insert({
                 customer_id: customerId,
-                line1: shipping.address?.line1 || '',
-                line2: shipping.address?.line2 || null,
-                city: shipping.address?.city || '',
-                state: shipping.address?.state || '',
-                postal_code: shipping.address?.postal_code || '',
-                country: shipping.address?.country || 'AU',
+                line1: (shipping.line1 as string) || '',
+                line2: (shipping.line2 as string | null) || null,
+                city: (shipping.city as string) || '',
+                state: (shipping.state as string) || '',
+                postal_code: (shipping.postal_code as string) || '',
+                country: (shipping.country as string) || 'AU',
                 is_default: true,
               })
           }
@@ -239,14 +241,16 @@ export async function POST(req: NextRequest) {
             stripeEventId: event.id,
             stripeEventType: event.type,
             orderId,
-            customerId: order?.customer_id,
+            customerId: (order?.customer_id ?? undefined) as string | undefined,
             customerEmail: fullSession.customer_email || '',
             amount: totalAmount / 100,
-            currency: session.currency || 'AUD',
+            currency: ((session.currency ?? 'AUD') as unknown) as string,
             taxAmount: taxAmount / 100,
             paymentStatus: 'completed',
             stripeSessionId: session.id,
-            stripePaymentIntentId: fullSession.payment_intent?.id || session.payment_intent,
+            stripePaymentIntentId: (typeof fullSession.payment_intent === 'string'
+              ? fullSession.payment_intent
+              : fullSession.payment_intent?.id) || (session.payment_intent as string | undefined),
             metadata: {
               variant_id: variantId,
               quantity,
@@ -293,7 +297,7 @@ export async function POST(req: NextRequest) {
             stripeEventType: event.type,
             orderId,
             amount: paymentIntent.amount / 100,
-            currency: paymentIntent.currency,
+            currency: paymentIntent.currency as string,
             paymentStatus: 'failed',
             stripePaymentIntentId: paymentIntent.id,
             error: paymentIntent.last_payment_error?.message,

@@ -26,3 +26,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
 Button.displayName = "Button"
 
 export { Button }
+
+// Re-export variants for consumers that import from the button entry
+// This avoids import errors where other components expect `buttonVariants`
+export { buttonVariants } from "./variants/button-variants"

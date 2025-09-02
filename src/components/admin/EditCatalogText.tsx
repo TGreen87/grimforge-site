@@ -223,6 +223,7 @@ export default function EditCatalogText() {
     }
     try {
       setRegenLoading(true);
+      const supabase = getSupabaseBrowserClient();
       const tags = (draftTagsInput || "")
         .split(",")
         .map((t) => t.trim())
@@ -260,6 +261,7 @@ export default function EditCatalogText() {
     }
     try {
       setPriceLoading(true);
+      const supabase = getSupabaseBrowserClient();
       const { data, error } = await supabase.functions.invoke("price-research-au", {
         body: {
           title: draftTitle,

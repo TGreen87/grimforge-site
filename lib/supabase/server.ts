@@ -1,13 +1,14 @@
 import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { cookies } from 'next/headers'
-import type { Database } from '@/lib/supabase/types'
+import type { Database } from '@/integrations/supabase/types'
 
 /**
  * Create a Supabase client for server-side operations
  * This client automatically handles cookie-based auth
  */
 export function createClient() {
-  const cookieStore = cookies()
+  // Cast to any to accommodate envs where cookies() may be typed as Promise
+  const cookieStore = cookies() as any
 
   return createServerClient<Database>(
     process.env.SUPABASE_URL_STAGING || process.env.NEXT_PUBLIC_SUPABASE_URL!,

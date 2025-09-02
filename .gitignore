@@ -42,7 +42,10 @@ playwright-report/
 test-results/
 
 # E2E test artifacts
+# Restrict ignores to test output folders rather than all PNGs
 *.mp4
 *.webm
-*.png
 trace.zip
+playwright-report/
+test-results/
+e2e/.cache/

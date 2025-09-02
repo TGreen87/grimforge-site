@@ -1,6 +1,9 @@
 import { Metadata } from 'next'
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://obsidianriterecords.com'
+const rawSiteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://obsidianriterecords.com'
+const siteUrl = (() => {
+  try { return new URL(rawSiteUrl).toString() } catch { return 'https://obsidianriterecords.com' }
+})()
 
 export function generateProductMetadata({
   name,
@@ -79,11 +82,6 @@ export function generateArticleMetadata({
       description,
       type: 'article',
       images: image ? [{ url: image }] : [],
-      article: {
-        authors: author ? [author] : [],
-        publishedTime,
-        modifiedTime,
-      },
     },
     twitter: {
       card: 'summary_large_image',
