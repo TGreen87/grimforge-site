@@ -50,8 +50,8 @@ describe('/api/checkout', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     
-    // Default successful mocks
-    mockSupabase.single.mockResolvedValue({
+    // Default successful mocks (first single(): variant fetch)
+    mockSupabase.single.mockResolvedValueOnce({
       data: {
         id: 'test-variant-id',
         name: 'Test Variant',
@@ -70,7 +70,8 @@ describe('/api/checkout', () => {
       error: null,
     })
     
-    mockSupabase.insert.mockResolvedValue({
+    // Second single(): order insert returning
+    mockSupabase.single.mockResolvedValueOnce({
       data: {
         id: 'test-uuid-123',
         order_number: 'ORR-123456',

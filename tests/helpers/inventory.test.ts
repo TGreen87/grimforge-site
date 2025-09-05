@@ -111,7 +111,7 @@ describe('Inventory Management Helpers', () => {
   
   describe('incrementInventory', () => {
     it('should increment inventory for stock receipt', async () => {
-      mockSupabase.update.mockResolvedValueOnce({
+      mockSupabase.eq.mockResolvedValueOnce({
         data: { available: 15 },
         error: null,
       });
@@ -153,7 +153,7 @@ describe('Inventory Management Helpers', () => {
     });
     
     it('should handle return to stock', async () => {
-      mockSupabase.update.mockResolvedValueOnce({
+      mockSupabase.eq.mockResolvedValueOnce({
         data: { available: 12 },
         error: null,
       });
@@ -170,7 +170,7 @@ describe('Inventory Management Helpers', () => {
   
   describe('reserveInventory', () => {
     it('should reserve inventory for pending order', async () => {
-      mockSupabase.update.mockResolvedValueOnce({
+      mockSupabase.eq.mockResolvedValueOnce({
         data: { available: 8, reserved: 2 },
         error: null,
       });
@@ -205,7 +205,7 @@ describe('Inventory Management Helpers', () => {
     });
     
     it('should handle concurrent reservations', async () => {
-      mockSupabase.update.mockResolvedValueOnce({
+      mockSupabase.eq.mockResolvedValueOnce({
         data: null,
         error: { message: 'Concurrent modification detected' },
       });
@@ -222,7 +222,7 @@ describe('Inventory Management Helpers', () => {
   
   describe('releaseReservedInventory', () => {
     it('should release reserved inventory back to available', async () => {
-      mockSupabase.update.mockResolvedValueOnce({
+      mockSupabase.eq.mockResolvedValueOnce({
         data: { available: 12, reserved: 0 },
         error: null,
       });
@@ -320,7 +320,7 @@ describe('Inventory Management Helpers', () => {
         { id: '2', type: 'receipt', quantity: 10, created_at: '2024-01-02' },
       ];
       
-      mockSupabase.select.mockResolvedValueOnce({
+      mockSupabase.eq.mockResolvedValueOnce({
         data: mockMovements,
         error: null,
       });
@@ -339,7 +339,8 @@ describe('Inventory Management Helpers', () => {
         { id: '1', type: 'sale', quantity: -1, created_at: '2024-01-15' },
       ];
       
-      mockSupabase.select.mockResolvedValueOnce({
+      // Mock final chained call to resolve with filtered results
+      mockSupabase.lte.mockResolvedValueOnce({
         data: mockMovements,
         error: null,
       });

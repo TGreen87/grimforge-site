@@ -87,7 +87,7 @@ export function ProductJsonLd({
       name: brand
     },
     category,
-    url: url || `${siteUrl}/products/${sku}`,
+    url: url || (sku ? `${siteUrl}/products/${sku}` : undefined),
     offers: {
       '@type': 'Offer',
       price: price.toString(),
