@@ -14,6 +14,11 @@ export function middleware(request: NextRequest) {
     return NextResponse.next()
   }
 
+  // Allow deploy previews to bypass server-side cookie gate
+  if (process.env.NETLIFY === 'true' && process.env.CONTEXT === 'deploy-preview') {
+    return NextResponse.next()
+  }
+
   // If we can’t determine the cookie name, fall back to client-side guards
   if (!SUPABASE_COOKIE) {
     return NextResponse.next()
