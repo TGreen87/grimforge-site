@@ -13,7 +13,8 @@ export default defineConfig({
       '@/app': path.resolve(__dirname, './app'),
       '@/lib': path.resolve(__dirname, './lib'),
       '@/src': path.resolve(__dirname, './src'),
-      '@/integrations': path.resolve(__dirname, './src/integrations'),
+      // Point to root integrations to match runtime imports
+      '@/integrations': path.resolve(__dirname, './integrations'),
     },
   },
 })
