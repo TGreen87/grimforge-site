@@ -1,8 +1,8 @@
 "use client";
 
-import React, { useMemo, useState } from "react";
+import React, { useState } from "react";
 import { List, useTable, TextField, NumberField } from "@refinedev/antd";
-import { Table, Space, Button, Tag, Modal, Form, InputNumber, Input, message, Switch } from "antd";
+import { Table, Space, Button, Tag, Modal, Form, InputNumber, Input, message } from "antd";
 import { PlusOutlined, EditOutlined } from "@ant-design/icons";
 import Link from "next/link";
 import { getSupabaseBrowserClient } from "@/integrations/supabase/browser";
@@ -12,22 +12,14 @@ const { TextArea } = Input;
 
 export default function InventoryList() {
   const [isReceiveStockModalOpen, setIsReceiveStockModalOpen] = useState(false);
-  const [isAdjustModalOpen, setIsAdjustModalOpen] = useState(false);
-  const [lowStockOnly, setLowStockOnly] = useState(false);
   const [selectedInventory, setSelectedInventory] = useState<Inventory | null>(null);
-  const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
   const [form] = Form.useForm<ReceiveStockFormValues>();
 
-  const { tableProps, tableQueryResult, refineCore } = useTable<Inventory>({
+  const { tableProps, tableQueryResult } = useTable<Inventory>({
     resource: "inventory",
     meta: {
       select: "*, variant:variants(*, product:products(*))",
     },
-    filters: {
-      permanent: lowStockOnly
-        ? [{ field: 'available', operator: 'lt', value: 'reorder_point' } as any]
-        : [],
-    } as any,
   });
 
   const handleReceiveStock = (inventory: Inventory) => {
@@ -43,18 +35,31 @@ export default function InventoryList() {
   const handleReceiveStockSubmit = async () => {
     try {
       const values = await form.validateFields();
-      // Use admin API to perform server-side updates with service role
-      const res = await fetch('/api/admin/inventory/receive', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          items: [{ variant_id: values.variant_id, quantity: values.quantity, reason: values.notes }]
-        }),
-      });
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        throw new Error(data.error || 'Failed to receive stock');
-      }
+      const supabase = getSupabaseBrowserClient();
+
+      // Create stock movement record
+      const { error: movementError } = await supabase
+        .from("stock_movements")
+        .insert({
+          variant_id: values.variant_id,
+          quantity: values.quantity,
+          type: "receipt",
+          reason: values.notes || "Stock received via admin panel",
+        });
+
+      if (movementError) throw movementError;
+
+      // Update inventory
+      const { error: inventoryError } = await supabase
+        .from("inventory")
+        .update({
+          on_hand: (selectedInventory?.on_hand || 0) + values.quantity,
+          available: (selectedInventory?.available || 0) + values.quantity,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("variant_id", values.variant_id);
+
+      if (inventoryError) throw inventoryError;
 
       message.success(`Successfully received ${values.quantity} units`);
       setIsReceiveStockModalOpen(false);
@@ -66,107 +71,24 @@ export default function InventoryList() {
     }
   };
 
-  const handleBatchReceive = async () => {
-    if (selectedRowKeys.length === 0) {
-      message.info('Select at least one row');
-      return;
-    }
-    try {
-      const qty = await new Promise<number>((resolve, reject) => {
-        let localForm: any;
-        const modal = Modal.confirm({
-          title: 'Batch Receive Stock',
-          content: (
-            <Form ref={(f) => (localForm = f as any)} layout="vertical" id="batch-receive-form">
-              <Form.Item label="Quantity per item" name="quantity" rules={[{ required: true, message: 'Quantity is required' }]}> 
-                <InputNumber min={1} style={{ width: '100%' }} />
-              </Form.Item>
-              <Form.Item label="Notes" name="notes">
-                <Input />
-              </Form.Item>
-            </Form>
-          ),
-          okText: 'Receive',
-          onOk: async () => {
-            const values = await (localForm as any)?.validateFields?.();
-            resolve(values.quantity);
-          },
-          onCancel: () => reject(new Error('cancelled')),
-        });
-      });
-
-      const items = selectedRowKeys.map((key) => ({ variant_id: String(key), quantity: qty }));
-      const res = await fetch('/api/admin/inventory/receive', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ items }),
-      });
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        throw new Error(data.error || 'Batch receive failed');
-      }
-      message.success(`Received ${qty} units for ${items.length} variants`);
-      setSelectedRowKeys([]);
-      tableQueryResult.refetch();
-    } catch (e: any) {
-      if (e?.message !== 'cancelled') message.error(e?.message || 'Batch receive failed');
-    }
-  };
-
-  const handleAdjustSubmit = async (delta: number, notes?: string) => {
-    try {
-      if (selectedRowKeys.length === 0) {
-        message.info('Select at least one row');
-        return;
-      }
-      const items = selectedRowKeys.map((key) => ({ variant_id: String(key), delta, reason: notes }));
-      const res = await fetch('/api/admin/inventory/adjust', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ items }),
-      });
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        throw new Error(data.error || 'Adjust failed');
-      }
-      message.success('Inventory adjusted');
-      setIsAdjustModalOpen(false);
-      setSelectedRowKeys([]);
-      tableQueryResult.refetch();
-    } catch (e: any) {
-      message.error(e?.message || 'Adjust failed');
-    }
-  };
-
   return (
     <>
       <List
         headerButtons={
-          <Space>
-            <Button
-              type="primary"
-              icon={<PlusOutlined />}
-              onClick={() => {
-                setSelectedInventory(null);
-                form.resetFields();
-                setIsReceiveStockModalOpen(true);
-              }}
-            >
-              Receive Stock
-            </Button>
-            <Button onClick={handleBatchReceive}>Batch Receive</Button>
-            <Button onClick={() => setIsAdjustModalOpen(true)}>Adjust</Button>
-            <span style={{ marginLeft: 12 }}>
-              Low stock only <Switch checked={lowStockOnly} onChange={(v) => { setLowStockOnly(v); (tableQueryResult as any).refetch?.(); }} />
-            </span>
-          </Space>
+          <Button
+            type="primary"
+            icon={<PlusOutlined />}
+            onClick={() => {
+              setSelectedInventory(null);
+              form.resetFields();
+              setIsReceiveStockModalOpen(true);
+            }}
+          >
+            Receive Stock
+          </Button>
         }
       >
-        <Table
-          {...tableProps}
-          rowKey={(r) => r.variant_id || r.id}
-          rowSelection={{ selectedRowKeys, onChange: setSelectedRowKeys }}
-        >
+        <Table {...tableProps} rowKey="id">
           <Table.Column
             dataIndex={["variant", "name"]}
             title="Variant"
@@ -206,13 +128,6 @@ export default function InventoryList() {
               </Tag>
             )}
             sorter
-          />
-          <Table.Column
-            dataIndex="reorder_point"
-            title="Reorder Point"
-            render={(value: number | null) => (
-              <Tag color="blue">{value || "N/A"}</Tag>
-            )}
           />
           <Table.Column
             dataIndex="reorder_point"
@@ -282,42 +197,6 @@ export default function InventoryList() {
           <Form.Item label="Notes" name="notes">
             <TextArea rows={3} placeholder="Optional notes about this stock receipt" />
           </Form.Item>
-        </Form>
-      </Modal>
-
-      <Modal
-        title="Adjust Inventory"
-        open={isAdjustModalOpen}
-        onCancel={() => setIsAdjustModalOpen(false)}
-        onOk={async () => {
-          const values = await form.validateFields().catch(() => null)
-          if (!values) return
-          const delta = Number(values.quantity || 0) * (values.direction === 'decrease' ? -1 : 1)
-          await handleAdjustSubmit(delta, values.notes)
-        }}
-        okText="Apply"
-      >
-        <Form form={form} layout="vertical">
-          <Form.Item name="direction" label="Direction" initialValue="increase">
-            <select defaultValue="increase">
-              <option value="increase">Increase</option>
-              <option value="decrease">Decrease</option>
-            </select>
-          </Form.Item>
-          <Form.Item
-            label="Quantity"
-            name="quantity"
-            rules={[
-              { required: true, message: "Quantity is required" },
-              { type: "number", min: 1, message: "Quantity must be at least 1" },
-            ]}
-          >
-            <InputNumber min={1} style={{ width: "100%" }} />
-          </Form.Item>
-          <Form.Item label="Notes" name="notes">
-            <Input />
-          </Form.Item>
-          <p style={{ color: '#666' }}>Selected variants: {selectedRowKeys.length}</p>
         </Form>
       </Modal>
     </>
