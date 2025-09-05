@@ -1,6 +1,16 @@
 import { AuthProvider } from "@refinedev/core";
 import { getSupabaseBrowserClient } from "@/integrations/supabase/browser";
 
+function withTimeout<T>(p: Promise<T>, ms = 2500, fallback: T): Promise<T> {
+  let timer: NodeJS.Timeout;
+  return Promise.race([
+    p.finally(() => clearTimeout(timer)),
+    new Promise<T>((resolve) => {
+      timer = setTimeout(() => resolve(fallback), ms);
+    }),
+  ]) as Promise<T>;
+}
+
 export const authProvider: AuthProvider = {
   login: async ({ email, password }) => {
     const supabase = getSupabaseBrowserClient();
@@ -67,7 +77,12 @@ export const authProvider: AuthProvider = {
   check: async () => {
     try {
       const supabase = getSupabaseBrowserClient();
-      const { data: { session } } = await supabase.auth.getSession();
+      // Ensure this never hangs in preview environments
+      const { data: { session } } = await withTimeout(
+        supabase.auth.getSession(),
+        2500,
+        { session: null } as any
+      );
 
       if (!session) {
         return {
@@ -77,19 +92,17 @@ export const authProvider: AuthProvider = {
       }
 
       // Relaxed gating: if role is present and not admin (case-insensitive), still allow for now
-      try {
-        const { data: roleData } = await supabase
-          .from('user_roles')
-          .select('role')
-          .eq('user_id', session.user.id)
-          .single();
-        const role = roleData?.role?.toLowerCase?.();
-        if (role && role !== 'admin') {
-          console.warn('Non-admin session detected; proceeding due to relaxed gating');
-        }
-      } catch (e) {
-        // Ignore failures (preview envs)
-      }
+      // Fire-and-forget role check to avoid blocking UI
+      supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', session.user.id)
+        .single()
+        .then(({ data }) => {
+          const role = (data as any)?.role?.toLowerCase?.();
+          if (role && role !== 'admin') console.warn('Non-admin session detected');
+        })
+        .catch(() => void 0);
 
       return {
         authenticated: true,
@@ -105,7 +118,11 @@ export const authProvider: AuthProvider = {
   
   getPermissions: async () => {
     const supabase = getSupabaseBrowserClient();
-    const { data: { session } } = await supabase.auth.getSession();
+    const { data: { session } } = await withTimeout(
+      supabase.auth.getSession(),
+      2000,
+      { session: null } as any
+    );
 
     if (!session) {
       return null;
