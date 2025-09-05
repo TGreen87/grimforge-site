@@ -1,70 +1,110 @@
-# Agents Working Agreement
+# Codex CLI Agents Guide (OpenAI‑Aligned)
 
-This repo uses a simple, safe workflow optimized for a very small team.
+This repo follows Codex CLI conventions for a small team: plan first, minimal blast radius, single working branch, and explicit go‑live approval.
 
-## Workflow
+## Defaults & Tone
 
-- Branch: `feat/admin-suite-phase1` is the only active working branch.
-- No PRs: Do not open or rely on PRs; push directly to the working branch.
-- Main is protected: Never push to `main` unless the user explicitly says: "Go live on main".
-- Plan-first: Before any non-trivial change, post a brief 1–2 sentence plan, then apply changes.
-- Minimal blast radius: Keep changes tightly scoped and reversible.
+- Concise, direct, friendly; actionable by default.
+- Plan first for non‑trivial work; keep steps small and reversible.
+- Share 1–2 sentence preambles before tool calls (what/why/next).
+- Provide brief progress updates for longer tasks (8–10 words).
 
-## Deploy
+## Branching & Deploy
 
-- Production: `main` branch (do not push without explicit approval).
-- Staging/Live-Preview: Netlify Branch Deploy for `feat/admin-suite-phase1`.
-  - Netlify UI → Site → Build & deploy → Branches → Add Branch: `feat/admin-suite-phase1`.
-  - Resulting URL: `<branch>--<site>.netlify.app`.
+- Working branch: `feat/admin-suite-phase1` (only branch we develop on).
+- No PRs: push directly to the working branch; do not open PRs.
+- Main is protected: never push to `main` unless the user says “Go live on main”.
+- Netlify Branch Deploy: enable for `feat/admin-suite-phase1` (Build & deploy → Branches → Add Branch). Use the branch URL for live testing.
+- Go‑Live protocol:
+  1) Branch deploy is green and verified.
+  2) User explicitly: “Go live on main”.
+  3) Merge/fast‑forward `feat/admin-suite-phase1` → `main` and push.
+  4) Monitor; if any issue, revert immediately.
 
-## Environment Variables
+## Environment & Secrets
 
-- Never hard-code secrets.
-- Rely on Netlify’s Supabase Connector or Dashboard env vars.
-- Required for branch deploys:
+- Never hard‑code secrets. Use Netlify Supabase Connector or Dashboard env.
+- Required:
   - `SUPABASE_URL` (or `NEXT_PUBLIC_SUPABASE_URL`)
   - `SUPABASE_ANON_KEY` (or `NEXT_PUBLIC_SUPABASE_ANON_KEY`)
   - `SUPABASE_SERVICE_ROLE_KEY`
-  - `NEXT_PUBLIC_SITE_URL` (use production domain or branch URL)
-- Build mapping:
-  - `next.config.mjs` maps `NEXT_PUBLIC_*` from connector vars when present.
+  - `NEXT_PUBLIC_SITE_URL` (production domain or branch URL)
+- Build mapping: `next.config.mjs` maps connector vars to `NEXT_PUBLIC_*` at build time.
+- Degrade gracefully when env is missing (no crashes in previews).
 
-## Admin Auth
+## Admin Auth Policy
 
-- Preview/Branch Deploys: relaxed client checks with timeouts; server middleware bypass is allowed.
-- Production (`main`): stricter gating; server middleware may enforce Supabase session.
-- Admin user: `arg@obsidianriterecords.com` with a known password set in Supabase.
+- Branch deploys: relaxed client checks with timeouts; server middleware bypass allowed.
+- Production (`main`): stricter gating may be enabled.
+- Admin account: `arg@obsidianriterecords.com` with a known password in Supabase.
 
-## Safety Rails
+## Planning Tool (update_plan)
 
-- Do not modify `main` unless explicitly instructed.
-- Do not change Netlify production envs without confirmation.
-- Keep rollbacks easy (one commit per logical change).
-- If a build fails, fix forward on the branch; do not touch `main`.
+- Use for multi‑step tasks or where sequencing matters.
+- Keep steps 5–7 words; exactly one `in_progress` step.
+- Skip plan for trivial one‑off edits.
 
-## Testing & Checks
+## Preamble Messages
 
-- Local:
-  - `npm run type-check`
-  - `npm run build`
-  - `npm test` (only where relevant to the changes)
-- CI/Netlify:
-  - Deploys from the working branch should not break; if env is missing, code must degrade gracefully.
+- Before running tools, send 1–2 sentences describing the immediate action.
+- Group related actions under one preamble.
 
-## Go-Live Protocol
+## Shell Usage
 
-1) Confirm working branch is green on Netlify Branch Deploy.
-2) User explicitly says "Go live on main".
-3) Merge or fast-forward `feat/admin-suite-phase1` → `main` and push.
-4) Monitor deployment; be ready to revert immediately if needed.
+- Prefer `rg` for search; `rg --files` for listing.
+- Read files in chunks ≤ 250 lines.
+- Output is truncated at ~10KB/256 lines; tailor queries.
+- Avoid running long/loud commands needlessly.
+
+## Patching Files (apply_patch)
+
+- Always use `apply_patch` with the minimal diff.
+- Don’t re‑read files immediately after writing.
+- Do not add license headers unless asked.
+- Keep changes scoped; follow existing style.
+
+Patch envelope example:
+
+```
+*** Begin Patch
+*** Update File: path/to/file.ext
+@@
+- old
++ new
+*** End Patch
+```
+
+## File References in Messages
+
+- Use clickable paths with optional line/column (1‑based):
+  - `src/app.ts`
+  - `src/app.ts:42`
+  - `src/app.ts#L42C7`
+- Don’t include ranges or external URIs.
+
+## Testing & Validation
+
+- Local: `npm run type-check`, `npm run build`. Run tests when related to the change.
+- Don’t fix unrelated failing tests; note them if encountered.
+- For non‑interactive runs, validate proactively; otherwise be efficient.
+
+## Commit Messages
+
+- Conventional style: `feat: …`, `fix: …`, `chore: …`, `docs: …`.
+- Keep subjects short; add detail lines as needed.
 
 ## Rollback Procedure (Production)
 
-1) `git revert <bad-merge-sha>` on `main`.
+1) `git revert <bad-commit-sha>` on `main`.
 2) `git push origin main`.
-3) Verify Netlify redeploys successfully.
+3) Verify Netlify redeploy.
+
+## Incident Response
+
+- If the live site breaks: revert first, then fix forward on the working branch.
+- Communicate clearly what changed and what’s next.
 
 ---
 
-Questions or process changes? Update this file in a small, separate commit.
+This guide encodes how we use Codex CLI here: plan first, one working branch, explicit go‑live, minimal blast radius.
 
