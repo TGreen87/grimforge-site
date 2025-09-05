@@ -3,30 +3,45 @@ import { getSupabaseServerClient } from '@/integrations/supabase/server'
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || process.env.SITE_URL_STAGING || 'https://obsidianriterecords.com'
-  const supabase = getSupabaseServerClient()
+
+  // Only create a Supabase client if env is available in this environment (e.g., Netlify connector)
+  const hasSupabaseEnv = Boolean(
+    (process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL) &&
+    (process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY)
+  )
+
+  const supabase = hasSupabaseEnv ? getSupabaseServerClient() as any : null
 
   let products: { slug: string; updated_at: string }[] | null = null
   let articles: { slug: string; updated_at: string }[] | null = null
 
-  try {
-    const { data } = await supabase
-      .from('products')
-      .select('slug, updated_at')
-      .eq('status', 'active')
-      .order('updated_at', { ascending: false })
-    products = data
-  } catch {
+  if (supabase) {
+    try {
+      const { data } = await supabase
+        .from('products')
+        .select('slug, updated_at')
+        .eq('status', 'active')
+        .order('updated_at', { ascending: false })
+      products = data
+    } catch {
+      products = []
+    }
+  } else {
     products = []
   }
   
-  try {
-    const { data } = await supabase
-      .from('articles')
-      .select('slug, updated_at')
-      .eq('published', true)
-      .order('updated_at', { ascending: false })
-    articles = data
-  } catch {
+  if (supabase) {
+    try {
+      const { data } = await supabase
+        .from('articles')
+        .select('slug, updated_at')
+        .eq('published', true)
+        .order('updated_at', { ascending: false })
+      articles = data
+    } catch {
+      articles = []
+    }
+  } else {
     articles = []
   }
   
