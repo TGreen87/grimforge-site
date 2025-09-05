@@ -1,17 +1,28 @@
 "use client";
 
-import { NavigateToResource } from "@refinedev/nextjs-router";
-import { use } from "react";
+import { useEffect } from "react";
+import { useParams, useRouter } from "next/navigation";
 
-export default function AdminPage({ params }: { params: Promise<{ segments?: string[] }> }) {
-  // Use React's use() hook to unwrap the promise in client component
-  const resolvedParams = use(params);
-  
-  // If no segments, navigate to products by default
-  if (!resolvedParams.segments || resolvedParams.segments.length === 0) {
-    return <NavigateToResource resource="products" />;
-  }
-  
-  // Let Refine handle the routing for specific segments
-  return <NavigateToResource />;
+// Catch-all admin route handler.
+// If user visits /admin directly, redirect to /admin/products.
+// Specific admin subpages (e.g. /admin/products) are handled by their own routes.
+export default function AdminPage() {
+  const router = useRouter();
+  const params = useParams();
+  const segmentsParam = params?.segments as string | string[] | undefined;
+  const segments = Array.isArray(segmentsParam)
+    ? segmentsParam
+    : segmentsParam
+    ? [segmentsParam]
+    : [];
+
+  useEffect(() => {
+    if (!segments || segments.length === 0) {
+      router.replace("/admin/products");
+    }
+  }, [router]);
+
+  // For specific segments, dedicated pages under /admin/* will match and render.
+  // This catch-all returns null to avoid interfering with those routes.
+  return null;
 }
