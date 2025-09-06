@@ -7,9 +7,20 @@ const nextConfig = {
   typedRoutes: false,
   // Ensure required envs exist when Netlify Supabase Connector provides SUPABASE_* names
   env: {
-    NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL || '',
-    NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY || '',
-    SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_ROLE || '',
+    // Map Netlify Supabase Connector envs to the NEXT_PUBLIC_* names
+    NEXT_PUBLIC_SUPABASE_URL:
+      process.env.NEXT_PUBLIC_SUPABASE_URL ||
+      process.env.SUPABASE_URL ||
+      process.env.SUPABASE_DATABASE_URL ||
+      '',
+    NEXT_PUBLIC_SUPABASE_ANON_KEY:
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
+      process.env.SUPABASE_ANON_KEY ||
+      '',
+    SUPABASE_SERVICE_ROLE_KEY:
+      process.env.SUPABASE_SERVICE_ROLE_KEY ||
+      process.env.SUPABASE_SERVICE_ROLE ||
+      '',
     SITE_URL_STAGING: process.env.SITE_URL_STAGING || process.env.DEPLOY_URL || process.env.URL || '',
   },
   // Don't fail the build on type or ESLint issues in CI until we fix all TS

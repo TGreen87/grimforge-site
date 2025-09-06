@@ -5,7 +5,7 @@ dotenv({ path: '.env.local' })
 dotenv({ path: '.env' })
 
 // Resolve Supabase URL and service role from common env keys
-const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL || process.env.SUPABASE_URL_STAGING
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL || process.env.SUPABASE_DATABASE_URL || process.env.SUPABASE_URL_STAGING
 const SERVICE_ROLE = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_ROLE || process.env.SUPABASE_SERVICE_ROLE_1
 
 if (!SUPABASE_URL || !SERVICE_ROLE) {

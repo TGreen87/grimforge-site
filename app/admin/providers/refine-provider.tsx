@@ -4,7 +4,7 @@ import { Refine, Authenticated } from "@refinedev/core";
 import { RefineKbar, RefineKbarProvider } from "@refinedev/kbar";
 import routerProvider from "@refinedev/nextjs-router";
 import { ThemedLayoutV2, ThemedSiderV2, ThemedTitleV2 } from "@refinedev/antd";
-import { App as AntdAppWrapper, ConfigProvider } from "antd";
+import { App as AntdAppWrapper, ConfigProvider, theme as antdTheme } from "antd";
 import { brand } from "@/config/brand";
 import { 
   ShoppingCartOutlined, 
@@ -87,9 +87,35 @@ export function RefineProvider({ children }: { children: React.ReactNode }) {
     <RefineKbarProvider>
       <ConfigProvider
         theme={{
+          algorithm: antdTheme.darkAlgorithm,
           token: {
-            colorPrimary: "#8B0000",
+            colorPrimary: "#8B0000", // blood-accent
+            colorBgBase: "#0a0a0a",
+            colorText: "#e5e7eb",
+            colorBorder: "#1f2937",
             borderRadius: 4,
+            fontFamily: "ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Helvetica Neue, Arial, \"Apple Color Emoji\", \"Segoe UI Emoji\"",
+          },
+          components: {
+            Layout: {
+              bodyBg: "#0a0a0a",
+              headerBg: "#0f0f0f",
+              siderBg: "#0f0f0f",
+            },
+            Menu: {
+              darkItemBg: "#0f0f0f",
+              itemSelectedBg: "#1f2937",
+              itemSelectedColor: "#ffffff",
+            },
+            Table: {
+              headerBg: "#111827",
+              headerColor: "#e5e7eb",
+              rowHoverBg: "#111827",
+            },
+            Button: {
+              colorPrimaryHover: "#a30000",
+              colorPrimaryActive: "#7a0000",
+            },
           },
         }}
       >
