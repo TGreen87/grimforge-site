@@ -36,10 +36,10 @@ export default function LoginPage() {
       >
         <div style={{ textAlign: 'center', marginBottom: 24 }}>
           <Title level={2} style={{ color: '#8B0000', marginBottom: 8 }}>
-            Obsidian Rite Records Admin
+            Obsidian Rite Records · Admin
           </Title>
-          <p style={{ color: '#666', margin: 0 }}>
-            Enter the realm of metal
+          <p style={{ color: '#888', margin: 0 }}>
+            Sign in to manage products, inventory, and orders
           </p>
         </div>
         
@@ -89,7 +89,7 @@ export default function LoginPage() {
                 fontWeight: 'bold'
               }}
             >
-              {isLoading ? 'Entering...' : 'Enter the Realm'}
+              {isLoading ? 'Signing in…' : 'Sign in'}
             </Button>
           </Form.Item>
         </Form>
