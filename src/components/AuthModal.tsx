@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from "react";
+import { getSupabaseBrowserClient } from "@/integrations/supabase/browser";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -35,6 +36,19 @@ const AuthModal = () => {
         description: "Invalid credentials. Try again.",
         variant: "destructive",
       });
+    }
+  };
+
+  const handleGoogle = async () => {
+    try {
+      const supabase = getSupabaseBrowserClient();
+      const origin = typeof window !== 'undefined' ? window.location.origin : '';
+      await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: { redirectTo: origin || undefined },
+      });
+    } catch (e) {
+      toast({ title: 'Google sign-in failed', variant: 'destructive' });
     }
   };
 
@@ -135,6 +149,9 @@ const AuthModal = () => {
                 disabled={isLoading}
               >
                 {isLoading ? "Signing in…" : "Sign in"}
+              </Button>
+              <Button type="button" onClick={handleGoogle} className="w-full mt-2" variant="outline">
+                Continue with Google
               </Button>
             </form>
 
