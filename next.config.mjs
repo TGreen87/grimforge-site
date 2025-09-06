@@ -35,7 +35,13 @@ const nextConfig = {
     optimizeCss: false,
   },
   images: {
-    domains: ['shbalyvvquvtvnkrsxtx.supabase.co'],
+    // Allow Supabase storage buckets across projects
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: '**.supabase.co',
+      },
+    ],
   },
   webpack: (config, { isServer }) => {
     // Exclude old React Router files from the build (but keep Next.js components)
