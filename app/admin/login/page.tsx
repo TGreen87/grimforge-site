@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useLogin } from "@refinedev/core";
 import { Form, Input, Button, Card, Typography, message } from "antd";
 import { UserOutlined, LockOutlined } from "@ant-design/icons";
+import { getSupabaseBrowserClient } from "@/integrations/supabase/browser";
 
 const { Title } = Typography;
 
@@ -31,6 +32,25 @@ export default function LoginPage() {
       message.error("Login failed. Please check your credentials.");
     }
   };
+
+  const onGoogleSignIn = async () => {
+    try {
+      const supabase = getSupabaseBrowserClient();
+      const origin = typeof window !== 'undefined' ? window.location.origin : '';
+      await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: origin ? `${origin}/admin` : undefined,
+          queryParams: {
+            prompt: 'consent',
+            access_type: 'offline',
+          },
+        },
+      });
+    } catch (e) {
+      message.error('Google sign-in failed');
+    }
+  }
 
   return (
     <div style={{ 
@@ -105,6 +125,12 @@ export default function LoginPage() {
               {isLoading ? 'Signing in…' : 'Sign in'}
             </Button>
           </Form.Item>
+
+          <div style={{ marginTop: 12 }}>
+            <Button onClick={onGoogleSignIn} style={{ width: '100%', height: 44 }}>
+              Continue with Google
+            </Button>
+          </div>
         </Form>
       </Card>
     </div>
