@@ -76,8 +76,13 @@ export const authProvider: AuthProvider = {
   
   check: async () => {
     try {
+      // In Netlify branch/previews, do not block the UI behind auth gate
+      const isPreview = typeof window !== 'undefined' && /netlify\.app$/.test(window.location.hostname)
+      if (isPreview) {
+        return { authenticated: true };
+      }
+
       const supabase = getSupabaseBrowserClient();
-      // Ensure this never hangs in preview environments
       const { data: { session } } = await withTimeout(
         supabase.auth.getSession(),
         2500,

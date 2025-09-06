@@ -14,8 +14,8 @@ export function middleware(request: NextRequest) {
     return NextResponse.next()
   }
 
-  // Allow deploy previews to bypass server-side cookie gate
-  if (process.env.NETLIFY === 'true' && process.env.CONTEXT === 'deploy-preview') {
+  // Allow Netlify previews and branch deploys to bypass server-side cookie gate
+  if (process.env.NETLIFY === 'true' && (process.env.CONTEXT === 'deploy-preview' || process.env.CONTEXT === 'branch-deploy')) {
     return NextResponse.next()
   }
 
