@@ -17,10 +17,9 @@
 [functions]
   node_bundler = "esbuild"
   
-[[redirects]]
-  from = "/api/*"
-  to = "/.netlify/functions/:splat"
-  status = 200
+  # Do not add manual redirects for Next.js API routes —
+  # @netlify/plugin-nextjs handles routing. A blanket /api/* redirect
+  # can break App Router API routes like /api/admin/setup.
 
 [dev]
   command = "npm run dev"
