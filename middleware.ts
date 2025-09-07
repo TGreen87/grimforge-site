@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import type { NextRequest } from 'next/server'
+import type { NextRequest } from 'next/server'nimport { createServerClient } from '@supabase/ssr'
 
 // Minimal server-side gate for admin routes using Supabase SSR cookie.
 // Supabase cookie format: sb-<projectRef>-auth-token
@@ -38,4 +38,62 @@ export function middleware(request: NextRequest) {
 
 export const config = {
   matcher: ['/admin/:path*', '/api/admin/:path*'],
+}
+import { NextResponse } from 'next/server'
+import type { NextRequest } from 'next/server'
+import { createServerClient } from '@supabase/ssr'
+
+// Supabase cookie name helper
+const projectRef = process.env.NEXT_PUBLIC_SUPABASE_URL?.split('https://')[1]?.split('.')[0]
+const SUPABASE_COOKIE = projectRef ? `sb-${projectRef}-auth-token` : undefined
+
+export async function middleware(request: NextRequest) {
+  const { pathname } = request.nextUrl
+  const response = NextResponse.next()
+
+  // 1) Refresh session if present (per Supabase SSR guidance)
+  try {
+    const supabase = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        cookies: {
+          get: (key) => request.cookies.get(key)?.value,
+          set: (key, value, options) => {
+            response.cookies.set({ name: key, value, ...options })
+          },
+          remove: (key, options) => {
+            response.cookies.set({ name: key, value: '', ...options, maxAge: 0 })
+          },
+        },
+      }
+    )
+    await supabase.auth.getUser()
+  } catch {}
+
+  // 2) Admin gate (production only). Always allow previews/branch deploys.
+  const isPreview = process.env.NETLIFY === 'true' && (process.env.CONTEXT === 'deploy-preview' || process.env.CONTEXT === 'branch-deploy')
+  const isAdminPath = pathname.startsWith('/admin') && !pathname.startsWith('/admin/login')
+
+  if (isAdminPath) {
+    if (isPreview) return response
+    if (!SUPABASE_COOKIE) return response
+
+    const cookie = request.cookies.get(SUPABASE_COOKIE)?.value
+    if (!cookie) {
+      const url = request.nextUrl.clone()
+      url.pathname = '/admin/login'
+      url.search = ''
+      return NextResponse.redirect(url)
+    }
+  }
+
+  return response
+}
+
+export const config = {
+  matcher: [
+    // Refresh tokens broadly; gate /admin inside the handler.
+    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+  ],
 }

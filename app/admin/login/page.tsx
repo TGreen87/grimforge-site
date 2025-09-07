@@ -6,6 +6,7 @@ import { useLogin } from "@refinedev/core";
 import { Form, Input, Button, Card, Typography, message } from "antd";
 import { UserOutlined, LockOutlined } from "@ant-design/icons";
 import { getSupabaseBrowserClient } from "@/integrations/supabase/browser";
+import { getBaseUrl } from "@/lib/runtime";
 
 const { Title } = Typography;
 
@@ -36,11 +37,11 @@ export default function LoginPage() {
   const onGoogleSignIn = async () => {
     try {
       const supabase = getSupabaseBrowserClient();
-      const origin = typeof window !== 'undefined' ? window.location.origin : '';
+      const origin = getBaseUrl();
       await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: origin ? `${origin}/admin` : undefined,
+          redirectTo: `${origin}/auth/callback?next=${encodeURIComponent('/admin')}`,
           queryParams: {
             prompt: 'consent',
             access_type: 'offline',

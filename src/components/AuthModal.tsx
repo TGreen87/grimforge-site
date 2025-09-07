@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { getSupabaseBrowserClient } from "@/integrations/supabase/browser";
+import { getBaseUrl } from "@/lib/runtime";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -42,10 +43,10 @@ const AuthModal = () => {
   const handleGoogle = async () => {
     try {
       const supabase = getSupabaseBrowserClient();
-      const origin = typeof window !== 'undefined' ? window.location.origin : '';
+      const origin = getBaseUrl();
       await supabase.auth.signInWithOAuth({
         provider: 'google',
-        options: { redirectTo: origin || undefined },
+        options: { redirectTo: `${origin}/auth/callback?next=${encodeURIComponent('/')}` },
       });
     } catch (e) {
       toast({ title: 'Google sign-in failed', variant: 'destructive' });
