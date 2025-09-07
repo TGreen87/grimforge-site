@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button'
 import { getSupabaseBrowserClient } from '@/integrations/supabase/browser'
 import { getBaseUrl } from '@/lib/runtime'
 
-export default function LoginPage({ searchParams }: { searchParams?: { next?: string } }) {
+export default function SiteLoginPage({ searchParams }: { searchParams?: { next?: string } }) {
   const nextPath = useMemo(() => {
     const sp = (typeof window !== 'undefined') ? new URLSearchParams(window.location.search) : undefined
     const raw = sp?.get('next') || searchParams?.next || '/'
