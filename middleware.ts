@@ -2,9 +2,9 @@ import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 import { createServerClient } from '@supabase/ssr'
 
-// Resolve Supabase auth cookie name from project ref
+// Resolve Supabase auth cookie prefix from project ref
 const projectRef = process.env.NEXT_PUBLIC_SUPABASE_URL?.split('https://')[1]?.split('.')[0]
-const SUPABASE_COOKIE = projectRef ? `sb-${projectRef}-auth-token` : undefined
+const COOKIE_PREFIX = projectRef ? `sb-${projectRef}-auth-token` : undefined
 
 export async function middleware(request: NextRequest) {
   const response = NextResponse.next()
@@ -31,15 +31,18 @@ export async function middleware(request: NextRequest) {
   } catch {}
 
   // 2) Admin gate (production only). Always allow previews/branch deploys.
-  const isPreview = process.env.NETLIFY === 'true' && (process.env.CONTEXT === 'deploy-preview' || process.env.CONTEXT === 'branch-deploy')
+  // Prefer hostname check for Netlify branch/preview (env vars may be missing at runtime)
+  const host = request.nextUrl.hostname
+  const isPreview = host.endsWith('.netlify.app')
   const isAdminPath = pathname.startsWith('/admin') && !pathname.startsWith('/admin/login')
 
   if (isAdminPath) {
     if (isPreview) return response
-    if (!SUPABASE_COOKIE) return response
+    if (!COOKIE_PREFIX) return response
 
-    const cookie = request.cookies.get(SUPABASE_COOKIE)?.value
-    if (!cookie) {
+    // Supabase may chunk the cookie (e.g., sb-<ref>-auth-token.0 / .1) — treat any match as presence
+    const hasSbCookie = request.cookies.getAll().some(c => c.name === COOKIE_PREFIX || c.name.startsWith(`${COOKIE_PREFIX}.`))
+    if (!hasSbCookie) {
       const url = request.nextUrl.clone()
       url.pathname = '/admin/login'
       url.search = ''
@@ -56,4 +59,3 @@ export const config = {
     '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
   ],
 }
-

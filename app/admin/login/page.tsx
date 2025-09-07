@@ -13,21 +13,10 @@ const { Title } = Typography;
 export default function LoginPage() {
   const { mutate: login, isLoading } = useLogin();
   const router = useRouter();
-  const isPreview = useMemo(() => {
-    if (typeof window === 'undefined') return false;
-    return /netlify\.app$/.test(window.location.hostname);
-  }, []);
   const [form] = Form.useForm();
 
   const onFinish = async (values: { email: string; password: string }) => {
     try {
-      // On Netlify previews, navigate immediately to /admin to avoid waiting on auth
-      if (isPreview) {
-        router.push('/admin');
-        // Fire-and-forget attempt to establish a session in the background
-        try { (login as any)(values); } catch {}
-        return;
-      }
       await login(values);
     } catch (error) {
       message.error("Login failed. Please check your credentials.");
