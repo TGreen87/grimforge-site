@@ -1,6 +1,8 @@
 'use client'
 
 import { useState } from "react";
+import { getSupabaseBrowserClient } from "@/integrations/supabase/browser";
+import { getBaseUrl } from "@/lib/runtime";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -38,6 +40,19 @@ const AuthModal = () => {
     }
   };
 
+  const handleGoogle = async () => {
+    try {
+      const supabase = getSupabaseBrowserClient();
+      const origin = getBaseUrl();
+      await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: { redirectTo: `${origin}/auth/callback?next=${encodeURIComponent('/')}` },
+      });
+    } catch (e) {
+      toast({ title: 'Google sign-in failed', variant: 'destructive' });
+    }
+  };
+
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -72,7 +87,7 @@ const AuthModal = () => {
       <DialogTrigger asChild>
         <Button variant="outline" className="border-frost text-frost hover:bg-frost hover:text-background gothic-heading">
           <Skull className="h-4 w-4 mr-2" />
-          Enter the Realm
+          Sign In
         </Button>
       </DialogTrigger>
       
@@ -93,7 +108,7 @@ const AuthModal = () => {
           <TabsContent value="login" className="mt-6">
             <form onSubmit={handleLogin} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="login-email" className="text-bone">Email Grimoire</Label>
+                <Label htmlFor="login-email" className="text-bone">Email</Label>
                 <Input
                   id="login-email"
                   type="email"
@@ -106,7 +121,7 @@ const AuthModal = () => {
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="login-password" className="text-bone">Secret Incantation</Label>
+                <Label htmlFor="login-password" className="text-bone">Password</Label>
                 <div className="relative">
                   <Input
                     id="login-password"
@@ -134,7 +149,10 @@ const AuthModal = () => {
                 className="w-full bg-accent hover:bg-accent/90 text-accent-foreground gothic-heading"
                 disabled={isLoading}
               >
-                {isLoading ? "Performing Ritual..." : "Enter the Darkness"}
+                {isLoading ? "Signing in…" : "Sign in"}
+              </Button>
+              <Button type="button" onClick={handleGoogle} className="w-full mt-2" variant="outline">
+                Continue with Google
               </Button>
             </form>
 
@@ -165,7 +183,7 @@ const AuthModal = () => {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="register-email" className="text-bone">Email Grimoire</Label>
+                <Label htmlFor="register-email" className="text-bone">Email</Label>
                 <Input
                   id="register-email"
                   type="email"
@@ -178,7 +196,7 @@ const AuthModal = () => {
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="register-password" className="text-bone">Secret Incantation</Label>
+                <Label htmlFor="register-password" className="text-bone">Password</Label>
                 <Input
                   id="register-password"
                   type="password"

@@ -4,6 +4,7 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
+    "init": "node scripts/init.mjs",
     "prebuild": "node scripts/check-env.mjs",
     "dev": "next dev",
     "build": "next build",
@@ -106,6 +107,7 @@
     "ignore-loader": "^0.1.2",
     "postcss": "^8.4.47",
     "schema-dts": "^1.1.5",
+    "shadcn": "^3.2.1",
     "tailwindcss": "^3.4.11",
     "typescript": "^5.5.3",
     "typescript-eslint": "^8.0.1",

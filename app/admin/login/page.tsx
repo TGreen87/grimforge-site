@@ -1,14 +1,18 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import { useLogin } from "@refinedev/core";
 import { Form, Input, Button, Card, Typography, message } from "antd";
 import { UserOutlined, LockOutlined } from "@ant-design/icons";
+import { getSupabaseBrowserClient } from "@/integrations/supabase/browser";
+import { getBaseUrl } from "@/lib/runtime";
 
 const { Title } = Typography;
 
 export default function LoginPage() {
   const { mutate: login, isLoading } = useLogin();
+  const router = useRouter();
   const [form] = Form.useForm();
 
   const onFinish = async (values: { email: string; password: string }) => {
@@ -18,6 +22,25 @@ export default function LoginPage() {
       message.error("Login failed. Please check your credentials.");
     }
   };
+
+  const onGoogleSignIn = async () => {
+    try {
+      const supabase = getSupabaseBrowserClient();
+      const origin = getBaseUrl();
+      await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${origin}/auth/callback?next=${encodeURIComponent('/admin')}`,
+          queryParams: {
+            prompt: 'consent',
+            access_type: 'offline',
+          },
+        },
+      });
+    } catch (e) {
+      message.error('Google sign-in failed');
+    }
+  }
 
   return (
     <div style={{ 
@@ -36,10 +59,10 @@ export default function LoginPage() {
       >
         <div style={{ textAlign: 'center', marginBottom: 24 }}>
           <Title level={2} style={{ color: '#8B0000', marginBottom: 8 }}>
-            Obsidian Rite Records Admin
+            Obsidian Rite Records · Admin
           </Title>
-          <p style={{ color: '#666', margin: 0 }}>
-            Enter the realm of metal
+          <p style={{ color: '#888', margin: 0 }}>
+            Sign in to manage products, inventory, and orders
           </p>
         </div>
         
@@ -89,9 +112,15 @@ export default function LoginPage() {
                 fontWeight: 'bold'
               }}
             >
-              {isLoading ? 'Entering...' : 'Enter the Realm'}
+              {isLoading ? 'Signing in…' : 'Sign in'}
             </Button>
           </Form.Item>
+
+          <div style={{ marginTop: 12 }}>
+            <Button onClick={onGoogleSignIn} style={{ width: '100%', height: 44 }}>
+              Continue with Google
+            </Button>
+          </div>
         </Form>
       </Card>
     </div>

@@ -11,9 +11,22 @@ const projectRoot = join(__dirname, '..')
 config({ path: join(projectRoot, '.env.local') })
 config({ path: join(projectRoot, '.env') })
 
-// Skip in Netlify deploy previews to avoid failing PR builds
-if (process.env.NETLIFY === 'true' && process.env.CONTEXT === 'deploy-preview') {
-  console.log('Skipping env check for deploy-preview context.');
+// Map Netlify Supabase Connector vars to NEXT_PUBLIC_* for build-time checks
+if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
+  process.env.NEXT_PUBLIC_SUPABASE_URL =
+    process.env.SUPABASE_URL ||
+    process.env.SUPABASE_DATABASE_URL ||
+    process.env.NEXT_PUBLIC_SUPABASE_URL || ''
+}
+if (!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY =
+    process.env.SUPABASE_ANON_KEY ||
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
+}
+
+// Skip strict checks on Netlify previews and branch deploys; rely on runtime mapping
+if (process.env.NETLIFY === 'true' && (process.env.CONTEXT === 'deploy-preview' || process.env.CONTEXT === 'branch-deploy')) {
+  console.log(`Skipping strict env check for Netlify context: ${process.env.CONTEXT}`);
   process.exit(0);
 }
 
@@ -24,5 +37,4 @@ if (missing.length) {
   process.exit(1);
 }
 console.log('Environment looks good.');
-
 
