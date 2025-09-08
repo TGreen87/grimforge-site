@@ -13,7 +13,13 @@ if (!SUPABASE_URL || !SERVICE_ROLE) {
   process.exit(1)
 }
 
-const supabase = createClient(SUPABASE_URL, SERVICE_ROLE)
+// Optional CLI overrides for URL and service key
+const overrideUrl = process.argv[4]
+const overrideService = process.argv[5]
+const effectiveUrl = overrideUrl || SUPABASE_URL
+const effectiveService = overrideService || SERVICE_ROLE
+
+const supabase = createClient(effectiveUrl, effectiveService)
 
 const email = (process.argv[2] || 'arg@obsidianriterecords.com').toLowerCase()
 const password = process.argv[3] || 'AdminPreview123!'

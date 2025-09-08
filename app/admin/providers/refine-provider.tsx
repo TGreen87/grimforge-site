@@ -6,6 +6,7 @@ import routerProvider from "@refinedev/nextjs-router";
 import { ThemedLayoutV2, ThemedSiderV2, ThemedTitleV2 } from "@refinedev/antd";
 import { App as AntdAppWrapper, ConfigProvider, theme as antdTheme } from "antd";
 import { brand } from "@/config/brand";
+import { usePathname } from "next/navigation";
 import { 
   ShoppingCartOutlined, 
   AppstoreOutlined, 
@@ -83,6 +84,8 @@ const resources = [
 ];
 
 export function RefineProvider({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname();
+  const isLoginRoute = pathname?.startsWith("/admin/login");
   return (
     <RefineKbarProvider>
       <ConfigProvider
@@ -144,23 +147,27 @@ export function RefineProvider({ children }: { children: React.ReactNode }) {
                 />
               )}
             >
-              <Authenticated
-                key="authenticated-routes"
-                fallback={<div className="flex items-center justify-center min-h-screen">
-                  <div className="text-center">
-                    <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-red-600 mx-auto mb-4"></div>
-                    <p className="text-lg">Loading admin panel...</p>
-                  </div>
-                </div>}
-                loading={<div className="flex items-center justify-center min-h-screen">
-                  <div className="text-center">
-                    <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-red-600 mx-auto mb-4"></div>
-                    <p className="text-lg">Authenticating...</p>
-                  </div>
-                </div>}
-              >
-                {children}
-              </Authenticated>
+              {isLoginRoute ? (
+                children
+              ) : (
+                <Authenticated
+                  key="authenticated-routes"
+                  fallback={<div className="flex items-center justify-center min-h-screen">
+                    <div className="text-center">
+                      <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-red-600 mx-auto mb-4"></div>
+                      <p className="text-lg">Loading admin panel...</p>
+                    </div>
+                  </div>}
+                  loading={<div className="flex items-center justify-center min-h-screen">
+                    <div className="text-center">
+                      <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-red-600 mx-auto mb-4"></div>
+                      <p className="text-lg">Authenticating...</p>
+                    </div>
+                  </div>}
+                >
+                  {children}
+                </Authenticated>
+              )}
             </ThemedLayoutV2>
             <RefineKbar />
           </Refine>
