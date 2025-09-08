@@ -32,13 +32,13 @@ Note: This repo follows the Codex CLI branch‑only workflow. For agent behavior
 - E2E: add Playwright specs under `e2e/tests`; prefer data‑testids over brittle selectors.
 
 ## Branching & Deploy
-- No PRs: solo workflow. Work on a feature branch (`feat/<scope>-<slug>`). Keep only one active branch; keep branches short‑lived.
+- No PRs: solo workflow. Work on `dev` (single active working branch). Keep branches short‑lived for special tasks if needed.
 - Verify on Netlify Branch Deploy; test via the branch URL.
 - Merge criteria (all green): `npm run type-check`, `npm run lint`, `npm test`, `npm run test:e2e`, and manual QA (admin/user flows) on the branch URL.
 - Sync and resolve conflicts before merge: `git fetch origin && git rebase origin/main`.
 - Go‑live: fast‑forward merge to `main` then push.
-  - Example: `git checkout main && git merge --ff-only feat/<name> && git push origin main && git branch -d feat/<name>`
-- Push small commits daily; never push directly to `main`. Revert fast if issues arise, then fix forward on a branch.
+  - Example: `git checkout main && git merge --ff-only dev && git push origin main`
+- Push small commits daily; never push directly to `main`. Revert fast if issues arise, then fix forward on `dev`.
 
 ## Go‑Live Recommendations & Merge Timing
 - Prefer off‑peak hours for merges to `main` (local late evening).
