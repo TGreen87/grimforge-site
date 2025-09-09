@@ -12,7 +12,7 @@ const LegalPages = () => {
       lastUpdated: "January 2024",
       content: `
         <h2>Information We Collect</h2>
-        <p>At Black Ritual Records, we collect information you provide directly to us, such as when you create an account, make a purchase, or contact us.</p>
+        <p>At Obsidian Rite Records, we collect information you provide directly to us, such as when you create an account, make a purchase, or contact us.</p>
         
         <h2>How We Use Your Information</h2>
         <p>We use the information we collect to provide, maintain, and improve our services, process transactions, and communicate with you.</p>
@@ -32,7 +32,7 @@ const LegalPages = () => {
       lastUpdated: "January 2024",
       content: `
         <h2>Acceptance of Terms</h2>
-        <p>By accessing and using Black Ritual Records, you accept and agree to be bound by the terms and provision of this agreement.</p>
+        <p>By accessing and using Obsidian Rite Records, you accept and agree to be bound by the terms and provision of this agreement.</p>
         
         <h2>Products and Services</h2>
         <p>All products are subject to availability. We reserve the right to discontinue any product at any time.</p>
@@ -44,7 +44,7 @@ const LegalPages = () => {
         <p>We ship worldwide. Return policy allows for returns within 30 days of purchase for unopened items.</p>
         
         <h2>Limitation of Liability</h2>
-        <p>Black Ritual Records shall not be liable for any indirect, incidental, special, consequential, or punitive damages.</p>
+        <p>Obsidian Rite Records shall not be liable for any indirect, incidental, special, consequential, or punitive damages.</p>
         
         <h2>Contact Information</h2>
         <p>For questions regarding these terms, contact us at arg@obsidianriterecords.com</p>
@@ -66,7 +66,7 @@ const LegalPages = () => {
         <p>We ship to most countries worldwide. International shipping rates calculated at checkout.</p>
         
         <h2>Processing Time</h2>
-        <p>Orders are typically processed within 1-2 business days. Pre-orders may have extended processing times.</p>
+        <p>Orders are typically processed within 1-2 business days. Preorders may have extended processing times.</p>
         
         <h2>Packaging</h2>
         <p>All items are carefully packaged to ensure they arrive in perfect condition. Vinyl records are shipped in protective mailers.</p>
@@ -189,8 +189,8 @@ const LegalPages = () => {
     <>
       <SEOHead
         title={content.title}
-        description={`${content.title} for Black Ritual Records - Understanding your rights and our policies for dark music purchases.`}
-        url={`https://blackplaguerecords.com/legal/${page}`}
+        description={`${content.title} for Obsidian Rite Records - Understanding your rights and our policies for purchases.`}
+        url={`https://obsidianriterecords.com/legal/${page}`}
       />
       <div className="min-h-screen bg-background">
         <Navigation />

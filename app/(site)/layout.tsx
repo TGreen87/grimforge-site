@@ -18,8 +18,9 @@ export default function SiteLayout({
 }
 
 export const metadata = {
-  title: 'Obsidian Rite Records - Dark Music for Dark Souls',
-  description: 'Obsidian Rite Records is an independent underground metal record label. Discover exclusive releases, limited edition vinyl, cassettes, and merchandise from the darkest corners of the metal underground.',
+  title: 'Obsidian Rite Records | Independent Black Metal Label and Store',
+  description:
+    'Independent label and store for underground black metal. Discover artists, releases, and limited runs.',
 }
 
 // Disable static generation for now to avoid SSR issues with contexts

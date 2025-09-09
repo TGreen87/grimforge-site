@@ -32,7 +32,7 @@ class EmailNotificationService {
         <div style="background: #1a1a1a; color: #f5f5f5; font-family: 'Cinzel', serif; padding: 20px;">
           <div style="max-width: 600px; margin: 0 auto;">
             <div style="text-align: center; margin-bottom: 30px;">
-              <h1 style="color: #dc2626; font-size: 32px; margin: 0;">⚔️ Black Ritual Records</h1>
+              <h1 style="color: #dc2626; font-size: 32px; margin: 0;">⚔️ Obsidian Rite Records</h1>
               <p style="color: #9ca3af; margin: 10px 0;">Your Order Has Been Summoned from the Depths</p>
             </div>
             
@@ -57,7 +57,7 @@ class EmailNotificationService {
 
             <div style="text-align: center; margin-top: 30px;">
               <p style="color: #9ca3af; font-size: 14px;">May the darkness guide your musical journey.</p>
-              <p style="color: #9ca3af; font-size: 14px;">— The Black Ritual Records Cult</p>
+              <p style="color: #9ca3af; font-size: 14px;">— The Obsidian Rite Records Team</p>
             </div>
           </div>
         </div>
@@ -71,7 +71,7 @@ class EmailNotificationService {
         <div style="background: #1a1a1a; color: #f5f5f5; font-family: 'Cinzel', serif; padding: 20px;">
           <div style="max-width: 600px; margin: 0 auto;">
             <div style="text-align: center; margin-bottom: 30px;">
-              <h1 style="color: #dc2626; font-size: 32px; margin: 0;">🚚 Black Ritual Records</h1>
+              <h1 style="color: #dc2626; font-size: 32px; margin: 0;">🚚 Obsidian Rite Records</h1>
               <p style="color: #9ca3af; margin: 10px 0;">Your Order Is Traveling Through the Shadows</p>
             </div>
             
@@ -101,7 +101,7 @@ class EmailNotificationService {
         <div style="background: #1a1a1a; color: #f5f5f5; font-family: 'Cinzel', serif; padding: 20px;">
           <div style="max-width: 600px; margin: 0 auto;">
             <div style="text-align: center; margin-bottom: 30px;">
-              <h1 style="color: #dc2626; font-size: 32px; margin: 0;">🔥 Black Ritual Records</h1>
+              <h1 style="color: #dc2626; font-size: 32px; margin: 0;">🔥 Obsidian Rite Records</h1>
               <p style="color: #9ca3af; margin: 10px 0;">The Item You Desired Has Returned</p>
             </div>
             
@@ -130,7 +130,7 @@ class EmailNotificationService {
         <div style="background: #1a1a1a; color: #f5f5f5; font-family: 'Cinzel', serif; padding: 20px;">
           <div style="max-width: 600px; margin: 0 auto;">
             <div style="text-align: center; margin-bottom: 30px;">
-              <h1 style="color: #dc2626; font-size: 32px; margin: 0;">💀 Black Ritual Records</h1>
+              <h1 style="color: #dc2626; font-size: 32px; margin: 0;">💀 Obsidian Rite Records</h1>
               <p style="color: #9ca3af; margin: 10px 0;">Your Wishlist Calls from the Shadows</p>
             </div>
             

@@ -190,7 +190,7 @@ const ProductDetail = () => {
         title={`${product.title} by ${product.artist}`}
         description={product.description}
         keywords={`${product.artist}, ${product.title}, ${product.genre}, vinyl, ${product.format.toLowerCase()}`}
-        url={`https://blackplaguerecords.com/product/${id}`}
+        url={`https://obsidianriterecords.com/product/${id}`}
         type="product"
         structuredData={structuredData}
       />

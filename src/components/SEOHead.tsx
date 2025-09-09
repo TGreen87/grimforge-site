@@ -11,8 +11,8 @@ interface SEOHeadProps {
 }
 
 const SEOHead = ({
-  title = "Obsidian Rite Records - Dark Music for Dark Souls",
-  description = "Discover the darkest depths of metal, black metal, and gothic music. Vinyl, CDs, cassettes, and rare releases from the underground's most sinister artists.",
+  title = "Obsidian Rite Records | Independent Black Metal Label and Store",
+  description = "Independent label and store for underground black metal. Discover artists, releases, and limited runs.",
   keywords = "black metal, death metal, gothic, vinyl records, underground music, dark music, metal albums, rare releases, Obsidian Rite Records",
   image = "/og-image.jpg",
   url = "https://obsidianriterecords.com",

@@ -15,15 +15,15 @@ const SiteSettings = () => {
   const [settings, setSettings] = useState({
     general: {
       siteName: "Obsidian Rite Records",
-      tagline: "Dark Music for Dark Souls",
-      description: "Australia's premier distributor of underground black metal since the darkness began.",
+      tagline: "Independent Black Metal Label and Store",
+      description: "Independent distributor of underground black metal in Australia.",
       contactEmail: "arg@obsidianriterecords.com",
       currency: "USD",
       timezone: "UTC"
     },
     seo: {
-      metaTitle: "Black Ritual Records - Dark Music for Dark Souls",
-      metaDescription: "Discover the darkest depths of metal, black metal, and gothic music. Vinyl, CDs, cassettes, and rare releases from the underground's most sinister artists.",
+      metaTitle: "Obsidian Rite Records | Independent Black Metal Label and Store",
+      metaDescription: "Independent label and store for underground black metal. Discover artists, releases, and limited runs.",
       keywords: "black metal, death metal, gothic, vinyl records, underground music",
       ogImage: "/og-image.jpg",
       enableSitemap: true,
