@@ -1,4 +1,4 @@
-'use client'
+// Server component wrapper to allow route segment options
 
 import HeroSection from '@/components/HeroSection'
 import ProductCatalog from '@/components/ProductCatalog'
