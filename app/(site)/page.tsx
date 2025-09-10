@@ -6,6 +6,8 @@ import PreOrderSection from '@/components/PreOrderSection'
 import GrimoireSection from '@/components/GrimoireSection'
 import RecommendationEngine from '@/components/RecommendationEngine'
 
+export const dynamic = 'force-dynamic'
+
 export default function HomePage() {
   return (
     <>
@@ -19,4 +21,3 @@ export default function HomePage() {
     </>
   )
 }
-

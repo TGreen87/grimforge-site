@@ -43,6 +43,30 @@ const nextConfig = {
       },
     ],
   },
+  async headers() {
+    return [
+      // Prevent stale SSR HTML on the homepage in branch deploys
+      {
+        source: '/',
+        headers: [
+          { key: 'Cache-Control', value: 'no-store, no-cache, must-revalidate, max-age=0' },
+        ],
+      },
+      // Long‑cache static assets
+      {
+        source: '/_next/static/:path*',
+        headers: [
+          { key: 'Cache-Control', value: 'public, max-age=31536000, immutable' },
+        ],
+      },
+      {
+        source: '/_next/image',
+        headers: [
+          { key: 'Cache-Control', value: 'public, max-age=31536000, immutable' },
+        ],
+      },
+    ]
+  },
   webpack: (config, { isServer }) => {
     // Exclude old React Router files from the build (but keep Next.js components)
     config.module.rules.push({
