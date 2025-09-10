@@ -27,7 +27,7 @@ const CartDrawer = () => {
       
       <SheetContent className="bg-background border-border w-full sm:max-w-lg">
         <SheetHeader>
-          <SheetTitle className="gothic-heading text-bone">Cart of Darkness</SheetTitle>
+          <SheetTitle className="gothic-heading text-bone">Your Cart</SheetTitle>
         </SheetHeader>
         
         <div className="flex flex-col h-full">
@@ -36,7 +36,7 @@ const CartDrawer = () => {
             {items.length === 0 ? (
               <div className="text-center py-12">
                 <ShoppingCart className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                <p className="text-muted-foreground">Your cart awaits the darkness...</p>
+                <p className="text-muted-foreground">Your cart is empty.</p>
               </div>
             ) : (
               <div className="space-y-4">
@@ -113,10 +113,10 @@ const CartDrawer = () => {
               <Button className="w-full bg-accent hover:bg-accent/90 text-accent-foreground gothic-heading">
                 {isAuthenticated ? (
                   <CheckoutModal>
-                    <span className="w-full">Proceed to Ritual Checkout</span>
+                    <span className="w-full">Checkout</span>
                   </CheckoutModal>
                 ) : (
-                  "Sign In to Complete Ritual"
+                  "Sign in to checkout"
                 )}
               </Button>
               

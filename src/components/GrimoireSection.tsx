@@ -13,7 +13,7 @@ const GrimoireSection = () => {
       id: 2,
       title: "Underground Tape Trading: The Lost Art",
       excerpt: "Before digital streaming, the underground thrived through tape trading networks that spread the darkest sounds...",
-      author: "Cassette Cult",
+      author: "Cassette Archive",
       date: "2024-01-12",
       readTime: "6 min read",
       image: grimoire2,
@@ -37,11 +37,11 @@ const GrimoireSection = () => {
         {/* Section Header */}
         <div className="text-center mb-16">
           <h2 className="blackletter text-4xl md:text-6xl mb-4 text-bone">
-            The Grimoire
+            Journal
           </h2>
           <div className="w-24 h-1 blood-accent mx-auto mb-6"></div>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Chronicles from the underground. Stories, interviews, and dark wisdom from the black metal realm.
+            Stories and interviews from the underground black metal community.
           </p>
         </div>
 
@@ -89,7 +89,7 @@ const GrimoireSection = () => {
                       alert('Feature coming soon: Full blog post functionality');
                     }}
                   >
-                    Read More
+                    Read more
                     <ArrowRight className="h-4 w-4 ml-2" />
                   </Button>
                 </div>
@@ -143,7 +143,7 @@ const GrimoireSection = () => {
                       alert('Feature coming soon: Full blog post functionality');
                     }}
                   >
-                    Read More
+                    Read more
                     <ArrowRight className="h-3 w-3 ml-1" />
                   </Button>
                 </div>
@@ -167,7 +167,7 @@ const GrimoireSection = () => {
               alert('Feature coming soon: Full Grimoire section with all blog posts');
             }}
           >
-            Enter the Full Grimoire
+            Read all articles
             <ArrowRight className="h-4 w-4 ml-2" />
           </Button>
         </div>

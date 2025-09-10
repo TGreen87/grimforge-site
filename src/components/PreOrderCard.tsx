@@ -56,13 +56,13 @@ const PreOrderCard = ({
     
     setIsOrdering(true);
     
-    // Simulate pre-order processing
+    // Simulate preorder processing
     await new Promise(resolve => setTimeout(resolve, 1000));
     
     const priceNumber = parseFloat(price.replace('$', ''));
     addItem({
       id: `preorder-${id}`,
-      title: `[PRE-ORDER] ${title}`,
+      title: `[PREORDER] ${title}`,
       artist,
       format,
       price: priceNumber,
@@ -70,7 +70,7 @@ const PreOrderCard = ({
     });
     
     toast({
-      title: "Pre-order secured! 🔥",
+      title: "Preorder secured! 🔥",
       description: `Your copy of ${title} has been reserved in the dark. You will be charged when it ships.`,
       duration: 3000,
     });
@@ -102,7 +102,7 @@ const PreOrderCard = ({
           <div className="absolute top-2 left-2 flex flex-col gap-1">
             <Badge className="bg-accent text-accent-foreground text-xs">
               <Clock className="h-3 w-3 mr-1" />
-              PRE-ORDER
+              PREORDER
             </Badge>
             {limitedEdition && (
               <Badge variant="destructive" className="text-xs">
@@ -162,7 +162,7 @@ const PreOrderCard = ({
             
             {daysUntilRelease > 0 ? (
               <p className="text-xs text-frost">
-                {daysUntilRelease} days until darkness descends
+                {daysUntilRelease} days until release
               </p>
             ) : (
               <p className="text-xs text-accent">

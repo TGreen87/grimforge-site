@@ -49,9 +49,9 @@ const CheckoutModal = ({ children }: CheckoutModalProps) => {
   });
 
   const shippingOptions = [
-    { value: "standard", label: "Standard Delivery (5-7 days)", price: 9.95 },
-    { value: "express", label: "Express Delivery (2-3 days)", price: 19.95 },
-    { value: "overnight", label: "Overnight Summoning (1 day)", price: 39.95 }
+    { value: "standard", label: "Standard delivery (5-7 days)", price: 9.95 },
+    { value: "express", label: "Express delivery (2-3 days)", price: 19.95 },
+    { value: "overnight", label: "Overnight (1 day)", price: 39.95 }
   ];
 
   const getShippingPrice = () => {
@@ -78,8 +78,8 @@ const CheckoutModal = ({ children }: CheckoutModalProps) => {
     setCurrentStep(1);
     
     toast({
-      title: "The ritual is complete! 🩸",
-      description: `Order ${orderId} has been forged in darkness. You will receive confirmation via raven.`,
+      title: "Order placed",
+      description: `Order ${orderId} confirmed. You’ll receive a confirmation email shortly.`,
       duration: 5000,
     });
   };
@@ -88,7 +88,7 @@ const CheckoutModal = ({ children }: CheckoutModalProps) => {
     <div className="space-y-6">
       <div className="flex items-center space-x-2 mb-4">
         <Truck className="h-5 w-5 text-accent" />
-        <h3 className="gothic-heading text-lg text-bone">Shipping to the Mortal Realm</h3>
+        <h3 className="gothic-heading text-lg text-bone">Shipping address</h3>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -219,7 +219,7 @@ const CheckoutModal = ({ children }: CheckoutModalProps) => {
     <div className="space-y-6">
       <div className="flex items-center space-x-2 mb-4">
         <CreditCard className="h-5 w-5 text-accent" />
-        <h3 className="gothic-heading text-lg text-bone">Payment Ritual</h3>
+        <h3 className="gothic-heading text-lg text-bone">Payment</h3>
       </div>
 
       <div className="grid grid-cols-1 gap-4">
@@ -277,11 +277,11 @@ const CheckoutModal = ({ children }: CheckoutModalProps) => {
       <div className="p-4 bg-secondary/20 rounded border border-border">
         <div className="flex items-center space-x-2 mb-2">
           <Shield className="h-4 w-4 text-frost" />
-          <span className="text-sm text-bone">Secured by Dark Encryption</span>
+          <span className="text-sm text-bone">Payment secured</span>
         </div>
         <p className="text-xs text-muted-foreground">
-          Your payment information is protected by the ancient arts of cryptography. 
-          We never store your card details in our grimoire.
+          Your payment information is protected. 
+          We never store your card details.
         </p>
       </div>
     </div>
@@ -289,7 +289,7 @@ const CheckoutModal = ({ children }: CheckoutModalProps) => {
 
   const renderOrderSummary = () => (
     <div className="bg-secondary/20 p-4 rounded border border-border">
-      <h4 className="gothic-heading text-bone mb-4">Order of Darkness</h4>
+      <h4 className="gothic-heading text-bone mb-4">Order summary</h4>
       
       <div className="space-y-3 mb-4">
         {items.map((item) => (
@@ -334,7 +334,7 @@ const CheckoutModal = ({ children }: CheckoutModalProps) => {
         <DialogHeader>
           <DialogTitle className="blackletter text-2xl text-bone text-center flex items-center justify-center">
             <Skull className="h-6 w-6 mr-2 text-accent" />
-            Ritual Checkout
+            Checkout
           </DialogTitle>
         </DialogHeader>
 
@@ -378,7 +378,7 @@ const CheckoutModal = ({ children }: CheckoutModalProps) => {
                   onClick={() => setCurrentStep(currentStep - 1)}
                   className="border-frost text-frost hover:bg-frost hover:text-background"
                 >
-                  Back to Shadows
+                  Back
                 </Button>
               ) : (
                 <div></div>
@@ -389,7 +389,7 @@ const CheckoutModal = ({ children }: CheckoutModalProps) => {
                   onClick={() => setCurrentStep(2)}
                   className="bg-accent hover:bg-accent/90 text-accent-foreground gothic-heading"
                 >
-                  Continue Ritual
+                  Continue
                 </Button>
               ) : (
                 <Button 
@@ -397,7 +397,7 @@ const CheckoutModal = ({ children }: CheckoutModalProps) => {
                   disabled={isProcessing}
                   className="bg-accent hover:bg-accent/90 text-accent-foreground gothic-heading"
                 >
-                  {isProcessing ? "Processing Ritual..." : "Complete Dark Transaction"}
+                  {isProcessing ? "Processing..." : "Place order"}
                 </Button>
               )}
             </div>

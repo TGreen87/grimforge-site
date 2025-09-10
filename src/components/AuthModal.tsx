@@ -27,13 +27,13 @@ const AuthModal = () => {
       await login(loginData.email, loginData.password);
       setIsOpen(false);
       toast({
-        title: "Welcome to the darkness...",
-        description: "You have successfully entered the realm",
+        title: "Signed in",
+        description: "You are signed in.",
       });
       setLoginData({ email: "", password: "" });
     } catch (error) {
       toast({
-        title: "The ritual failed",
+        title: "Sign-in failed",
         description: "Invalid credentials. Try again.",
         variant: "destructive",
       });
@@ -59,7 +59,7 @@ const AuthModal = () => {
     if (registerData.password !== registerData.confirmPassword) {
       toast({
         title: "Passwords don't match",
-        description: "The incantation must be repeated exactly",
+        description: "Passwords do not match.",
         variant: "destructive",
       });
       return;
@@ -69,13 +69,13 @@ const AuthModal = () => {
       await register(registerData.email, registerData.password, registerData.name);
       setIsOpen(false);
       toast({
-        title: "Welcome to the cult...",
-        description: "Your account has been forged in darkness",
+        title: "Account created",
+        description: "Your account has been created.",
       });
       setRegisterData({ name: "", email: "", password: "", confirmPassword: "" });
     } catch (error) {
       toast({
-        title: "The summoning failed",
+        title: "Registration failed",
         description: "Unable to create account. Try again.",
         variant: "destructive",
       });
@@ -87,7 +87,7 @@ const AuthModal = () => {
       <DialogTrigger asChild>
         <Button variant="outline" className="border-frost text-frost hover:bg-frost hover:text-background gothic-heading">
           <Skull className="h-4 w-4 mr-2" />
-          Sign In
+          Sign in
         </Button>
       </DialogTrigger>
       
@@ -95,14 +95,14 @@ const AuthModal = () => {
         <DialogHeader>
           <DialogTitle className="blackletter text-2xl text-bone text-center flex items-center justify-center">
             <Skull className="h-6 w-6 mr-2 text-accent" />
-            Join the Cult
+            Sign in or register
           </DialogTitle>
         </DialogHeader>
 
         <Tabs defaultValue="login" className="w-full">
           <TabsList className="grid w-full grid-cols-2 bg-secondary/50">
-            <TabsTrigger value="login" className="gothic-heading">Summon</TabsTrigger>
-            <TabsTrigger value="register" className="gothic-heading">Initiate</TabsTrigger>
+            <TabsTrigger value="login" className="gothic-heading">Sign in</TabsTrigger>
+            <TabsTrigger value="register" className="gothic-heading">Register</TabsTrigger>
           </TabsList>
 
           <TabsContent value="login" className="mt-6">
@@ -126,7 +126,7 @@ const AuthModal = () => {
                   <Input
                     id="login-password"
                     type={showPassword ? "text" : "password"}
-                    placeholder="Enter the forbidden words..."
+                    placeholder="Enter your password"
                     value={loginData.password}
                     onChange={(e) => setLoginData(prev => ({ ...prev, password: e.target.value }))}
                     className="bg-secondary/50 border-border text-foreground pr-10"
@@ -170,11 +170,11 @@ const AuthModal = () => {
           <TabsContent value="register" className="mt-6">
             <form onSubmit={handleRegister} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="register-name" className="text-bone">Chosen Name</Label>
+                <Label htmlFor="register-name" className="text-bone">Name</Label>
                 <Input
                   id="register-name"
                   type="text"
-                  placeholder="Dark Lord Supreme..."
+                  placeholder="Your name"
                   value={registerData.name}
                   onChange={(e) => setRegisterData(prev => ({ ...prev, name: e.target.value }))}
                   className="bg-secondary/50 border-border text-foreground"
@@ -200,7 +200,7 @@ const AuthModal = () => {
                 <Input
                   id="register-password"
                   type="password"
-                  placeholder="Create forbidden words..."
+                  placeholder="Create a password"
                   value={registerData.password}
                   onChange={(e) => setRegisterData(prev => ({ ...prev, password: e.target.value }))}
                   className="bg-secondary/50 border-border text-foreground"
@@ -209,11 +209,11 @@ const AuthModal = () => {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="confirm-password" className="text-bone">Repeat Incantation</Label>
+                <Label htmlFor="confirm-password" className="text-bone">Confirm password</Label>
                 <Input
                   id="confirm-password"
                   type="password"
-                  placeholder="Confirm the ritual..."
+                  placeholder="Confirm your password"
                   value={registerData.confirmPassword}
                   onChange={(e) => setRegisterData(prev => ({ ...prev, confirmPassword: e.target.value }))}
                   className="bg-secondary/50 border-border text-foreground"
@@ -226,7 +226,7 @@ const AuthModal = () => {
                 className="w-full bg-accent hover:bg-accent/90 text-accent-foreground gothic-heading"
                 disabled={isLoading}
               >
-                {isLoading ? "Summoning..." : "Join the Cult"}
+                {isLoading ? "Creating account..." : "Create account"}
               </Button>
             </form>
           </TabsContent>

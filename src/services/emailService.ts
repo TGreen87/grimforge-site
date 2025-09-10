@@ -27,13 +27,13 @@ class EmailNotificationService {
   private templates: Record<string, EmailTemplate> = {
     order_confirmation: {
       type: "order_confirmation",
-      subject: "Your Dark Order Has Been Summoned - Order #{orderId}",
+      subject: "Your order confirmation - Order #{orderId}",
       content: `
         <div style="background: #1a1a1a; color: #f5f5f5; font-family: 'Cinzel', serif; padding: 20px;">
           <div style="max-width: 600px; margin: 0 auto;">
             <div style="text-align: center; margin-bottom: 30px;">
               <h1 style="color: #dc2626; font-size: 32px; margin: 0;">⚔️ Obsidian Rite Records</h1>
-              <p style="color: #9ca3af; margin: 10px 0;">Your Order Has Been Summoned from the Depths</p>
+              <p style="color: #9ca3af; margin: 10px 0;">Your order has been received</p>
             </div>
             
             <div style="background: #262626; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
@@ -56,8 +56,8 @@ class EmailNotificationService {
             </div>
 
             <div style="text-align: center; margin-top: 30px;">
-              <p style="color: #9ca3af; font-size: 14px;">May the darkness guide your musical journey.</p>
-              <p style="color: #9ca3af; font-size: 14px;">— The Obsidian Rite Records Team</p>
+              <p style="color: #9ca3af; font-size: 14px;">Thanks for your order.</p>
+              <p style="color: #9ca3af; font-size: 14px;">— Obsidian Rite Records</p>
             </div>
           </div>
         </div>
@@ -66,13 +66,13 @@ class EmailNotificationService {
 
     shipping_update: {
       type: "shipping_update",
-      subject: "Your Dark Treasures Are En Route - Tracking #{trackingNumber}",
+      subject: "Your order is on the way - Tracking #{trackingNumber}",
       content: `
         <div style="background: #1a1a1a; color: #f5f5f5; font-family: 'Cinzel', serif; padding: 20px;">
           <div style="max-width: 600px; margin: 0 auto;">
             <div style="text-align: center; margin-bottom: 30px;">
               <h1 style="color: #dc2626; font-size: 32px; margin: 0;">🚚 Obsidian Rite Records</h1>
-              <p style="color: #9ca3af; margin: 10px 0;">Your Order Is Traveling Through the Shadows</p>
+              <p style="color: #9ca3af; margin: 10px 0;">Your order is on its way</p>
             </div>
             
             <div style="background: #262626; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
@@ -96,7 +96,7 @@ class EmailNotificationService {
 
     restock_alert: {
       type: "restock_alert",
-      subject: "🔥 Back from the Abyss: {productName} Restocked!",
+      subject: "{productName} is back in stock",
       content: `
         <div style="background: #1a1a1a; color: #f5f5f5; font-family: 'Cinzel', serif; padding: 20px;">
           <div style="max-width: 600px; margin: 0 auto;">
@@ -107,16 +107,16 @@ class EmailNotificationService {
             
             <div style="background: #262626; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
               <h2 style="color: #dc2626; margin-top: 0;">Rejoice, {customerName}!</h2>
-              <p><strong>{productName}</strong> has emerged from the depths and is once again available for summoning.</p>
-              <p>This dark treasure that captured your interest is now back in stock, but shadows move quickly in our realm.</p>
+              <p><strong>{productName}</strong> is available again.</p>
+              <p>This item is back in stock — act quickly, limited quantities available.</p>
             </div>
 
             <div style="text-align: center; background: #dc2626; padding: 15px; border-radius: 8px; margin: 20px 0;">
-              <a href="#" style="color: white; text-decoration: none; font-weight: bold;">Claim Your Dark Prize Now</a>
+              <a href="#" style="color: white; text-decoration: none; font-weight: bold;">Shop now</a>
             </div>
 
             <div style="text-align: center; margin-top: 30px;">
-              <p style="color: #9ca3af; font-size: 14px;">Act swiftly, for darkness waits for no one.</p>
+              <p style="color: #9ca3af; font-size: 14px;">Limited stock available.</p>
             </div>
           </div>
         </div>
@@ -125,7 +125,7 @@ class EmailNotificationService {
 
     wishlist_reminder: {
       type: "wishlist_reminder",
-      subject: "💀 Your Dark Desires Await Your Return",
+      subject: "Your wishlist awaits",
       content: `
         <div style="background: #1a1a1a; color: #f5f5f5; font-family: 'Cinzel', serif; padding: 20px;">
           <div style="max-width: 600px; margin: 0 auto;">
@@ -136,16 +136,16 @@ class EmailNotificationService {
             
             <div style="background: #262626; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
               <h2 style="color: #dc2626; margin-top: 0;">The Darkness Remembers, {customerName}</h2>
-              <p>Your wishlist holds treasures that yearn to join your collection. These dark artifacts have been patiently waiting in the shadows.</p>
-              <p>Perhaps it's time to let them fulfill their destiny in your realm?</p>
+              <p>Your wishlist has items waiting for you.</p>
+              <p>Pick up where you left off.</p>
             </div>
 
             <div style="text-align: center; background: #dc2626; padding: 15px; border-radius: 8px; margin: 20px 0;">
-              <a href="#" style="color: white; text-decoration: none; font-weight: bold;">Review Your Dark Desires</a>
+              <a href="#" style="color: white; text-decoration: none; font-weight: bold;">View your wishlist</a>
             </div>
 
             <div style="text-align: center; margin-top: 30px;">
-              <p style="color: #9ca3af; font-size: 14px;">Some call it shopping. We call it summoning.</p>
+              <p style="color: #9ca3af; font-size: 14px;">Thanks for being with us.</p>
             </div>
           </div>
         </div>

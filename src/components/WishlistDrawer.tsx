@@ -77,7 +77,7 @@ const WishlistDrawer = () => {
       <SheetContent className="w-full sm:w-[400px] bg-background border-border">
         <SheetHeader>
           <SheetTitle className="gothic-heading text-bone">
-            Dark Desires ({getTotalItems()})
+            Wishlist ({getTotalItems()})
           </SheetTitle>
         </SheetHeader>
         
@@ -87,7 +87,7 @@ const WishlistDrawer = () => {
               <Heart className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
               <p className="text-muted-foreground">Your wishlist is empty</p>
               <p className="text-sm text-muted-foreground mt-2">
-                Add some dark treasures to your collection
+                Add items to your wishlist
               </p>
             </div>
           ) : (

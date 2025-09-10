@@ -47,25 +47,25 @@ const mockOrders: Order[] = [
       { title: "Blood Moon Rising", artist: "Crimson Tide", format: "CD", price: 18.99, quantity: 2 }
     ],
     shipping: {
-      address: "123 Dark Ave, Shadow City, SC 12345",
-      method: "Express Ritual",
+      address: "123 Example Ave, Sydney, NSW 2000",
+      method: "Express",
       tracking: null
     }
   },
   { 
     id: "ORD-002", 
     customer: "Void Walker", 
-    email: "void@abyss.net",
+    email: "user2@example.com",
     total: 156.47, 
     status: "shipped", 
     date: "2024-01-14",
     items: [
-      { title: "Necromantic Ritual", artist: "Death's Embrace", format: "Cassette", price: 24.99, quantity: 3 },
+      { title: "Midnight Echoes", artist: "Death's Embrace", format: "Cassette", price: 24.99, quantity: 3 },
       { title: "Shadow's Call", artist: "Void Walker", format: "Vinyl", price: 39.99, quantity: 2 }
     ],
     shipping: {
-      address: "456 Void St, Darkness Falls, DF 67890",
-      method: "Standard Summoning",
+      address: "456 Sample St, Melbourne, VIC 3000",
+      method: "Standard",
       tracking: "1Z999AA1234567890"
     }
   },
@@ -81,8 +81,8 @@ const mockOrders: Order[] = [
       { title: "Eternal Darkness", artist: "Shadowmoon", format: "CD", price: 19.99, quantity: 2 }
     ],
     shipping: {
-      address: "789 Shadow Ln, Dark Valley, DV 13579",
-      method: "Overnight Conjuring",
+      address: "789 Example Ln, Brisbane, QLD 4000",
+      method: "Overnight",
       tracking: "1Z999BB9876543210"
     }
   }

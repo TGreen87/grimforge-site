@@ -12,7 +12,7 @@ const revenueData = [
 const topProductsData = [
   { name: 'Eternal Darkness', sales: 145, revenue: 5075 },
   { name: 'Blood Moon Rising', sales: 132, revenue: 2508 },
-  { name: 'Necromantic Ritual', sales: 98, revenue: 2450 },
+  { name: 'Midnight Echoes', sales: 98, revenue: 2450 },
   { name: 'Shadow\'s Call', sales: 87, revenue: 3045 },
   { name: 'Dark Prophecy', sales: 76, revenue: 2660 }
 ];

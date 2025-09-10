@@ -57,9 +57,9 @@ const LegalPages = () => {
         <h2>Shipping Methods</h2>
         <p>We offer three shipping tiers to suit your dark desires:</p>
         <ul>
-          <li><strong>Standard Summoning (5-7 days):</strong> $5.99</li>
-          <li><strong>Express Ritual (2-3 days):</strong> $12.99</li>
-          <li><strong>Overnight Conjuring (1 day):</strong> $24.99</li>
+          <li><strong>Standard (5-7 days):</strong> $5.99</li>
+          <li><strong>Express (2-3 days):</strong> $12.99</li>
+          <li><strong>Overnight (1 day):</strong> $24.99</li>
         </ul>
         
         <h2>International Shipping</h2>

@@ -27,7 +27,7 @@ interface SearchSuggestion {
 const mockProducts: SearchResult[] = [
   { id: "1", title: "Eternal Darkness", artist: "Shadowmoon", format: "Vinyl", price: 34.99, image: "/assets/album-1.jpg", genre: "Black Metal" },
   { id: "2", title: "Blood Moon Rising", artist: "Crimson Tide", format: "CD", price: 18.99, image: "/assets/album-2.jpg", genre: "Death Metal" },
-  { id: "3", title: "Necromantic Ritual", artist: "Death's Embrace", format: "Cassette", price: 24.99, image: "/assets/album-3.jpg", genre: "Black Metal" },
+  { id: "3", title: "Midnight Echoes", artist: "Death's Embrace", format: "Cassette", price: 24.99, image: "/assets/album-3.jpg", genre: "Black Metal" },
   { id: "4", title: "Shadow's Call", artist: "Void Walker", format: "Vinyl", price: 39.99, image: "/assets/album-4.jpg", genre: "Doom Metal" },
   { id: "5", title: "Dark Prophecy", artist: "Nightmare Lord", format: "CD", price: 21.99, image: "/assets/album-5.jpg", genre: "Gothic Metal" },
 ];
@@ -185,7 +185,7 @@ const AdvancedSearch = ({ onSearchResults, placeholder = "Search for dark treasu
           {isLoading && (
             <div className="p-4 text-center text-muted-foreground">
               <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-accent mx-auto mb-2"></div>
-              Searching the darkness...
+              Searching...
             </div>
           )}
 

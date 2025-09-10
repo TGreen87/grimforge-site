@@ -11,7 +11,7 @@ import { useToast } from "@/hooks/use-toast";
 const mockProducts = [
   { id: "1", title: "Eternal Darkness", artist: "Shadowmoon", format: "Vinyl", price: 34.99, stock: 15, status: "Active", genre: "Black Metal", sales: 145 },
   { id: "2", title: "Blood Moon Rising", artist: "Crimson Tide", format: "CD", price: 18.99, stock: 0, status: "Out of Stock", genre: "Death Metal", sales: 132 },
-  { id: "3", title: "Necromantic Ritual", artist: "Death's Embrace", format: "Cassette", price: 24.99, stock: 8, status: "Active", genre: "Black Metal", sales: 98 },
+  { id: "3", title: "Midnight Echoes", artist: "Death's Embrace", format: "Cassette", price: 24.99, stock: 8, status: "Active", genre: "Black Metal", sales: 98 },
   { id: "4", title: "Shadow's Call", artist: "Void Walker", format: "Vinyl", price: 39.99, stock: 25, status: "Active", genre: "Doom Metal", sales: 87 },
   { id: "5", title: "Dark Prophecy", artist: "Nightmare Lord", format: "CD", price: 21.99, stock: 12, status: "Active", genre: "Gothic Metal", sales: 76 },
 ];

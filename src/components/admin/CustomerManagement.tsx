@@ -38,8 +38,8 @@ const mockCustomers: Customer[] = [
   },
   {
     id: "2",
-    name: "Void Walker",
-    email: "void@abyss.net",
+    name: "Alex Walker",
+    email: "user2@example.com",
     role: "wholesale",
     joinedAt: "2023-08-22",
     totalOrders: 45,
@@ -64,8 +64,8 @@ const mockCustomers: Customer[] = [
   },
   {
     id: "4",
-    name: "Dark Lord Nightmare",
-    email: "nightmare@void.com",
+    name: "Admin User",
+    email: "admin@example.com",
     role: "admin",
     joinedAt: "2022-05-10",
     totalOrders: 2,
@@ -116,9 +116,9 @@ const CustomerManagement = () => {
 
   const getRoleBadge = (role: string) => {
     const variants: Record<string, { variant: "default" | "secondary" | "destructive" | "outline", label: string }> = {
-      'admin': { variant: 'destructive', label: 'Dark Lord' },
+      'admin': { variant: 'default', label: 'Admin' },
       'wholesale': { variant: 'default', label: 'Distributor' },
-      'customer': { variant: 'outline', label: 'Cultist' }
+      'customer': { variant: 'outline', label: 'Customer' }
     };
     const config = variants[role] || variants.customer;
     return <Badge variant={config.variant}>{config.label}</Badge>;
