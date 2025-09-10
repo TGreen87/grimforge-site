@@ -32,6 +32,7 @@ Next:
 ## Observability — Progress
 - Added `/api/client-logs` to collect client error events (writes to audit logs).
 - Mounted client error listener (window.error/unhandledrejection) via `ClientErrorLogger` in app providers.
+- Added console/nav breadcrumbs and correlation IDs (cookie/header) to enrich client error reports.
 
 Next:
 - Add optional correlation ID (e.g., from headers) to tie client logs to sessions.
@@ -77,3 +78,4 @@ Next:
 
 ## Rollback
 - If `main` breaks: `git revert <sha>` → push → Netlify redeploys previous good state.
+- A11y: ProductCard keyboard navigation, aria labels, and title links.

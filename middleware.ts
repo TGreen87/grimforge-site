@@ -50,6 +50,18 @@ export async function middleware(request: NextRequest) {
     }
   }
 
+  // 3) Correlation ID propagation (for observability)
+  try {
+    // Prefer existing cookie or header; otherwise generate and set both
+    const existingCid = request.cookies.get('orr_cid')?.value || request.headers.get('x-correlation-id') || undefined
+    const cid = existingCid || (globalThis.crypto && 'randomUUID' in globalThis.crypto ? globalThis.crypto.randomUUID() : `${Date.now()}-${Math.random().toString(36).slice(2)}`)
+    // Reflect header for downstream and set cookie (1 year)
+    response.headers.set('x-correlation-id', cid)
+    if (!existingCid) {
+      response.cookies.set({ name: 'orr_cid', value: cid, maxAge: 60 * 60 * 24 * 365, sameSite: 'lax', path: '/', secure: request.nextUrl.protocol === 'https:' })
+    }
+  } catch {}
+
   return response
 }
 
