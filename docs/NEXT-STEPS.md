@@ -11,17 +11,24 @@ This doc tracks the immediate backlog now that production auth is live. All work
 - Dev and main deployed; homepage served with `no-store`. If any stale persists, consider a Netlify `_headers` rule for `/` with `Cache-Control: no-store`.
 
 ## Product Detail — Progress
-- Implemented `/products/[slug]` page wired to Supabase (server route) with SEO metadata.
-- Added `BuyNowButton` that calls `/api/checkout` and redirects to Stripe Checkout.
+- Implemented `/products/[slug]` page wired to Supabase (server route) with SEO metadata + Product JSON‑LD.
+- Added variant selector (client) updating price/availability; Buy Now uses selected variant.
 - Kept legacy `/product/[id]` route to redirect to slug.
 - Catalog cards now link directly to `/products/{slug}` (fallback to id route if slug missing).
 - Footer links use hash anchors to ensure reliable jump scrolling.
 
 Next:
-- Add variant selector to choose variant before “Buy Now” (dev).
 - Add slug generation/editing in Admin (derive from title; unique check) so catalog cards always link to `/products/{slug}` without legacy fallback (dev).
 - Update ProductCard to render slug for analytics data attributes (optional).
 - Ensure sitemap includes product slugs when present.
+
+## Observability — Progress
+- Added `/api/client-logs` to collect client error events (writes to audit logs).
+- Mounted client error listener (window.error/unhandledrejection) via `ClientErrorLogger` in app providers.
+
+Next:
+- Add rate limiting and payload size guard on `/api/client-logs`.
+- Add optional correlation ID (e.g., from headers) to tie client logs to sessions.
 
 ## 1) Products / Variants — Bulk Tooling (Phase 1)
 - Bulk price updates: +/- %, absolute set, undo preview

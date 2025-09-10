@@ -3,6 +3,7 @@
 import React from "react";
 import { Create, useForm } from "@refinedev/antd";
 import { Form, Input, InputNumber, Switch, Select } from "antd";
+import { getSupabaseBrowserClient } from "@/integrations/supabase/browser";
 import type { ProductFormValues } from "../../types";
 
 const { TextArea } = Input;
@@ -19,7 +20,18 @@ export default function ProductCreate() {
           label="Slug"
           name="slug"
           extra="URL slug used for product detail pages (e.g., 'dark-ritual')."
-          rules={[{ pattern: /^[a-z0-9]+(?:-[a-z0-9]+)*$/, message: 'Use lowercase letters, numbers and hyphens' }]}
+          rules={[
+            { pattern: /^[a-z0-9]+(?:-[a-z0-9]+)*$/, message: 'Use lowercase letters, numbers and hyphens' },
+            {
+              validator: async (_, value) => {
+                if (!value) return Promise.resolve();
+                const supabase = getSupabaseBrowserClient();
+                const { data } = await supabase.from('products').select('id').eq('slug', value).limit(1);
+                if (data && data.length > 0) return Promise.reject('Slug already in use');
+                return Promise.resolve();
+              }
+            }
+          ]}
         >
           <Input addonAfter={<a onClick={(e)=>{e.preventDefault();
             const t = (formProps.form?.getFieldValue('title') as string || '').trim().toLowerCase().replace(/[^a-z0-9\s-]/g,'').replace(/\s+/g,'-').replace(/-+/g,'-');

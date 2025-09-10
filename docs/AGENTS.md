@@ -129,6 +129,10 @@ This guide encodes how we use Codex CLI here: plan first, one working branch, ex
 - Legacy compatibility: `/product/[id]` redirects to `/products/[slug]`.
 - Catalog cards: link directly to slug routes (fallback to legacy id if slug absent).
 - Footer navigation: converted to hash links (`/#catalog`, `/#vinyl`, etc.) for reliable scrolling on homepage.
+- Product variant selector: client selector added to product page, updates price/availability and Buy Now.
+- Admin products: added Slug field with `Generate` helper derived from Title.
+- SEO: Product JSON‑LD added to product pages; Articles now have metadata + Article JSON‑LD (mocked data).
+- Observability: added `/api/client-logs` endpoint and mounted a client error logger in `app/providers.tsx`.
 
 ## Deployment Status
 

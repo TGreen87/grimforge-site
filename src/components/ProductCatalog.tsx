@@ -145,6 +145,9 @@ const ProductCatalog = () => {
           <p className="text-base md:text-lg text-muted-foreground max-w-xl md:max-w-2xl mx-auto px-4">
             Explore new and classic black metal releases from independent and underground artists.
           </p>
+          <p className="text-xs md:text-sm text-muted-foreground mt-2">
+            All ({filteredProducts.length}) • Vinyl ({vinylProducts.length}) • Cassette tapes ({cassetteProducts.length}) • CDs ({cdProducts.length})
+          </p>
         </div>
 
         {/* Advanced Filters */}

@@ -46,12 +46,12 @@ Acceptance:
 - Dry‑run preview shows changes; apply commits updates; audit logs written; export works for filters.
 
 ### Phase 4 — Observability
-- Add `/api/client-logs` to collect client-side error events.
-- Lightweight browser logger (breadcrumb buffer, rate-limited POST on error).
-- Wire `ErrorBoundary` to log critical errors.
+- Add `/api/client-logs` to collect client-side error events. [done]
+- Lightweight browser logger (breadcrumb buffer, rate-limited POST on error). [partial — initial error/unhandledrejection listener added]
+- Wire `ErrorBoundary` to log critical errors. [pending]
 
 Acceptance:
-- Client errors persist (Supabase) with essential context; can be filtered by time/user.
+- Client errors persist (Supabase) with essential context; can be filtered by time/user. [partially met]
 
 ### Phase 5 — Admin Gating (Prod Only)
 - Keep previews relaxed; on production, require `user_roles.role = 'admin'` server-side.
