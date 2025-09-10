@@ -5,6 +5,6 @@ export const navLinks: NavLink[] = [
   { label: "Vinyl", id: "vinyl" },
   { label: "Cassettes", id: "cassettes" },
   { label: "CDs", id: "cds" },
-  { label: "Grimoire", id: "grimoire" },
-  { label: "Pre-orders", id: "preorders" },
+  { label: "Journal", id: "grimoire" },
+  { label: "Preorders", id: "preorders" },
 ];
