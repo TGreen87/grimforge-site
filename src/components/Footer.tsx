@@ -2,12 +2,14 @@
 
 import { Facebook, Instagram, Mail } from "lucide-react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { brand } from "@/config/brand";
 import NewsletterSignup from "@/components/NewsletterSignup";
 import { footer as footerCopy } from "@/content/copy";
 
 const Footer = () => {
-  // Hash links handled via <Link href="/#section"> to ensure native scrolling
+  const pathname = usePathname();
+  const atHome = pathname === '/';
   return (
     <footer className="bg-background/95 border-t border-border mt-20">
       <div className="container mx-auto px-4 py-12">
@@ -29,11 +31,11 @@ const Footer = () => {
           <div className="space-y-4">
             <h3 className="gothic-heading text-bone">Catalog</h3>
             <ul className="space-y-2 text-sm text-muted-foreground">
-              <li><Link href="/#catalog" className="hover:text-accent transition-colors text-left">New arrivals</Link></li>
-              <li><Link href="/#vinyl" className="hover:text-accent transition-colors text-left">Vinyl Records</Link></li>
-              <li><Link href="/#cassettes" className="hover:text-accent transition-colors text-left">Cassettes</Link></li>
-              <li><Link href="/#cds" className="hover:text-accent transition-colors text-left">Compact Discs</Link></li>
-              <li><Link href="/#catalog" className="hover:text-accent transition-colors text-left">Limited editions</Link></li>
+              <li>{atHome ? <a href="#catalog" className="hover:text-accent transition-colors text-left">New arrivals</a> : <Link href="/#catalog" className="hover:text-accent transition-colors text-left">New arrivals</Link>}</li>
+              <li>{atHome ? <a href="#vinyl" className="hover:text-accent transition-colors text-left">Vinyl Records</a> : <Link href="/#vinyl" className="hover:text-accent transition-colors text-left">Vinyl Records</Link>}</li>
+              <li>{atHome ? <a href="#cassettes" className="hover:text-accent transition-colors text-left">Cassettes</a> : <Link href="/#cassettes" className="hover:text-accent transition-colors text-left">Cassettes</Link>}</li>
+              <li>{atHome ? <a href="#cds" className="hover:text-accent transition-colors text-left">Compact Discs</a> : <Link href="/#cds" className="hover:text-accent transition-colors text-left">Compact Discs</Link>}</li>
+              <li>{atHome ? <a href="#catalog" className="hover:text-accent transition-colors text-left">Limited editions</a> : <Link href="/#catalog" className="hover:text-accent transition-colors text-left">Limited editions</Link>}</li>
             </ul>
           </div>
 

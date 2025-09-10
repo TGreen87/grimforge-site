@@ -169,10 +169,10 @@ const ProductCatalog = () => {
             </TabsTrigger>
           </TabsList>
 
-          {/* Add invisible anchor points for navigation */}
-          <div id="vinyl" className="absolute -top-20"></div>
-          <div id="cassettes" className="absolute -top-20"></div>
-          <div id="cds" className="absolute -top-20"></div>
+          {/* Anchor points for footer navigation (scrolls into view) */}
+          <div id="vinyl" className="block h-0 scroll-mt-24" />
+          <div id="cassettes" className="block h-0 scroll-mt-24" />
+          <div id="cds" className="block h-0 scroll-mt-24" />
 
           <TabsContent value="all">
             {filteredProducts.length === 0 ? (

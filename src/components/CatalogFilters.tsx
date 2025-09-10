@@ -145,9 +145,9 @@ const CatalogFilters = ({ onFiltersChange }: CatalogFiltersProps) => {
               className="w-full"
             />
             <div className="text-center text-xs text-accent mt-1">
-              {grimnessLevel[0] < 30 ? "Melodic" : 
-               grimnessLevel[0] < 60 ? "Dark" : 
-               grimnessLevel[0] < 80 ? "Grim" : "Pure Evil"}
+              {grimnessLevel[0] < 30 ? "Low" : 
+               grimnessLevel[0] < 60 ? "Medium" : 
+               grimnessLevel[0] < 80 ? "High" : "High"}
             </div>
           </div>
         </div>

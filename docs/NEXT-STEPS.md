@@ -4,11 +4,24 @@ This doc tracks the immediate backlog now that production auth is live. All work
 
 ## Current Status — 2025-09-10
 - Node 22 on Netlify + local; Next runtime v5 in use.
-- Copy/code: neutralized site phrasing; centralized strings in `src/content/copy.ts`.
+- Copy/code: centralized strings in `src/content/copy.ts`; Preorders copy updated.
 - SEO: default title/description fixed; no duplicate brand in `<title>`.
 - Admin: Users & Roles page added (`/admin/users`) + API to grant/remove admin; Google OAuth now auto‑creates a `customers` row.
 - Cache safety: homepage served with `Cache-Control: no-store` + page is `force-dynamic` to avoid stale SSR payloads; static assets are immutable.
-- Dev and main deployed; some live pages still render old phrases due to previous CDN HTML. The cache headers are now in place — one more deploy + hard refresh should present fresh copy. If any stale persists, we will add a Netlify `_headers` fallback for `/` as a belt‑and‑braces.
+- Dev and main deployed; homepage served with `no-store`. If any stale persists, consider a Netlify `_headers` rule for `/` with `Cache-Control: no-store`.
+
+## Product Detail — Progress
+- Implemented `/products/[slug]` page wired to Supabase (server route) with SEO metadata.
+- Added `BuyNowButton` that calls `/api/checkout` and redirects to Stripe Checkout.
+- Kept legacy `/product/[id]` route to redirect to slug.
+- Catalog cards now link directly to `/products/{slug}` (fallback to id route if slug missing).
+- Footer links use hash anchors to ensure reliable jump scrolling.
+
+Next:
+- Add variant selector to choose variant before “Buy Now”.
+- Add slug generation/editing in Admin (derive from title; unique check) so catalog cards always link to `/products/{slug}` without legacy fallback.
+- Update ProductCard to render slug for analytics data attributes (optional).
+- Ensure sitemap includes product slugs when present.
 
 ## 1) Products / Variants — Bulk Tooling (Phase 1)
 - Bulk price updates: +/- %, absolute set, undo preview

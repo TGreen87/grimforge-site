@@ -21,13 +21,13 @@ Acceptance:
 - Branch deploy builds successfully under Node 22; `/status` shows env presence; `/admin/login` loads and allows login in preview.
 
 ### Phase 1 — Product Detail MVP
-- Data: fetch product by `slug` from Supabase (variants + inventory where present).
-- UI: title/artist, image, price, availability; basic variant selector.
-- Action: “Buy Now” that POSTs to `/api/checkout` and redirects to Stripe Checkout.
-- SEO: metadata + product JSON‑LD.
+- Data: fetch product by `slug` from Supabase (variants + inventory where present). [in progress — initial fetch implemented]
+- UI: title/artist, image, price, availability; basic variant selector. [partially complete — selector pending]
+- Action: “Buy Now” that POSTs to `/api/checkout` and redirects to Stripe Checkout. [done]
+- SEO: metadata + product JSON‑LD. [metadata done; JSON‑LD pending]
 
 Acceptance:
-- Visiting `/products/[slug]` renders real data; checkout creates Stripe session; insufficient inventory/inactive are gracefully handled.
+- Visiting `/products/[slug]` renders real data; checkout creates Stripe session; insufficient inventory/inactive are gracefully handled. [partially met]
 
 ### Phase 2 — Articles MVP
 - DB: `articles` table (slug, title, markdown, image, author, published, timestamps).

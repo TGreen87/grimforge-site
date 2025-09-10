@@ -120,3 +120,20 @@ Patch envelope example:
 ---
 
 This guide encodes how we use Codex CLI here: plan first, one working branch, explicit go‑live, minimal blast radius.
+
+## Recent Changes (dev)
+
+- Fixed failing Netlify build: corrected misplaced `'use client'` directives; ensured `@/content/copy` resolves via `tsconfig.json` alias.
+- Centralized public copy in `src/content/copy.ts` and wired components.
+- Product detail MVP: `/products/[slug]` now fetches from Supabase and includes SEO metadata; added `BuyNowButton` posting to `/api/checkout`.
+- Legacy compatibility: `/product/[id]` redirects to `/products/[slug]`.
+- Catalog cards: link directly to slug routes (fallback to legacy id if slug absent).
+- Footer navigation: converted to hash links (`/#catalog`, `/#vinyl`, etc.) for reliable scrolling on homepage.
+
+## Open TODOs
+
+- Product variants: add selector on the product page; enable Buy Now per variant.
+- Update ProductCard click target to prefer Link wrapping when feasible (accessibility) and keep button actions keyboard-friendly.
+- Sitemap: include product slugs when available; verify with Supabase data.
+- Admin polish: bulk tools (price/active) toggled by `NEXT_PUBLIC_ENABLE_ADMIN_BULK`.
+- Observability: lightweight client error logging endpoint; wire ErrorBoundary.
