@@ -39,11 +39,15 @@ export function generateMetadata({
   const finalUrl = url || siteUrlEnv
   const finalImage = image || defaultImage
 
+  const hasBrandInTitle = title.includes(siteName)
+
   const metadata: Metadata = {
-    title: {
-      default: title,
-      template: `%s | ${siteName}`
-    },
+    title: hasBrandInTitle
+      ? title
+      : {
+          default: title,
+          template: `%s | ${siteName}`,
+        },
     description,
     ...(keywords && keywords.length > 0
       ? { keywords: keywords.join(', ') }
@@ -121,14 +125,14 @@ export function generateMetadata({
 
 export function generateSiteMetadata(): Metadata {
   const metadata = generateMetadata({
-    title: 'Obsidian Rite Records - Dark Music for Dark Souls',
-    description: 'Obsidian Rite Records is an independent underground metal record label. Discover exclusive releases, limited edition vinyl, cassettes, and merchandise from the darkest corners of the metal underground.',
+    title: 'Obsidian Rite Records | Independent Black Metal Label and Store',
+    description: 'Independent label and store for underground black metal. Discover artists, releases, and limited runs.',
     keywords: [
       'black metal',
       'underground metal',
       'metal record label',
       'vinyl records',
-      'cassette tapes',
+      'cassette',
       'death metal',
       'doom metal',
       'extreme metal',
