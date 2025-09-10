@@ -13,6 +13,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { brand } from "@/config/brand";
 import { useActiveSection } from "@/hooks/useActiveSection";
 import MobileMenu from "./MobileMenu";
+import { navLinks } from "@/config/nav";
  
 const Navigation = () => {
   const { isAuthenticated } = useAuth();
@@ -73,42 +74,15 @@ const Navigation = () => {
 
         {/* Desktop Navigation */}
         <div className="hidden md:flex items-center space-x-8" role="navigation" aria-label="Primary">
-          <button 
-            onClick={() => scrollToSection('catalog')}
-            className={`text-foreground hover:text-accent transition-colors cursor-pointer ${activeId === 'catalog' ? 'text-accent' : ''}`}
-          >
-            Catalog
-          </button>
-          <button 
-            onClick={() => scrollToSection('vinyl')}
-            className={`text-foreground hover:text-accent transition-colors cursor-pointer ${activeId === 'vinyl' ? 'text-accent' : ''}`}
-          >
-            Vinyl
-          </button>
-          <button 
-            onClick={() => scrollToSection('cassettes')}
-            className={`text-foreground hover:text-accent transition-colors cursor-pointer ${activeId === 'cassettes' ? 'text-accent' : ''}`}
-          >
-            Cassettes
-          </button>
-          <button 
-            onClick={() => scrollToSection('cds')}
-            className={`text-foreground hover:text-accent transition-colors cursor-pointer ${activeId === 'cds' ? 'text-accent' : ''}`}
-          >
-            CDs
-          </button>
-          <button 
-            onClick={() => scrollToSection('grimoire')}
-            className={`text-foreground hover:text-accent transition-colors cursor-pointer ${activeId === 'grimoire' ? 'text-accent' : ''}`}
-          >
-            Grimoire
-          </button>
-          <button 
-            onClick={() => scrollToSection('preorders')}
-            className={`text-foreground hover:text-accent transition-colors cursor-pointer ${activeId === 'preorders' ? 'text-accent' : ''}`}
-          >
-            Pre-orders
-          </button>
+          {navLinks.map((link) => (
+            <button
+              key={link.id}
+              onClick={() => scrollToSection(link.id)}
+              className={`text-foreground hover:text-accent transition-colors cursor-pointer ${activeId === link.id ? 'text-accent' : ''}`}
+            >
+              {link.label}
+            </button>
+          ))}
         </div>
 
         {/* Action Buttons */}
@@ -123,7 +97,7 @@ const Navigation = () => {
           <CartDrawer />
           {isAuthenticated ? (
             <>
-              <Link href="/admin" className="hidden md:block text-sm underline-offset-4 hover:underline">
+              <Link href="/admin" prefetch={false} className="hidden md:block text-sm underline-offset-4 hover:underline">
                 Admin
               </Link>
               <UserMenu />
