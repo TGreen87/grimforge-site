@@ -18,8 +18,8 @@ This doc tracks the immediate backlog now that production auth is live. All work
 - Footer links use hash anchors to ensure reliable jump scrolling.
 
 Next:
-- Add variant selector to choose variant before “Buy Now”.
-- Add slug generation/editing in Admin (derive from title; unique check) so catalog cards always link to `/products/{slug}` without legacy fallback.
+- Add variant selector to choose variant before “Buy Now” (dev).
+- Add slug generation/editing in Admin (derive from title; unique check) so catalog cards always link to `/products/{slug}` without legacy fallback (dev).
 - Update ProductCard to render slug for analytics data attributes (optional).
 - Ensure sitemap includes product slugs when present.
 

@@ -130,6 +130,12 @@ This guide encodes how we use Codex CLI here: plan first, one working branch, ex
 - Catalog cards: link directly to slug routes (fallback to legacy id if slug absent).
 - Footer navigation: converted to hash links (`/#catalog`, `/#vinyl`, etc.) for reliable scrolling on homepage.
 
+## Deployment Status
+
+- 2025-09-10: Promoted `dev` → `main` via fast‑forward merge. Production is now on commit `c0b4bb3`.
+- Main changes include: product detail MVP (slug route + Buy Now), footer hash links, catalog anchors + tab sync, Intensity copy normalization, sitemap active filter, and copy runtime test script.
+- Work continues on `dev` (variant selector + admin slug editing next).
+
 ## Open TODOs
 
 - Product variants: add selector on the product page; enable Buy Now per variant.
