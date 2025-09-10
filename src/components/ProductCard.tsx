@@ -6,6 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ShoppingCart, Eye, Heart } from "lucide-react";
+import Link from "next/link";
 import { useCart } from "@/contexts/CartContext";
 import { useWishlist } from "@/contexts/WishlistContext";
 import { useToast } from "@/hooks/use-toast";
@@ -126,17 +127,15 @@ const ProductCard = ({ id, slug, title, artist, format, price, image, limited, p
 
           {/* Hover Actions - Touch optimized */}
           <div className="absolute inset-0 bg-background/80 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center gap-1.5 md:gap-2">
-            <Button 
-              size="sm" 
-              variant="outline" 
-              className="h-8 w-8 md:h-9 md:w-9 border-frost text-frost hover:bg-frost hover:text-background p-0"
-              onClick={(e) => {
-                e.stopPropagation();
-                router.push(href);
-              }}
-            >
-              <Eye className="h-3.5 w-3.5 md:h-4 md:w-4" />
-            </Button>
+            <Link href={href} onClick={(e) => e.stopPropagation()}>
+              <Button 
+                size="sm" 
+                variant="outline" 
+                className="h-8 w-8 md:h-9 md:w-9 border-frost text-frost hover:bg-frost hover:text-background p-0"
+              >
+                <Eye className="h-3.5 w-3.5 md:h-4 md:w-4" />
+              </Button>
+            </Link>
             <Button 
               size="sm" 
               variant={isInWishlist(id) ? "default" : "outline"}

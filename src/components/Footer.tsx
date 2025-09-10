@@ -2,19 +2,12 @@
 
 import { Facebook, Instagram, Mail } from "lucide-react";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
 import { brand } from "@/config/brand";
 import NewsletterSignup from "@/components/NewsletterSignup";
 import { footer as footerCopy } from "@/content/copy";
 
 const Footer = () => {
-  const pathname = usePathname();
-  const router = useRouter();
-
-  const scrollToSection = (sectionId: string) => {
-    // Use hash navigation so the browser scrolls to anchors reliably
-    router.push(`/#${sectionId}`);
-  };
+  // Hash links handled via <Link href="/#section"> to ensure native scrolling
   return (
     <footer className="bg-background/95 border-t border-border mt-20">
       <div className="container mx-auto px-4 py-12">
@@ -36,11 +29,11 @@ const Footer = () => {
           <div className="space-y-4">
             <h3 className="gothic-heading text-bone">Catalog</h3>
             <ul className="space-y-2 text-sm text-muted-foreground">
-              <li><button onClick={() => scrollToSection('catalog')} className="hover:text-accent transition-colors text-left">New arrivals</button></li>
-              <li><button onClick={() => scrollToSection('vinyl')} className="hover:text-accent transition-colors text-left">Vinyl Records</button></li>
-              <li><button onClick={() => scrollToSection('cassettes')} className="hover:text-accent transition-colors text-left">Cassettes</button></li>
-              <li><button onClick={() => scrollToSection('cds')} className="hover:text-accent transition-colors text-left">Compact Discs</button></li>
-              <li><button onClick={() => scrollToSection('catalog')} className="hover:text-accent transition-colors text-left">Limited editions</button></li>
+              <li><Link href="/#catalog" className="hover:text-accent transition-colors text-left">New arrivals</Link></li>
+              <li><Link href="/#vinyl" className="hover:text-accent transition-colors text-left">Vinyl Records</Link></li>
+              <li><Link href="/#cassettes" className="hover:text-accent transition-colors text-left">Cassettes</Link></li>
+              <li><Link href="/#cds" className="hover:text-accent transition-colors text-left">Compact Discs</Link></li>
+              <li><Link href="/#catalog" className="hover:text-accent transition-colors text-left">Limited editions</Link></li>
             </ul>
           </div>
 
