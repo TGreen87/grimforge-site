@@ -177,3 +177,4 @@ const GrimoireSection = () => {
 };
 
 export default GrimoireSection;
+"use client"
