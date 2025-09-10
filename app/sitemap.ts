@@ -12,7 +12,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     const { data } = await supabase
       .from('products')
       .select('slug, updated_at')
-      .eq('status', 'active')
+      .eq('active', true)
       .order('updated_at', { ascending: false })
     products = data
   } catch {
