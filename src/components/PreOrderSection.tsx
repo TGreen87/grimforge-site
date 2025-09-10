@@ -18,7 +18,7 @@ const PreOrderSection = () => {
           </h2>
           <div className="w-16 md:w-24 h-1 blood-accent mx-auto mb-4 md:mb-6"></div>
           <p className="text-base md:text-lg text-muted-foreground max-w-xl md:max-w-2xl mx-auto px-4">
-            Reserve upcoming releases. Limited pressings sell out quickly.
+            Reserve upcoming releases. Limited runs sell out quickly.
           </p>
         </div>
 
