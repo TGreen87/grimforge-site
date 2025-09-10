@@ -3,6 +3,7 @@ import { getSupabaseBrowserClient } from "@/integrations/supabase/browser";
 
 interface SupabaseProductRow {
   id: string;
+  slug?: string;
   title?: string;
   artist?: string;
   format?: string;
@@ -18,6 +19,7 @@ interface SupabaseProductRow {
 
 export interface CatalogProduct {
   id: string;
+  slug?: string;
   title: string;
   artist: string;
   format: "vinyl" | "cassette" | "cd";
@@ -38,6 +40,7 @@ export function useSupabaseProducts() {
 
   const mapRow = (r: SupabaseProductRow): CatalogProduct => ({
     id: r.id,
+    slug: r.slug,
     title: r.title ?? "Untitled",
     artist: r.artist ?? "Unknown",
     format: (r.format ?? "vinyl") as "vinyl" | "cassette" | "cd",

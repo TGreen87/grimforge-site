@@ -12,6 +12,7 @@ import { useToast } from "@/hooks/use-toast";
 
 interface ProductCardProps {
   id: string;
+  slug?: string;
   title: string;
   artist: string;
   format: "vinyl" | "cassette" | "cd";
@@ -21,14 +22,14 @@ interface ProductCardProps {
   preOrder?: boolean;
 }
 
-const ProductCard = ({ id, title, artist, format, price, image, limited, preOrder }: ProductCardProps) => {
+const ProductCard = ({ id, slug, title, artist, format, price, image, limited, preOrder }: ProductCardProps) => {
   const router = useRouter();
   const { addItem } = useCart();
   const { addItem: addToWishlist, removeItem: removeFromWishlist, isInWishlist } = useWishlist();
   const { toast } = useToast();
   
-  // Extract original ID for navigation (remove any -rec- suffix)
-  const originalId = id.split('-rec-')[0];
+  // Prefer slug for navigation; fallback to legacy id route
+  const href = slug ? `/products/${slug}` : `/product/${id.split('-rec-')[0]}`;
   const formatIcons = {
     vinyl: "🎵",
     cassette: "📼", 
@@ -82,7 +83,7 @@ const ProductCard = ({ id, title, artist, format, price, image, limited, preOrde
   };
 
   const handleCardClick = () => {
-    router.push(`/product/${originalId}`);
+    router.push(href);
   };
 
   return (
@@ -131,7 +132,7 @@ const ProductCard = ({ id, title, artist, format, price, image, limited, preOrde
               className="h-8 w-8 md:h-9 md:w-9 border-frost text-frost hover:bg-frost hover:text-background p-0"
               onClick={(e) => {
                 e.stopPropagation();
-                router.push(`/product/${originalId}`);
+                router.push(href);
               }}
             >
               <Eye className="h-3.5 w-3.5 md:h-4 md:w-4" />

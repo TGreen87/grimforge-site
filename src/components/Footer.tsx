@@ -12,33 +12,8 @@ const Footer = () => {
   const router = useRouter();
 
   const scrollToSection = (sectionId: string) => {
-    // If we're not on the home page, navigate there first
-    if (pathname !== '/') {
-      router.push('/');
-      // Wait for navigation to complete, then scroll
-      setTimeout(() => {
-        handleScroll(sectionId);
-      }, 100);
-    } else {
-      // We're already on the home page, just scroll
-      handleScroll(sectionId);
-    }
-  };
-
-  const handleScroll = (sectionId: string) => {
-    const element = document.getElementById(sectionId);
-    if (element) {
-      element.scrollIntoView({ 
-        behavior: 'smooth',
-        block: 'start'
-      });
-    }
-    
-    // For format-specific sections, also switch to the right tab
-    if (sectionId === 'vinyl' || sectionId === 'cassettes' || sectionId === 'cds') {
-      // Trigger tab change by updating hash
-      window.location.hash = sectionId;
-    }
+    // Use hash navigation so the browser scrolls to anchors reliably
+    router.push(`/#${sectionId}`);
   };
   return (
     <footer className="bg-background/95 border-t border-border mt-20">
@@ -63,7 +38,7 @@ const Footer = () => {
             <ul className="space-y-2 text-sm text-muted-foreground">
               <li><button onClick={() => scrollToSection('catalog')} className="hover:text-accent transition-colors text-left">New arrivals</button></li>
               <li><button onClick={() => scrollToSection('vinyl')} className="hover:text-accent transition-colors text-left">Vinyl Records</button></li>
-              <li><button onClick={() => scrollToSection('cassettes')} className="hover:text-accent transition-colors text-left">cassette</button></li>
+              <li><button onClick={() => scrollToSection('cassettes')} className="hover:text-accent transition-colors text-left">Cassettes</button></li>
               <li><button onClick={() => scrollToSection('cds')} className="hover:text-accent transition-colors text-left">Compact Discs</button></li>
               <li><button onClick={() => scrollToSection('catalog')} className="hover:text-accent transition-colors text-left">Limited editions</button></li>
             </ul>
