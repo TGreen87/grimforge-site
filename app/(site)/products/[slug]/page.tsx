@@ -1,6 +1,7 @@
 import { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { generateProductMetadata } from '@/lib/seo/metadata'
+import { ProductJsonLd } from '@/components/seo/JsonLd'
 import { getProduct } from './metadata'
 import BuyNowButton from '@/components/BuyNowButton'
 import { Suspense } from 'react'
@@ -71,6 +72,19 @@ export default async function ProductPage({ params }: ProductPageProps) {
   return (
     <main>
       <div className="container mx-auto px-4 py-8">
+        {/* JSON-LD for SEO */}
+        <ProductJsonLd
+          name={product.title || product.name || slug}
+          description={product.description || 'Underground black metal release'}
+          image={(product.image as string) || product.image_url || '/placeholder.svg'}
+          sku={product.sku}
+          price={Number(initialPrice ?? 0)}
+          priceCurrency="AUD"
+          availability={(product as any)?.variants?.[0]?.inventory?.available > 0 ? 'InStock' : 'OutOfStock'}
+          brand={product.artist || 'Obsidian Rite Records'}
+          category={(product.format?.[0] as string) || 'Music'}
+          url={(process.env.NEXT_PUBLIC_SITE_URL || process.env.SITE_URL_STAGING || '') + `/products/${product.slug || slug}`}
+        />
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           <div className="relative w-full aspect-square bg-secondary/20 rounded overflow-hidden">
             <Image
