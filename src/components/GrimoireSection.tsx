@@ -12,7 +12,7 @@ const GrimoireSection = () => {
     {
       id: 2,
       title: "Underground Tape Trading: The Lost Art",
-      excerpt: "Before digital streaming, the underground thrived through tape trading networks that spread the darkest sounds...",
+      excerpt: "Before digital streaming, the underground thrived through tape trading networks that spread independent sounds...",
       author: "Cassette Archive",
       date: "2024-01-12",
       readTime: "6 min read",
@@ -22,8 +22,8 @@ const GrimoireSection = () => {
     {
       id: 3,
       title: "Limited Edition Vinyl: Investment or Obsession?",
-      excerpt: "The dark art of vinyl collecting has reached new heights. Are limited pressings worth the ritual sacrifice of your wallet?",
-      author: "Vinyl Cultist",
+      excerpt: "Vinyl collecting has reached new heights. Are limited pressings worth the price?",
+      author: "Vinyl Collector",
       date: "2024-01-10",
       readTime: "5 min read",
       image: grimoire3,
@@ -151,7 +151,7 @@ const GrimoireSection = () => {
             </Card>
           )) : (
             <div className="col-span-full text-center text-muted-foreground">
-              <p>More dark chronicles coming soon...</p>
+              <p>More articles coming soon...</p>
             </div>
           )}
         </div>
@@ -163,8 +163,8 @@ const GrimoireSection = () => {
             size="lg" 
             className="border-frost text-frost hover:bg-frost hover:text-background gothic-heading"
             onClick={() => {
-              // Navigate to full blog/grimoire section
-              alert('Feature coming soon: Full Grimoire section with all blog posts');
+              // Navigate to full journal section
+              alert('Feature coming soon: Full journal section with all blog posts');
             }}
           >
             Read all articles

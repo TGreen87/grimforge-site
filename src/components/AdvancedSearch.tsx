@@ -46,7 +46,7 @@ interface AdvancedSearchProps {
   className?: string;
 }
 
-const AdvancedSearch = ({ onSearchResults, placeholder = "Search for dark treasures...", className = "" }: AdvancedSearchProps) => {
+const AdvancedSearch = ({ onSearchResults, placeholder = "Search the catalog", className = "" }: AdvancedSearchProps) => {
   const [query, setQuery] = useState("");
   const [isOpen, setIsOpen] = useState(false);
   const [suggestions, setSuggestions] = useState<SearchSuggestion[]>([]);
