@@ -114,7 +114,7 @@ const ProductCard = ({ id, title, artist, format, price, image, limited, preOrde
             )}
             {preOrder && (
               <Badge variant="secondary" className="text-xs px-1.5 py-0.5">
-                Pre-Order
+                Preorder
               </Badge>
             )}
             <Badge variant="outline" className="text-xs px-1.5 py-0.5 border-frost text-frost">

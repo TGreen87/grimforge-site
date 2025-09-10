@@ -6,6 +6,7 @@ import CatalogFilters from "./CatalogFilters";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useState, useMemo, useEffect } from "react";
 import { useSupabaseProducts } from "@/hooks/useSupabaseProducts";
+import { catalog as catalogCopy } from "@/content/copy";
 
 interface Filters {
   searchTerm: string;
@@ -142,7 +143,7 @@ const ProductCatalog = () => {
           </h2>
           <div className="w-16 md:w-24 h-1 blood-accent mx-auto mb-4 md:mb-6"></div>
           <p className="text-base md:text-lg text-muted-foreground max-w-xl md:max-w-2xl mx-auto px-4">
-            Discover the finest collection of black metal releases from legendary acts and underground hordes
+            Explore new and classic black metal releases from independent and underground artists.
           </p>
         </div>
 
@@ -176,9 +177,7 @@ const ProductCatalog = () => {
           <TabsContent value="all">
             {filteredProducts.length === 0 ? (
               <div className="text-center py-12">
-                <p className="text-muted-foreground text-lg">
-                  No albums found in the darkness... Try adjusting your filters.
-                </p>
+                <p className="text-muted-foreground text-lg">{catalogCopy.emptyState}</p>
               </div>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
@@ -195,9 +194,7 @@ const ProductCatalog = () => {
           <TabsContent value="vinyl">
             {vinylProducts.length === 0 ? (
               <div className="text-center py-12">
-                <p className="text-muted-foreground text-lg">
-                  No vinyl records match your dark desires...
-                </p>
+                <p className="text-muted-foreground text-lg">{catalogCopy.emptyState}</p>
               </div>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
@@ -214,9 +211,7 @@ const ProductCatalog = () => {
           <TabsContent value="cassette">
             {cassetteProducts.length === 0 ? (
               <div className="text-center py-12">
-                <p className="text-muted-foreground text-lg">
-                  No cassettes echo in the void...
-                </p>
+                <p className="text-muted-foreground text-lg">{catalogCopy.emptyState}</p>
               </div>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
@@ -233,9 +228,7 @@ const ProductCatalog = () => {
           <TabsContent value="cd">
             {cdProducts.length === 0 ? (
               <div className="text-center py-12">
-                <p className="text-muted-foreground text-lg">
-                  No CDs shine in the moonlight...
-                </p>
+                <p className="text-muted-foreground text-lg">{catalogCopy.emptyState}</p>
               </div>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">

@@ -54,7 +54,7 @@ export const seoConfig = {
   // Product Categories
   productCategories: [
     'Vinyl Records',
-    'Cassette Tapes',
+    'cassette',
     'CDs',
     'Merchandise',
     'Apparel',
@@ -81,7 +81,7 @@ export const seoConfig = {
     'underground metal',
     'metal record label',
     'vinyl records',
-    'cassette tapes',
+    'cassette',
     'death metal',
     'doom metal',
     'extreme metal',

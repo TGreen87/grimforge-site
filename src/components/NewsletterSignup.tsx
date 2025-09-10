@@ -20,8 +20,8 @@ const NewsletterSignup = () => {
     const res = subscribe(email, consent);
     setLoading(false);
     toast({
-      title: res.ok ? "Subscribed" : "Subscription failed",
-      description: res.message,
+      title: res.ok ? "You are subscribed." : "Subscription failed. Check your email and try again.",
+      description: res.ok ? undefined : res.message,
       variant: res.ok ? "default" : "destructive",
     });
     if (res.ok) setEmail("");
@@ -43,6 +43,7 @@ const NewsletterSignup = () => {
           {loading ? "Subscribing..." : "Subscribe"}
         </Button>
       </div>
+      <p className="text-xs text-muted-foreground">Subscribe for new releases and limited runs. Unsubscribe anytime.</p>
       <label className="flex items-center gap-2 text-xs text-muted-foreground">
         <Checkbox checked={consent} onCheckedChange={(v) => setConsent(!!v)} />
         I agree to receive emails and accept the privacy policy.

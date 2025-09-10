@@ -442,7 +442,7 @@ export default function EditCatalogText() {
                         <label className="flex items-center gap-2"><input type="checkbox" checked={draftActive} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDraftActive(e.target.checked)} /> Active</label>
                         <label className="flex items-center gap-2"><input type="checkbox" checked={draftFeatured} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDraftFeatured(e.target.checked)} /> Featured</label>
                         <label className="flex items-center gap-2"><input type="checkbox" checked={draftLimited} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDraftLimited(e.target.checked)} /> Limited</label>
-                        <label className="flex items-center gap-2"><input type="checkbox" checked={draftPreOrder} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDraftPreOrder(e.target.checked)} /> Pre-Order</label>
+                        <label className="flex items-center gap-2"><input type="checkbox" checked={draftPreOrder} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDraftPreOrder(e.target.checked)} /> Preorder</label>
                       </div>
 
                       <div className="flex flex-wrap gap-2 items-center">

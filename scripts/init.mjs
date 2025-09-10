@@ -37,7 +37,7 @@ section('Repo')
 let branch = 'unknown'
 try { branch = sh('git rev-parse --abbrev-ref HEAD') } catch {}
 status(true, 'Branch', branch)
-const workingBranch = 'feat/admin-suite-phase1'
+const workingBranch = 'dev'
 status(branch === workingBranch, `Working on ${workingBranch}`)
 try {
   const remote = sh('git remote get-url origin')
@@ -67,8 +67,8 @@ status(isNetlify, 'NETLIFY runtime', context)
 // 4) Guidance
 section('Guidance')
 console.log('- Single working branch, no PRs')
-console.log('- Push only to feat/admin-suite-phase1 (main is protected)')
-console.log('- Enable Netlify Branch Deploy for feat/admin-suite-phase1')
+console.log('- Push only to dev (main is protected)')
+console.log('- Enable Netlify Branch Deploy for dev')
 console.log('- For production, push to main ONLY when explicitly approved')
 
 // 5) AGENTS.md availability
@@ -83,4 +83,3 @@ try {
 } catch {}
 
 console.log('\nInit complete. If any checks show ✗, address them before continuing.')
-

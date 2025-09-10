@@ -384,7 +384,7 @@ const runAutofill = async (input?: string | string[]) => {
               <div className="flex items-center gap-2">
                 <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={form.featured} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setForm(f => ({ ...f, featured: e.target.checked }))} /> Featured</label>
                 <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={form.limited} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setForm(f => ({ ...f, limited: e.target.checked }))} /> Limited</label>
-                <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={form.preOrder} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setForm(f => ({ ...f, preOrder: e.target.checked }))} /> Pre-Order</label>
+                <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={form.preOrder} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setForm(f => ({ ...f, preOrder: e.target.checked }))} /> Preorder</label>
               </div>
               <Button type="button" onClick={publish} disabled={!canPublish}>Publish to Catalog</Button>
             </div>

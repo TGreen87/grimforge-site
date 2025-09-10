@@ -76,7 +76,7 @@ export default function ProductShow() {
               </Tag>
               {record.featured && <Tag color="gold">Featured</Tag>}
               {record.limited && <Tag color="purple">Limited Edition</Tag>}
-              {record.pre_order && <Tag color="blue">Pre-Order</Tag>}
+              {record.pre_order && <Tag color="blue">Preorder</Tag>}
             </Space>
           </div>
 

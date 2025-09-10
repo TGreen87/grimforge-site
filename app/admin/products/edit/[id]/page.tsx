@@ -95,7 +95,7 @@ export default function ProductEdit() {
           <Switch />
         </Form.Item>
 
-        <Form.Item label="Pre-Order" name="pre_order" valuePropName="checked">
+        <Form.Item label="Preorder" name="pre_order" valuePropName="checked">
           <Switch />
         </Form.Item>
       </Form>

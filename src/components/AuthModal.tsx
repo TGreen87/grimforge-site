@@ -151,7 +151,25 @@ const AuthModal = () => {
               >
                 {isLoading ? "Signing in…" : "Sign in"}
               </Button>
-              <Button type="button" onClick={handleGoogle} className="w-full mt-2" variant="outline">
+              <Button
+                type="button"
+                onClick={handleGoogle}
+                className="w-full mt-2 justify-center bg-white text-black border border-border hover:bg-gray-100 dark:bg-background dark:text-foreground dark:hover:bg-secondary"
+                aria-label="Continue with Google"
+              >
+                <svg
+                  aria-hidden="true"
+                  focusable="false"
+                  width="18"
+                  height="18"
+                  viewBox="0 0 24 24"
+                  className="mr-2"
+                >
+                  <path fill="#EA4335" d="M12 10.2v3.9h5.5c-.2 1.2-1.7 3.6-5.5 3.6-3.3 0-6-2.7-6-6s2.7-6 6-6c1.9 0 3.2.8 3.9 1.5l2.6-2.5C17.2 3 14.8 2 12 2 6.5 2 2 6.5 2 12s4.5 10 10 10c5.8 0 9.6-4.1 9.6-9.9 0-.7-.1-1.2-.2-1.7H12z"/>
+                  <path fill="#34A853" d="M3.9 7.3l3.2 2.4C7.8 8.3 9.7 6.9 12 6.9c1.9 0 3.2.8 3.9 1.5l2.6-2.5C17.2 3 14.8 2 12 2 8.5 2 5.5 3.8 3.9 7.3z"/>
+                  <path fill="#FBBC05" d="M12 22c2.7 0 5-1 6.7-2.6l-3.1-2.6c-.8.5-1.9.9-3.6.9-2.8 0-5.1-1.9-5.9-4.5l-3.2 2.5C4.5 19.9 7.9 22 12 22z"/>
+                  <path fill="#4285F4" d="M21.6 12.1c0-.7-.1-1.2-.2-1.7H12v3.9h5.5c-.2 1.2-1.7 3.6-5.5 3.6-2.5 0-4.7-1.7-5.5-4.1l-3.2 2.5C4 19.9 7.5 22 12 22c5.8 0 9.6-4.1 9.6-9.9z"/>
+                </svg>
                 Continue with Google
               </Button>
             </form>

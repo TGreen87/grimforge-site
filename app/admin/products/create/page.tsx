@@ -95,7 +95,7 @@ export default function ProductCreate() {
           <Switch />
         </Form.Item>
 
-        <Form.Item label="Pre-Order" name="pre_order" valuePropName="checked" initialValue={false}>
+        <Form.Item label="Preorder" name="pre_order" valuePropName="checked" initialValue={false}>
           <Switch />
         </Form.Item>
       </Form>

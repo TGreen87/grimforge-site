@@ -96,18 +96,18 @@ export const authProvider: AuthProvider = {
         };
       }
 
-      // Relaxed gating: if role is present and not admin (case-insensitive), still allow for now
-      // Fire-and-forget role check to avoid blocking UI
-      supabase
-        .from('user_roles')
-        .select('role')
-        .eq('user_id', session.user.id)
-        .single()
-        .then(({ data }) => {
-          const role = (data as any)?.role?.toLowerCase?.();
-          if (role && role !== 'admin') console.warn('Non-admin session detected');
-        })
-        .catch(() => void 0);
+      // Relaxed gating: fire-and-forget role check (avoid blocking UI)
+      ;(async () => {
+        try {
+          const { data } = await supabase
+            .from('user_roles')
+            .select('role')
+            .eq('user_id', session.user.id)
+            .single()
+          const role = (data as any)?.role?.toLowerCase?.()
+          if (role && role !== 'admin') console.warn('Non-admin session detected')
+        } catch {}
+      })()
 
       return {
         authenticated: true,

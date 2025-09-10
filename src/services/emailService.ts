@@ -87,7 +87,7 @@ class EmailNotificationService {
             </div>
 
             <div style="text-align: center; margin-top: 30px;">
-              <p style="color: #9ca3af; font-size: 14px;">The shadows will deliver your treasures soon.</p>
+              <p style="color: #9ca3af; font-size: 14px;">Your order will arrive soon.</p>
             </div>
           </div>
         </div>

@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { brand } from "@/config/brand";
 import NewsletterSignup from "@/components/NewsletterSignup";
+import { footer as footerCopy } from "@/content/copy";
 
 const Footer = () => {
   const pathname = usePathname();
@@ -48,9 +49,7 @@ const Footer = () => {
             <div className="flex items-center space-x-2">
               <span className="blackletter text-xl text-bone">{brand.name}</span>
             </div>
-            <p className="text-muted-foreground text-sm">
-              Australia's premier distributor of underground black metal since the darkness began.
-            </p>
+            <p className="text-muted-foreground text-sm">{footerCopy.tagline}</p>
             <div className="flex space-x-4">
               <Facebook className="h-5 w-5 text-muted-foreground hover:text-accent cursor-pointer transition-colors" />
               <Instagram className="h-5 w-5 text-muted-foreground hover:text-accent cursor-pointer transition-colors" />
@@ -62,11 +61,11 @@ const Footer = () => {
           <div className="space-y-4">
             <h3 className="gothic-heading text-bone">Catalog</h3>
             <ul className="space-y-2 text-sm text-muted-foreground">
-              <li><button onClick={() => scrollToSection('catalog')} className="hover:text-accent transition-colors text-left">New Arrivals</button></li>
+              <li><button onClick={() => scrollToSection('catalog')} className="hover:text-accent transition-colors text-left">New arrivals</button></li>
               <li><button onClick={() => scrollToSection('vinyl')} className="hover:text-accent transition-colors text-left">Vinyl Records</button></li>
-              <li><button onClick={() => scrollToSection('cassettes')} className="hover:text-accent transition-colors text-left">Cassette Tapes</button></li>
+              <li><button onClick={() => scrollToSection('cassettes')} className="hover:text-accent transition-colors text-left">cassette</button></li>
               <li><button onClick={() => scrollToSection('cds')} className="hover:text-accent transition-colors text-left">Compact Discs</button></li>
-              <li><button onClick={() => scrollToSection('catalog')} className="hover:text-accent transition-colors text-left">Limited Editions</button></li>
+              <li><button onClick={() => scrollToSection('catalog')} className="hover:text-accent transition-colors text-left">Limited editions</button></li>
             </ul>
           </div>
 
@@ -84,10 +83,8 @@ const Footer = () => {
 
           {/* Newsletter */}
           <div className="space-y-4">
-            <h3 className="gothic-heading text-bone">Join the Cult</h3>
-            <p className="text-sm text-muted-foreground">
-              Subscribe for news of the latest releases from the underground.
-            </p>
+            <h3 className="gothic-heading text-bone">{footerCopy.cta}</h3>
+            <p className="text-sm text-muted-foreground">Subscribe for new releases and limited runs.</p>
             <NewsletterSignup />
           </div>
         </div>

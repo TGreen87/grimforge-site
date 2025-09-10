@@ -31,10 +31,10 @@ const mockReviews: Review[] = [
   {
     id: "1",
     userId: "user1",
-    userName: "Mortis Blackheart",
+    userName: "Alex M.",
     rating: 5,
-    title: "Pure darkness incarnate",
-    comment: "This album captures the essence of eternal night perfectly. The production is raw yet atmospheric, exactly what black metal should be. Every track tells a story of shadow and despair.",
+    title: "Outstanding release",
+    comment: "Raw yet atmospheric in the best way. Excellent songwriting and production — a standout black metal record.",
     date: "2024-01-15",
     helpful: 12,
     verified: true
@@ -53,10 +53,10 @@ const mockReviews: Review[] = [
   {
     id: "3",
     userId: "user3", 
-    userName: "Shadow Priest",
+    userName: "Jamie R.",
     rating: 5,
-    title: "Hauntingly beautiful",
-    comment: "From the first track to the last, this album is a journey through darkness. The atmospheric elements are perfectly balanced with the brutal sections.",
+    title: "Haunting and powerful",
+    comment: "From the first track to the last, it holds a consistent mood. The atmospheric elements are perfectly balanced with the heavier sections.",
     date: "2024-01-08",
     helpful: 15,
     verified: false

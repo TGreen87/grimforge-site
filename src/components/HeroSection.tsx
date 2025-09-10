@@ -70,7 +70,7 @@ const HeroSection = () => {
       {/* Main Content - Responsive positioning and sizing */}
       <div className="absolute bottom-16 md:bottom-24 left-0 right-0 z-10 text-center px-4">
         <p className="text-base md:text-lg lg:text-xl text-muted-foreground mb-4 md:mb-6 leading-relaxed drop-shadow-lg">
-          Underground Black Metal Collection<br className="hidden sm:block" />
+          Black metal catalog<br className="hidden sm:block" />
           <span className="sm:hidden">•</span>
           <span className="hidden sm:inline"> • </span>
           Vinyl <span className="hidden sm:inline">• </span>
@@ -89,7 +89,7 @@ const HeroSection = () => {
               }
             }}
           >
-            Explore Catalog
+            Browse catalog
           </Button>
           <Button 
             variant="outline" 
@@ -102,7 +102,7 @@ const HeroSection = () => {
               }
             }}
           >
-            New Arrivals
+            New arrivals
           </Button>
         </div>
       </div>

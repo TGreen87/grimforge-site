@@ -11,14 +11,14 @@ This repo follows Codex CLI conventions for a small team: plan first, minimal bl
 
 ## Branching & Deploy
 
-- Working branch: `feat/admin-suite-phase1` (only branch we develop on).
-- No PRs: push directly to the working branch; do not open PRs.
+- Working branch: `dev` (single active working branch).
+- No PRs: push directly to `dev`; do not open PRs.
 - Main is protected: never push to `main` unless the user says “Go live on main”.
-- Netlify Branch Deploy: enable for `feat/admin-suite-phase1` (Build & deploy → Branches → Add Branch). Use the branch URL for live testing.
+- Netlify Branch Deploy: enable for `dev` (Build & deploy → Branches → Add Branch). Use the branch URL for live testing.
 - Go‑Live protocol:
   1) Branch deploy is green and verified.
   2) User explicitly: “Go live on main”.
-  3) Merge/fast‑forward `feat/admin-suite-phase1` → `main` and push.
+  3) Merge/fast‑forward `dev` → `main` and push.
   4) Monitor; if any issue, revert immediately.
 
 ## Environment & Secrets
@@ -55,6 +55,19 @@ This repo follows Codex CLI conventions for a small team: plan first, minimal bl
 - Read files in chunks ≤ 250 lines.
 - Output is truncated at ~10KB/256 lines; tailor queries.
 - Avoid running long/loud commands needlessly.
+
+## Deploy & Caching Notes (Branch Deploys)
+
+- Branch Deploys can occasionally serve stale SSR HTML if CDN caches a previous payload.
+- Mitigations (already implemented):
+  - `next.config.mjs` sets `Cache-Control: no-store` headers for `/` (homepage HTML) and long‑cache immutable for static assets.
+  - `app/(site)/page.tsx` exports `dynamic = 'force-dynamic'` to ensure fresh HTML.
+- If stale HTML persists: clear cache and redeploy the branch. As a fallback, add a Netlify `_headers` entry for `/` with `Cache-Control: no-store`.
+
+## Admin UX Additions
+
+- Users & Roles: `/admin/users` to grant/remove admin by email. Server API: `/api/admin/users/roles` (GET/POST/DELETE).
+- OAuth customer provisioning: after Google sign‑in, a `customers` row is upserted server‑side (email/name).
 
 ## Patching Files (apply_patch)
 
@@ -107,4 +120,3 @@ Patch envelope example:
 ---
 
 This guide encodes how we use Codex CLI here: plan first, one working branch, explicit go‑live, minimal blast radius.
-

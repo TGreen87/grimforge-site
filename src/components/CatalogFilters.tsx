@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Search, SlidersHorizontal, X } from "lucide-react";
+import { catalog as catalogCopy } from "@/content/copy";
 import { useState, useEffect } from "react";
 
 interface Filters {
@@ -73,7 +74,7 @@ const CatalogFilters = ({ onFiltersChange }: CatalogFiltersProps) => {
       <div className="flex items-center justify-between mb-6">
         <h3 className="gothic-heading text-lg text-bone flex items-center">
           <SlidersHorizontal className="h-5 w-5 mr-2 text-accent" />
-          Conjure Your Selection
+          {catalogCopy.filterHeading}
         </h3>
         <Button variant="ghost" size="sm" onClick={handleClearFilters} className="text-muted-foreground hover:text-accent">
           <X className="h-4 w-4 mr-1" />
@@ -84,7 +85,7 @@ const CatalogFilters = ({ onFiltersChange }: CatalogFiltersProps) => {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
         {/* Search */}
         <div className="space-y-2">
-          <Label className="text-sm text-bone">Search the Darkness</Label>
+          <Label className="text-sm text-bone">{catalogCopy.searchLabel}</Label>
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
@@ -98,7 +99,7 @@ const CatalogFilters = ({ onFiltersChange }: CatalogFiltersProps) => {
 
         {/* Sort */}
         <div className="space-y-2">
-          <Label className="text-sm text-bone">Sort By</Label>
+          <Label className="text-sm text-bone">{catalogCopy.sortByLabel}</Label>
           <Select value={sortBy} onValueChange={setSortBy}>
             <SelectTrigger className="bg-secondary/50 border-border">
               <SelectValue />
@@ -109,14 +110,14 @@ const CatalogFilters = ({ onFiltersChange }: CatalogFiltersProps) => {
               <SelectItem value="price-low">Price: Low to High</SelectItem>
               <SelectItem value="price-high">Price: High to Low</SelectItem>
               <SelectItem value="artist">Artist A-Z</SelectItem>
-              <SelectItem value="grimness">Grimness Level</SelectItem>
+              <SelectItem value="grimness">{catalogCopy.intensityLabel}</SelectItem>
             </SelectContent>
           </Select>
         </div>
 
-        {/* Price Range */}
+        {/* Price range */}
         <div className="space-y-2">
-          <Label className="text-sm text-bone">Price Range</Label>
+          <Label className="text-sm text-bone">{catalogCopy.priceRangeLabel}</Label>
           <div className="px-2">
             <Slider
               value={priceRange}
@@ -132,9 +133,9 @@ const CatalogFilters = ({ onFiltersChange }: CatalogFiltersProps) => {
           </div>
         </div>
 
-        {/* Grimness Level */}
+        {/* Intensity */}
         <div className="space-y-2">
-          <Label className="text-sm text-bone">Grimness Level</Label>
+          <Label className="text-sm text-bone">Intensity</Label>
           <div className="px-2">
             <Slider
               value={grimnessLevel}
@@ -154,7 +155,7 @@ const CatalogFilters = ({ onFiltersChange }: CatalogFiltersProps) => {
 
       {/* Genre Tags */}
       <div className="mt-6">
-        <Label className="text-sm text-bone mb-3 block">Genres of Darkness</Label>
+        <Label className="text-sm text-bone mb-3 block">{catalogCopy.genresLabel}</Label>
         <div className="flex flex-wrap gap-2">
           {genres.map(genre => (
             <Badge
@@ -181,7 +182,7 @@ const CatalogFilters = ({ onFiltersChange }: CatalogFiltersProps) => {
           onClick={() => setInStock(!inStock)}
           className={`w-full sm:w-auto ${inStock ? "bg-accent hover:bg-accent/90" : "border-frost text-frost hover:bg-frost hover:text-background"}`}
         >
-          In Stock Only
+          {catalogCopy.quickInStock}
         </Button>
         <Button
           variant={limitedOnly ? "default" : "outline"}
@@ -189,7 +190,7 @@ const CatalogFilters = ({ onFiltersChange }: CatalogFiltersProps) => {
           onClick={() => setLimitedOnly(!limitedOnly)}
           className={`w-full sm:w-auto ${limitedOnly ? "bg-accent hover:bg-accent/90" : "border-frost text-frost hover:bg-frost hover:text-background"}`}
         >
-          Limited Editions
+          {catalogCopy.quickLimited}
         </Button>
       </div>
     </div>
