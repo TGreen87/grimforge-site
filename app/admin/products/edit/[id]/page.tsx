@@ -16,6 +16,17 @@ export default function ProductEdit() {
     <Edit saveButtonProps={saveButtonProps}>
       <Form {...formProps} layout="vertical">
         <Form.Item
+          label="Slug"
+          name="slug"
+          extra="URL slug used for product detail pages (e.g., 'dark-ritual')."
+          rules={[{ pattern: /^[a-z0-9]+(?:-[a-z0-9]+)*$/, message: 'Use lowercase letters, numbers and hyphens' }]}
+        >
+          <Input addonAfter={<a onClick={(e)=>{e.preventDefault();
+            const t = (formProps.form?.getFieldValue('title') as string || '').trim().toLowerCase().replace(/[^a-z0-9\s-]/g,'').replace(/\s+/g,'-').replace(/-+/g,'-');
+            formProps.form?.setFieldsValue({ slug: t });
+          }}>Generate</a>} />
+        </Form.Item>
+        <Form.Item
           label="Title"
           name="title"
           rules={[{ required: true, message: "Title is required" }]}
