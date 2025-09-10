@@ -209,7 +209,8 @@ const runAutofill = async (input?: string | string[]) => {
       toast({ title: "Missing fields", description: "Title, artist and price are required", variant: "destructive" });
       return;
     }
-    const id = `${slugify(`${form.artist}-${form.title}`)}-upl-${Date.now()}`;
+    const id = crypto && 'randomUUID' in crypto ? (crypto as any).randomUUID() : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+    const slug = slugify(`${form.artist}-${form.title}`);
 
     try {
       let imageUrl = "/assets/album-1.jpg";
@@ -262,11 +263,31 @@ const runAutofill = async (input?: string | string[]) => {
           featured: form.featured,
           limited: form.limited,
           pre_order: form.preOrder,
+          slug,
           release_year: new Date().getFullYear(),
         });
 
       if (insertError) {
         throw insertError;
+      }
+
+      // Create default variant and inventory
+      const variantName = 'Standard';
+      const variantSku = form.sku || `${slug}-STD`;
+      const price = Number(form.price || 0);
+      const { data: variantData, error: variantError } = await supabase
+        .from('variants')
+        .insert({ product_id: id, name: variantName, sku: variantSku, price, format: form.format })
+        .select('id')
+        .single();
+      if (variantError) throw variantError;
+      const variantId = variantData.id as string;
+      const stockQty = Number(form.stock || 0);
+      if (stockQty > 0) {
+        const { error: invError } = await supabase
+          .from('inventory')
+          .insert({ variant_id: variantId, on_hand: stockQty, allocated: 0 })
+        if (invError) throw invError;
       }
 
       toast({ title: "Published", description: `${form.artist} - ${form.title} is now in the catalog` });

@@ -16,7 +16,14 @@ export default function VariantList() {
   });
 
   return (
-    <List>
+    <List
+      title="Variants (Stock Units)"
+      headerButtons={
+        <div className="text-sm text-muted-foreground">
+          Variants represent purchasable stock units (e.g., a specific pressing or format). Use Receive on Inventory to add stock.
+        </div>
+      }
+    >
       <Table {...tableProps} rowKey="id">
         <Table.Column
           dataIndex="name"

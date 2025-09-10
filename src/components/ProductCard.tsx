@@ -29,8 +29,9 @@ const ProductCard = ({ id, slug, title, artist, format, price, image, limited, p
   const { addItem: addToWishlist, removeItem: removeFromWishlist, isInWishlist } = useWishlist();
   const { toast } = useToast();
   
-  // Prefer slug for navigation; fallback to legacy id route
-  const href = slug ? `/products/${slug}` : `/product/${id.split('-rec-')[0]}`;
+  // Prefer slug for navigation; fallback to a slugified title route handled by product page
+  const fallbackSlugFromTitle = `${artist} ${title}`.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')
+  const href = slug ? `/products/${slug}` : `/products/${fallbackSlugFromTitle}`;
   const formatIcons = {
     vinyl: "🎵",
     cassette: "📼", 

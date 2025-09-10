@@ -1,10 +1,11 @@
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetClose } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useCart } from "@/contexts/CartContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { ShoppingCart, Minus, Plus, X } from "lucide-react";
 import CheckoutModal from "./CheckoutModal";
+import AuthModal from "./AuthModal";
 
 const CartDrawer = () => {
   const { items, getTotalItems, getTotalPrice, updateQuantity, removeItem } = useCart();
@@ -110,19 +111,27 @@ const CartDrawer = () => {
                 </span>
               </div>
               
-              <Button className="w-full bg-accent hover:bg-accent/90 text-accent-foreground gothic-heading">
-                {isAuthenticated ? (
-                  <CheckoutModal>
-                    <span className="w-full">Checkout</span>
-                  </CheckoutModal>
-                ) : (
-                  "Sign in to checkout"
-                )}
-              </Button>
+              {isAuthenticated ? (
+                <CheckoutModal>
+                  <Button className="w-full bg-accent hover:bg-accent/90 text-accent-foreground gothic-heading">
+                    Checkout
+                  </Button>
+                </CheckoutModal>
+              ) : (
+                <AuthModal
+                  trigger={
+                    <Button className="w-full bg-accent hover:bg-accent/90 text-accent-foreground gothic-heading">
+                      Sign in to checkout
+                    </Button>
+                  }
+                />
+              )}
               
-              <Button variant="outline" className="w-full border-frost text-frost hover:bg-frost hover:text-background">
-                Continue Shopping
-              </Button>
+              <SheetClose asChild>
+                <Button variant="outline" className="w-full border-frost text-frost hover:bg-frost hover:text-background">
+                  Continue Shopping
+                </Button>
+              </SheetClose>
             </div>
           )}
         </div>

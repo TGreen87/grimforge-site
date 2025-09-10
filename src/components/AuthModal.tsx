@@ -12,7 +12,11 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { Skull, Eye, EyeOff, Crown, Users } from "lucide-react";
 
-const AuthModal = () => {
+interface AuthModalProps {
+  trigger?: React.ReactNode;
+}
+
+const AuthModal = ({ trigger }: AuthModalProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [loginData, setLoginData] = useState({ email: "", password: "" });
@@ -85,10 +89,12 @@ const AuthModal = () => {
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" className="border-frost text-frost hover:bg-frost hover:text-background gothic-heading">
-          <Skull className="h-4 w-4 mr-2" />
-          Sign in
-        </Button>
+        {trigger || (
+          <Button variant="outline" className="border-frost text-frost hover:bg-frost hover:text-background gothic-heading">
+            <Skull className="h-4 w-4 mr-2" />
+            Sign in
+          </Button>
+        )}
       </DialogTrigger>
       
       <DialogContent className="bg-background border-border max-w-md">

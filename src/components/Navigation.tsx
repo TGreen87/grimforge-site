@@ -97,9 +97,9 @@ const Navigation = () => {
           <CartDrawer />
           {isAuthenticated ? (
             <>
-              <Link href="/admin" prefetch={false} className="hidden md:block text-sm underline-offset-4 hover:underline">
+              <a href="/admin" className="hidden md:block text-sm underline-offset-4 hover:underline" onClick={(e) => { e.preventDefault(); window.location.href = '/admin' }}>
                 Admin
-              </Link>
+              </a>
               <UserMenu />
             </>
           ) : (

@@ -36,30 +36,14 @@ export default function InventoryList() {
     try {
       const values = await form.validateFields();
       const supabase = getSupabaseBrowserClient();
-
-      // Create stock movement record
-      const { error: movementError } = await supabase
-        .from("stock_movements")
-        .insert({
-          variant_id: values.variant_id,
-          quantity: values.quantity,
-          type: "receipt",
-          reason: values.notes || "Stock received via admin panel",
-        });
-
-      if (movementError) throw movementError;
-
-      // Update inventory
-      const { error: inventoryError } = await supabase
-        .from("inventory")
-        .update({
-          on_hand: (selectedInventory?.on_hand || 0) + values.quantity,
-          available: (selectedInventory?.available || 0) + values.quantity,
-          updated_at: new Date().toISOString(),
-        })
-        .eq("variant_id", values.variant_id);
-
-      if (inventoryError) throw inventoryError;
+      // Use RPC to atomically receive stock and record movement
+      const { data, error: rpcError } = await supabase.rpc('receive_stock', {
+        p_variant_id: values.variant_id,
+        p_quantity: values.quantity,
+        p_notes: values.notes || null,
+        p_user_id: null,
+      })
+      if (rpcError) throw rpcError;
 
       message.success(`Successfully received ${values.quantity} units`);
       setIsReceiveStockModalOpen(false);
