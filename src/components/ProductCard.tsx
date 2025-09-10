@@ -1,6 +1,6 @@
 'use client'
 
-import { memo } from "react";
+import { memo, KeyboardEvent } from "react";
 import { useRouter } from "next/navigation";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -86,11 +86,20 @@ const ProductCard = ({ id, slug, title, artist, format, price, image, limited, p
   const handleCardClick = () => {
     router.push(href);
   };
+  const handleCardKey = (e: KeyboardEvent) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      router.push(href);
+    }
+  };
 
   return (
     <Card 
       className="group bg-card/80 backdrop-blur-sm border-border hover:border-accent transition-all duration-300 hover:shadow-blood cursor-pointer"
       onClick={handleCardClick}
+      role="link"
+      tabIndex={0}
+      onKeyDown={handleCardKey}
     >
       <CardContent className="p-3 md:p-4">
         {/* Image Container */}
@@ -132,6 +141,7 @@ const ProductCard = ({ id, slug, title, artist, format, price, image, limited, p
                 size="sm" 
                 variant="outline" 
                 className="h-8 w-8 md:h-9 md:w-9 border-frost text-frost hover:bg-frost hover:text-background p-0"
+                aria-label={`View details for ${artist} - ${title}`}
               >
                 <Eye className="h-3.5 w-3.5 md:h-4 md:w-4" />
               </Button>
@@ -141,13 +151,14 @@ const ProductCard = ({ id, slug, title, artist, format, price, image, limited, p
               variant={isInWishlist(id) ? "default" : "outline"}
               className={`h-8 w-8 md:h-9 md:w-9 p-0 ${isInWishlist(id) ? "bg-accent hover:bg-accent/90" : "border-frost text-frost hover:bg-frost hover:text-background"}`}
               onClick={handleWishlistToggle}
+              aria-label={`${isInWishlist(id) ? 'Remove from' : 'Add to'} wishlist: ${artist} - ${title}`}
             >
               <Heart className={`h-3.5 w-3.5 md:h-4 md:w-4 ${isInWishlist(id) ? 'fill-current' : ''}`} />
             </Button>
             <Button size="sm" className="h-8 w-8 md:h-9 md:w-9 bg-accent hover:bg-accent/90 p-0" onClick={(e) => {
               e.stopPropagation();
               handleAddToCart();
-            }}>
+            }} aria-label={`Add to cart: ${artist} - ${title}`}>
               <ShoppingCart className="h-3.5 w-3.5 md:h-4 md:w-4" />
             </Button>
           </div>
@@ -156,7 +167,9 @@ const ProductCard = ({ id, slug, title, artist, format, price, image, limited, p
         {/* Product Info - Mobile optimized */}
         <div className="space-y-1.5 md:space-y-2">
           <h3 className="gothic-heading text-sm md:text-base font-semibold text-bone line-clamp-1">
-            {title}
+            <Link href={href} onClick={(e)=>e.stopPropagation()} className="hover:underline" aria-label={`View details for ${artist} - ${title}`}>
+              {title}
+            </Link>
           </h3>
           <p className="text-muted-foreground text-xs md:text-sm">
             {artist}

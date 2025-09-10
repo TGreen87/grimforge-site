@@ -133,6 +133,7 @@ This guide encodes how we use Codex CLI here: plan first, one working branch, ex
 - Admin products: added Slug field with `Generate` helper derived from Title.
 - SEO: Product JSON‑LD added to product pages; Articles now have metadata + Article JSON‑LD (mocked data).
 - Observability: added `/api/client-logs` endpoint and mounted a client error logger in `app/providers.tsx`.
+- Observability: rate limit + dedupe on `/api/client-logs`, correlation ID cookie (`orr_cid`) included with reports, and a React ErrorBoundary wraps the app.
 
 ## Deployment Status
 

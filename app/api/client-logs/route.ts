@@ -38,16 +38,25 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ ok: true, limited: true })
     }
 
-    const { message, stack, context, level = 'error', url, cid } = await req.json()
+    const { message, stack, context = {}, level = 'error', url, cid } = await req.json()
 
-    const payloadStr = JSON.stringify({ message, stack, context })
-    if (payloadStr.length > 16_000) {
-      // Truncate overly large payloads
-      const truncated = payloadStr.slice(0, 16_000)
-      context && (context._truncated = true)
+    // correlation id precedence: header > body > cookie
+    const headerCid = req.headers.get('x-correlation-id') || undefined
+    const cookieCid = (req.cookies as any)?.get?.('orr_cid')?.value
+    const correlationId = headerCid || cid || cookieCid
+
+    // Truncate overly large message/stack and breadcrumbs
+    const safeMessage = typeof message === 'string' ? message.slice(0, 2000) : String(message).slice(0, 2000)
+    const safeStack = typeof stack === 'string' ? stack.slice(0, 8000) : undefined
+    const breadcrumbs = Array.isArray((context as any).breadcrumbs)
+      ? ((context as any).breadcrumbs as any[]).slice(-30)
+      : undefined
+    const safeContext = {
+      ...(context as Record<string, unknown>),
+      ...(breadcrumbs ? { breadcrumbs } : {}),
     }
 
-    const fingerprint = `${level}|${url}|${message}|${(stack || '').slice(0, 200)}`
+    const fingerprint = `${correlationId || ''}|${level}|${url}|${safeMessage}|${(safeStack || '').slice(0, 200)}`
     if (dedupe(fingerprint)) {
       return NextResponse.json({ ok: true, deduped: true })
     }
@@ -55,12 +64,12 @@ export async function POST(req: NextRequest) {
     await writeAuditLog({
       event_type: level === 'error' ? 'client.error' : level === 'warn' ? 'client.warn' : 'client.log',
       metadata: {
-        message,
-        stack,
-        context,
+        message: safeMessage,
+        stack: safeStack,
+        context: safeContext,
         page_url: url,
         referer: req.headers.get('referer') || undefined,
-        correlation_id: cid || req.cookies.get?.('orr_cid')?.value,
+        correlation_id: correlationId,
       },
       user_agent: req.headers.get('user-agent') || undefined,
       ip_address: ip as any,

@@ -17,6 +17,13 @@ This doc tracks the immediate backlog now that production auth is live. All work
 - Catalog cards now link directly to `/products/{slug}` (fallback to id route if slug missing).
 - Footer links use hash anchors to ensure reliable jump scrolling.
 
+## Catalog — UX
+- Added compact counts line under the section header.
+
+Next:
+- Add skeletons, consistent card sizes; badges for Limited/Pre‑order.
+- Improve a11y focus outlines and keyboard navigation.
+
 Next:
 - Add slug generation/editing in Admin (derive from title; unique check) so catalog cards always link to `/products/{slug}` without legacy fallback (dev).
 - Update ProductCard to render slug for analytics data attributes (optional).
