@@ -148,7 +148,7 @@ const ProductCatalog = () => {
         </div>
 
         {/* Advanced Filters */}
-        <CatalogFilters onFiltersChange={setFilters} />
+        <CatalogFilters onFiltersChange={setFilters} onReset={() => setActiveTab('all')} />
 
         {/* Format Tabs - Mobile responsive */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">

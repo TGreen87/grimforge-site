@@ -20,9 +20,10 @@ interface Filters {
 
 interface CatalogFiltersProps {
   onFiltersChange: (filters: Filters) => void;
+  onReset?: () => void;
 }
 
-const CatalogFilters = ({ onFiltersChange }: CatalogFiltersProps) => {
+const CatalogFilters = ({ onFiltersChange, onReset }: CatalogFiltersProps) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedGenres, setSelectedGenres] = useState<string[]>([]);
   const [priceRange, setPriceRange] = useState<[number, number]>([0, 100]);
@@ -67,6 +68,7 @@ const CatalogFilters = ({ onFiltersChange }: CatalogFiltersProps) => {
     setSortBy("featured");
     setInStock(false);
     setLimitedOnly(false);
+    onReset?.();
   };
 
   return (
