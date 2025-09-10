@@ -38,7 +38,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ ok: true, limited: true })
     }
 
-    const { message, stack, context, level = 'error', url } = await req.json()
+    const { message, stack, context, level = 'error', url, cid } = await req.json()
 
     const payloadStr = JSON.stringify({ message, stack, context })
     if (payloadStr.length > 16_000) {
@@ -60,6 +60,7 @@ export async function POST(req: NextRequest) {
         context,
         page_url: url,
         referer: req.headers.get('referer') || undefined,
+        correlation_id: cid || req.cookies.get?.('orr_cid')?.value,
       },
       user_agent: req.headers.get('user-agent') || undefined,
       ip_address: ip as any,

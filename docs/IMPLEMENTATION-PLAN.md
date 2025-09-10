@@ -48,6 +48,7 @@ Acceptance:
 ### Phase 4 — Observability
 - Add `/api/client-logs` to collect client-side error events. [done]
 - Lightweight browser logger (breadcrumb buffer, rate-limited POST on error). [partial — initial error/unhandledrejection listener added]
+- Add rate limiting, dedupe, and size guards on server route. [done]
 - Wire `ErrorBoundary` to log critical errors. [pending]
 
 Acceptance:

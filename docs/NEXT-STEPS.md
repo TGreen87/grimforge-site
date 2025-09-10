@@ -27,8 +27,8 @@ Next:
 - Mounted client error listener (window.error/unhandledrejection) via `ClientErrorLogger` in app providers.
 
 Next:
-- Add rate limiting and payload size guard on `/api/client-logs`.
 - Add optional correlation ID (e.g., from headers) to tie client logs to sessions.
+- Consider simple dedup persistence keyed by session (server memory is best-effort only).
 
 ## 1) Products / Variants — Bulk Tooling (Phase 1)
 - Bulk price updates: +/- %, absolute set, undo preview

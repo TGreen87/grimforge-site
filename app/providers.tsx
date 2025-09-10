@@ -6,6 +6,7 @@ import { AuthProvider } from '@/src/contexts/AuthContext'
 import { CartProvider } from '@/src/contexts/CartContext'
 import { WishlistProvider } from '@/src/contexts/WishlistContext'
 import ClientErrorLogger from '@/src/components/ClientErrorLogger'
+import ErrorBoundary from '@/src/components/ErrorBoundary'
 
 interface ProvidersProps {
   children: ReactNode
@@ -17,7 +18,9 @@ export default function Providers({ children }: ProvidersProps) {
       <CartProvider>
         <WishlistProvider>
           <ClientErrorLogger />
-          {children}
+          <ErrorBoundary>
+            {children}
+          </ErrorBoundary>
         </WishlistProvider>
       </CartProvider>
     </AuthProvider>

@@ -1,80 +1,50 @@
-import React, { Component, ErrorInfo, ReactNode } from "react";
-import { AlertTriangle, RefreshCw } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+'use client'
 
-interface Props {
-  children: ReactNode;
-  fallback?: ReactNode;
-}
+import React from 'react'
 
-interface State {
-  hasError: boolean;
-  error?: Error;
-}
+type Props = { children: React.ReactNode }
+type State = { hasError: boolean }
 
-class ErrorBoundary extends Component<Props, State> {
-  public state: State = {
-    hasError: false
-  };
-
-  public static getDerivedStateFromError(error: Error): State {
-    return { hasError: true, error };
+export default class ErrorBoundary extends React.Component<Props, State> {
+  constructor(props: Props) {
+    super(props)
+    this.state = { hasError: false }
   }
 
-  public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    console.error('ErrorBoundary caught an error:', error, errorInfo);
+  static getDerivedStateFromError(): State {
+    return { hasError: true }
   }
 
-  private handleReset = () => {
-    this.setState({ hasError: false, error: undefined });
-  };
-
-  public render() {
-    if (this.state.hasError) {
-      if (this.props.fallback) {
-        return this.props.fallback;
+  componentDidCatch(error: Error, info: React.ErrorInfo) {
+    try {
+      const payload = {
+        message: error.message,
+        stack: error.stack,
+        context: { source: 'react-error-boundary', componentStack: info.componentStack },
+        level: 'error',
+        url: typeof window !== 'undefined' ? window.location.href : undefined,
       }
+      if (typeof navigator !== 'undefined' && 'sendBeacon' in navigator) {
+        navigator.sendBeacon('/api/client-logs', new Blob([JSON.stringify(payload)], { type: 'application/json' }))
+      }
+    } catch {}
+  }
 
+  render() {
+    if (this.state.hasError) {
       return (
-        <div className="min-h-screen flex items-center justify-center p-4 bg-background">
-          <Card className="w-full max-w-md">
-            <CardHeader className="text-center">
-              <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-destructive/10">
-                <AlertTriangle className="h-6 w-6 text-destructive" />
-              </div>
-              <CardTitle>Something went wrong</CardTitle>
-              <CardDescription>
-                An unexpected error occurred. Don't worry, your data is safe.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="rounded-lg bg-muted p-3">
-                <p className="text-sm font-mono text-muted-foreground">
-                  {this.state.error?.message || "Unknown error"}
-                </p>
-              </div>
-              <div className="flex gap-2">
-                <Button onClick={this.handleReset} className="flex-1">
-                  <RefreshCw className="mr-2 h-4 w-4" />
-                  Try Again
-                </Button>
-                <Button 
-                  variant="outline" 
-                  onClick={() => window.location.reload()}
-                  className="flex-1"
-                >
-                  Refresh Page
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
+        <div className="container mx-auto px-4 py-8">
+          <div className="bg-secondary/20 border border-border rounded p-6">
+            <h2 className="gothic-heading text-bone text-2xl mb-2">Something went wrong</h2>
+            <p className="text-muted-foreground mb-4">An unexpected error occurred. Please try reloading the page.</p>
+            <button className="px-4 py-2 bg-accent text-accent-foreground rounded" onClick={() => location.reload()}>
+              Reload
+            </button>
+          </div>
         </div>
-      );
+      )
     }
-
-    return this.props.children;
+    return this.props.children
   }
 }
 
-export default ErrorBoundary;
