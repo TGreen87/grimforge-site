@@ -262,7 +262,7 @@ const SiteSettings = () => {
 
                 <div className="flex items-center justify-between">
                   <div>
-                    <Label>Pre-orders</Label>
+                    <Label>Preorders</Label>
                     <p className="text-sm text-muted-foreground">Allow customers to pre-order upcoming releases</p>
                   </div>
                   <Switch
