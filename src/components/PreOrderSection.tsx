@@ -1,3 +1,4 @@
+"use client"
 import PreOrderCard from "./PreOrderCard";
 const album1 = "/assets/album-1.jpg";
 const album2 = "/assets/album-2.jpg";
