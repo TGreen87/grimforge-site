@@ -70,4 +70,3 @@ const PreOrderSection = () => {
 };
 
 export default PreOrderSection;
-"use client"
