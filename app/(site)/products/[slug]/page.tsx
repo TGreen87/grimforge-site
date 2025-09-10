@@ -3,6 +3,8 @@ import { notFound } from 'next/navigation'
 import { generateProductMetadata } from '@/lib/seo/metadata'
 import { getProduct } from './metadata'
 import BuyNowButton from '@/components/BuyNowButton'
+import { Suspense } from 'react'
+import VariantSelector from './variant-selector'
 import Image from 'next/image'
 
 interface Inventory {
@@ -64,9 +66,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
   if (!product) notFound()
 
   const primaryVariant = product.variants?.[0]
-  const price = primaryVariant?.price ?? product.price
-  const available = (primaryVariant as any)?.inventory?.available ?? 0
-  const canBuy = !!primaryVariant && available > 0
+  const initialPrice = primaryVariant?.price ?? product.price
 
   return (
     <main>
@@ -92,22 +92,44 @@ export default async function ProductPage({ params }: ProductPageProps) {
               <p className="mb-6 text-muted-foreground leading-relaxed">{product.description}</p>
             )}
 
-            <div className="mb-6">
-              <p className="text-2xl font-bold text-accent">${Number(price ?? 0).toFixed(2)} AUD</p>
-              <p className="text-sm {available > 0 ? 'text-green-500' : 'text-muted-foreground'}">
-                {available > 0 ? `In stock (${available} available)` : 'Out of stock'}
-              </p>
-            </div>
-
-            <div className="flex items-center gap-3 mt-6">
-              <BuyNowButton variantId={primaryVariant?.id} quantity={1} />
-              {!canBuy && (
-                <span className="text-sm text-muted-foreground">Select variant unavailable</span>
-              )}
-            </div>
+            {/* Variant selection and price/availability */}
+            <Suspense fallback={null}>
+              {/* Client selector updates selected variant and price */}
+              {/* We render a placeholder block to avoid hydration mismatch */}
+            </Suspense>
+            <VariantClientBlock
+              variants={(product.variants || []) as any}
+              initialPrice={Number(initialPrice ?? 0)}
+            />
           </div>
         </div>
       </div>
     </main>
+  )
+}
+
+// Client wrapper colocated for simplicity
+function VariantClientBlock({ variants, initialPrice }: { variants: any[]; initialPrice: number }) {
+  'use client'
+  const [selected, setSelected] = (require('react') as typeof import('react')).useState<any>(variants[0] || null)
+  const price = (selected?.price ?? initialPrice) as number
+  const available = (selected?.inventory?.available ?? 0) as number
+  const canBuy = !!selected && available > 0
+
+  const React = require('react') as typeof import('react')
+  const e = React.createElement
+
+  return e(React.Fragment, null,
+    e('div', { className: 'mb-6 space-y-4' },
+      e(VariantSelector as any, { variants, onChange: setSelected, initialVariantId: variants[0]?.id }),
+      e('div', null,
+        e('p', { className: 'text-2xl font-bold text-accent' }, `$${Number(price ?? 0).toFixed(2)} AUD`),
+        e('p', { className: `text-sm ${available > 0 ? 'text-green-500' : 'text-muted-foreground'}` }, available > 0 ? `In stock (${available} available)` : 'Out of stock')
+      )
+    ),
+    e('div', { className: 'flex items-center gap-3 mt-2' },
+      e(BuyNowButton as any, { variantId: selected?.id, quantity: 1 }),
+      !canBuy && e('span', { className: 'text-sm text-muted-foreground' }, 'Select variant unavailable')
+    )
   )
 }
