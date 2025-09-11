@@ -138,9 +138,9 @@ This guide encodes how we use Codex CLI here: plan first, one working branch, ex
 
 ## Deployment Status
 
-- 2025-09-10: Promoted `dev` → `main` via fast‑forward merge. Production is now on commit `c0b4bb3`.
-- Main changes include: product detail MVP (slug route + Buy Now), footer hash links, catalog anchors + tab sync, Intensity copy normalization, sitemap active filter, and copy runtime test script.
-- Work continues on `dev` (variant selector + admin slug editing next).
+- 2025-09-10: Promoted `dev` → `main` via fast‑forward merge. Production HEAD: `fe2c497`.
+- Highlights now live: product detail + variant selector + JSON‑LD, footer anchors + tab sync, cart/auth fixes, admin stock receive via RPC, client error logging with correlation IDs, skull icon removed, expanded Stripe shipping countries.
+- Ongoing work on `dev`: Articles MVP (DB + Admin editor), mobile UX polish, cart multi‑item checkout design.
 
 ## Open TODOs
 

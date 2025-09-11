@@ -10,6 +10,9 @@ This doc tracks the immediate backlog now that production auth is live. All work
 - Cache safety: homepage served with `Cache-Control: no-store` + page is `force-dynamic` to avoid stale SSR payloads; static assets are immutable.
 - Dev and main deployed; homepage served with `no-store`. If any stale persists, consider a Netlify `_headers` rule for `/` with `Cache-Control: no-store`.
 
+## Recently Shipped to Production
+- Product detail with variant selector + JSON‑LD; footer anchors with tab sync; cart/auth fixes; admin stock receive via RPC; client error logging with correlation IDs; skull icon removed; expanded Stripe shipping countries.
+
 ## Product Detail — Progress
 - Implemented `/products/[slug]` page wired to Supabase (server route) with SEO metadata + Product JSON‑LD.
 - Added variant selector (client) updating price/availability; Buy Now uses selected variant.
@@ -33,6 +36,9 @@ Next:
 - Added `/api/client-logs` to collect client error events (writes to audit logs).
 - Mounted client error listener (window.error/unhandledrejection) via `ClientErrorLogger` in app providers.
 - Added console/nav breadcrumbs and correlation IDs (cookie/header) to enrich client error reports.
+
+## Mobile UX Polish — Planned
+- Header/menu spacing on small screens; drawer widths; card grid/paddings; break long words.
 
 Next:
 - Add optional correlation ID (e.g., from headers) to tie client logs to sessions.

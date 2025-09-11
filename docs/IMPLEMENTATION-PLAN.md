@@ -22,7 +22,7 @@ Acceptance:
 
 ### Phase 1 — Product Detail MVP
 - Data: fetch product by `slug` from Supabase (variants + inventory where present). [implemented]
-- UI: title/artist, image, price, availability; basic variant selector. [selector pending]
+- UI: title/artist, image, price, availability; basic variant selector. [done]
 - Action: “Buy Now” that POSTs to `/api/checkout` and redirects to Stripe Checkout. [done]
 - SEO: metadata + product JSON‑LD. [metadata done; JSON‑LD pending]
 
@@ -30,9 +30,9 @@ Acceptance:
 - Visiting `/products/[slug]` renders real data; checkout creates Stripe session; insufficient inventory/inactive are gracefully handled. [partially met]
 
 ### Phase 2 — Articles MVP
-- DB: `articles` table (slug, title, markdown, image, author, published, timestamps).
-- Admin: Refine resource for create/edit (markdown), publish toggle.
-- Public: `/articles` list and `/articles/[slug]` detail; SEO + article JSON‑LD.
+- DB: `articles` table (slug, title, markdown, image, author, published, timestamps). [pending]
+- Admin: Refine resource for create/edit (markdown), publish toggle. [pending]
+- Public: `/articles` list and `/articles/[slug]` detail; SEO + article JSON‑LD. [partial — JSON‑LD scaffolded]
 
 Acceptance:
 - Admin can publish/unpublish; public routes render published articles with metadata.
@@ -47,7 +47,7 @@ Acceptance:
 
 ### Phase 4 — Observability
 - Add `/api/client-logs` to collect client-side error events. [done]
-- Lightweight browser logger (breadcrumb buffer, rate-limited POST on error). [partial — initial error/unhandledrejection listener added]
+- Lightweight browser logger (breadcrumbs + correlation id, rate-limited POST). [done]
 - Add rate limiting, dedupe, and size guards on server route. [done]
 - Wire `ErrorBoundary` to log critical errors. [pending]
 
@@ -70,11 +70,12 @@ Acceptance:
 - `npm test` green locally; critical e2e flows pass on branch deploy; copy consistent with brand tone.
 
 ### Phase 7 — UI Polish
-- Header: active link state; ensure cart count live; “Shop” anchor to catalog; render from central navLinks.
-- Hero: poster + reduced-motion fallback; improve overlay contrast; a11y labels on controls.
-- Catalog: skeletons, consistent card sizes; badges for Limited/Pre‑order.
-- Footer: working social links; add Shipping/Returns/Contact quick links.
-- Cache safety: set Cache‑Control no‑store for homepage HTML on branch deploys to avoid stale SSR payloads; long‑cache immutable for static assets.
+- Header: active link state; ensure cart count live; “Shop” anchor to catalog; render from central navLinks. [ongoing]
+- Hero: poster + reduced-motion fallback; improve overlay contrast; a11y labels on controls. [ongoing]
+- Catalog: skeletons, consistent card sizes; badges for Limited/Pre‑order; counts line under header. [partial]
+- Footer: working social links; add Shipping/Returns/Contact quick links; hash anchors jump + tab sync. [done]
+- Mobile polish: adjust paddings, drawers, grid spacing for small screens. [planned]
+- Cache safety: set Cache‑Control no‑store for homepage HTML on branch deploys to avoid stale SSR payloads; long‑cache immutable for static assets. [done]
 
 Acceptance:
 - Visual QA checklist passes; improved a11y and consistency across pages.
@@ -88,7 +89,9 @@ Acceptance:
 ### Phase 9 — Docs & Branch Discipline
 - Align docs to `dev` as working branch (done: `docs/AGENTS.md`, `scripts/init.mjs`).
 - Keep `docs/NEXT-STEPS.md` and this plan updated as we complete phases.
-- Add Admin improvements: Users & Roles UI (grant/remove admin by email), OAuth customers auto‑provision, future admin polish roadmap.
+- Add Admin improvements: Users & Roles UI (grant/remove admin by email), OAuth customers auto‑provision, future admin polish roadmap. [in progress]
+- Add Payments Enhancements: wallet support via Stripe Checkout (Apple/Google Pay), PayPal investigation (separate integration).
+- Add Data Seeding: scripts to populate products/orders for branch testing.
 
 ## Rollback
 - Netlify: reset Node to previous major if a runtime regression appears; rebuild branch.

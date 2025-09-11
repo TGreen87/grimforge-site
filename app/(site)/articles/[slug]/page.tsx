@@ -30,12 +30,15 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
   const article = await getArticle(slug)
   if (!article) notFound()
 
+  // Basic markdown-like paragraphs; can upgrade with MDX later
+  const body = (article.content || article.excerpt || '').split(/\n{2,}/)
+
   return (
     <main>
       <article className="container mx-auto px-4 py-8">
         <ArticleJsonLd
           headline={article.title}
-          description={article.excerpt || article.description}
+          description={article.excerpt || article.description || ''}
           image={article.image_url}
           datePublished={article.published_at}
           dateModified={article.updated_at}
@@ -43,12 +46,15 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
           url={(process.env.NEXT_PUBLIC_SITE_URL || process.env.SITE_URL_STAGING || '') + `/articles/${article.slug}`}
         />
         <header className="mb-8">
-          <h1 className="text-4xl font-bold mb-2">{article.title}</h1>
-          <p className="text-lg text-muted-foreground">{article.excerpt}</p>
+          <h1 className="blackletter text-4xl md:text-6xl mb-2 text-bone">{article.title}</h1>
+          {article.excerpt && <p className="text-lg text-muted-foreground max-w-3xl">{article.excerpt}</p>}
         </header>
-        
-        <div className="prose prose-invert max-w-4xl mx-auto">
-          <p>{article.description}</p>
+        <div className="prose prose-invert max-w-3xl">
+          {body.length > 0 ? body.map((p: string, i: number) => (
+            <p key={i}>{p}</p>
+          )) : (
+            <p>{article.description || ''}</p>
+          )}
         </div>
       </article>
     </main>

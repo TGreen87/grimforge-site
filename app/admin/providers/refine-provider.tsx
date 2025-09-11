@@ -45,6 +45,17 @@ const resources = [
     },
   },
   {
+    name: "articles",
+    list: "/admin/articles",
+    create: "/admin/articles/create",
+    edit: "/admin/articles/edit/:id",
+    show: "/admin/articles/show/:id",
+    meta: {
+      label: "Articles",
+      icon: <FileTextOutlined />,
+    },
+  },
+  {
     name: "inventory",
     list: "/admin/inventory",
     edit: "/admin/inventory/edit/:id",
