@@ -13,7 +13,14 @@ export default function ArticleCreate() {
     <Create saveButtonProps={saveButtonProps} title="Create Article">
       <Form {...formProps} layout="vertical">
         <Form.Item label="Title" name="title" rules={[{ required: true }]}> <Input /> </Form.Item>
-        <Form.Item label="Slug" name="slug" rules={[{ required: true, pattern: /^[a-z0-9]+(?:-[a-z0-9]+)*$/, message: 'lowercase letters, numbers, hyphens' }]}> <Input /> </Form.Item>
+        <Form.Item 
+          label="URL (link)"
+          name="slug"
+          extra="Appears in the page URL, e.g., /articles/your-url — use lowercase words with hyphens."
+          rules={[{ required: true, pattern: /^[a-z0-9]+(?:-[a-z0-9]+)*$/, message: 'Use lowercase letters, numbers, and hyphens' }]}
+        >
+          <Input placeholder="e.g. limited-vinyl-restock" />
+        </Form.Item>
         <Form.Item label="Author" name="author"> <Input /> </Form.Item>
         <Form.Item label="Excerpt" name="excerpt"> <TextArea rows={3} /> </Form.Item>
         <Form.Item label="Image URL" name="image_url"> <Input /> </Form.Item>
@@ -23,4 +30,3 @@ export default function ArticleCreate() {
     </Create>
   );
 }
-

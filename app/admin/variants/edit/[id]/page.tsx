@@ -5,7 +5,7 @@ import { Edit, useForm, useSelect } from "@refinedev/antd";
 import { Form, Input, InputNumber, Switch, Select } from "antd";
 import type { VariantFormValues, Product } from "../../../types";
 
-export default function VariantEdit() {
+export default function StockUnitEdit() {
   const { formProps, saveButtonProps, queryResult } = useForm<VariantFormValues>({
     resource: "variants",
   });
@@ -18,7 +18,7 @@ export default function VariantEdit() {
   });
 
   return (
-    <Edit saveButtonProps={saveButtonProps}>
+    <Edit saveButtonProps={saveButtonProps} title="Edit Stock Unit">
       <Form {...formProps} layout="vertical">
         <Form.Item
           label="Product"
@@ -29,7 +29,7 @@ export default function VariantEdit() {
         </Form.Item>
 
         <Form.Item
-          label="Variant Name"
+          label="Stock Unit Name"
           name="name"
           rules={[{ required: true, message: "Name is required" }]}
         >

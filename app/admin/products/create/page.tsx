@@ -32,9 +32,9 @@ export default function ProductCreate() {
         }}
       >
         <Form.Item
-          label="Slug"
+          label="URL (link)"
           name="slug"
-          extra="URL slug used for product detail pages (e.g., 'dark-ritual')."
+          extra="Appears in the product URL, e.g., /products/your-url — use lowercase words with hyphens."
           rules={[
             { pattern: /^[a-z0-9]+(?:-[a-z0-9]+)*$/, message: 'Use lowercase letters, numbers and hyphens' },
             {

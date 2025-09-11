@@ -68,6 +68,13 @@ This repo follows Codex CLI conventions for a small team: plan first, minimal bl
 
 - Users & Roles: `/admin/users` to grant/remove admin by email. Server API: `/api/admin/users/roles` (GET/POST/DELETE).
 - OAuth customer provisioning: after Google sign‑in, a `customers` row is upserted server‑side (email/name).
+- Terminology: “Variants” are now “Stock Units” in the UI (purchasable items with own SKU/price/stock).
+- URL (link): replace the word “slug” in admin labels with “URL (link)” and helper text; it’s the URL path (e.g., `/products/your-url`).
+
+## MCP / Playwright
+
+- If Playwright MCP is available, we can add a smoke suite that navigates the homepage, enters Catalog, opens a product, adds to cart, opens checkout, and verifies the redirect (without completing payment). Another set covers admin login (preview), create/publish an article, and check `/articles` list/detail.
+- To enable: provide MCP endpoint and confirm CLI command to run (e.g., `npm run test:e2e`). We will keep specs small and idempotent.
 
 ## Patching Files (apply_patch)
 
@@ -138,9 +145,9 @@ This guide encodes how we use Codex CLI here: plan first, one working branch, ex
 
 ## Deployment Status
 
-- 2025-09-10: Promoted `dev` → `main` via fast‑forward merge. Production HEAD: `fe2c497`.
-- Highlights now live: product detail + variant selector + JSON‑LD, footer anchors + tab sync, cart/auth fixes, admin stock receive via RPC, client error logging with correlation IDs, skull icon removed, expanded Stripe shipping countries.
-- Ongoing work on `dev`: Articles MVP (DB + Admin editor), mobile UX polish, cart multi‑item checkout design.
+- 2025-09-10: Promoted `dev` → `main` via fast‑forward merge. Production HEAD: `a9ab53d`.
+- Highlights now live: Articles scaffold (admin list/create/edit/show + public list/detail), mobile polish (no horizontal scroll, header/menu tweaks, responsive cart drawer), catalog skeletons, product detail Add to Cart, multi‑item checkout API, shipping validation in modal.
+- Ongoing work on `dev`: mobile polish, Articles markdown styling, admin clarity (rename variants to stock units across forms).
 
 ## Open TODOs
 

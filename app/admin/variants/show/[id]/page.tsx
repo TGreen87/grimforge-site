@@ -8,7 +8,7 @@ import type { Variant } from "../../../types";
 
 const { Title } = Typography;
 
-export default function VariantShow() {
+export default function StockUnitShow() {
   const { queryResult } = useShow<Variant>({
     resource: "variants",
     meta: {
@@ -19,7 +19,7 @@ export default function VariantShow() {
   const record = data?.data;
 
   return (
-    <Show isLoading={isLoading}>
+    <Show isLoading={isLoading} title="Stock Unit">
       {record && (
         <Space direction="vertical" size="large" style={{ width: "100%" }}>
           <Descriptions title="Variant Information" bordered column={2}>

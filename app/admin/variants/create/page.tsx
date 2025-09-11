@@ -5,7 +5,7 @@ import { Create, useForm, useSelect } from "@refinedev/antd";
 import { Form, Input, InputNumber, Switch, Select } from "antd";
 import type { VariantFormValues, Product } from "../../types";
 
-export default function VariantCreate() {
+export default function StockUnitCreate() {
   const { formProps, saveButtonProps } = useForm<VariantFormValues>({
     resource: "variants",
   });
@@ -17,7 +17,7 @@ export default function VariantCreate() {
   });
 
   return (
-    <Create saveButtonProps={saveButtonProps}>
+    <Create saveButtonProps={saveButtonProps} title="Create Stock Unit">
       <Form {...formProps} layout="vertical">
         <Form.Item
           label="Product"
@@ -28,7 +28,7 @@ export default function VariantCreate() {
         </Form.Item>
 
         <Form.Item
-          label="Variant Name"
+          label="Stock Unit Name"
           name="name"
           rules={[{ required: true, message: "Name is required" }]}
         >
