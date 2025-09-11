@@ -75,7 +75,7 @@ export default function InventoryList() {
         <Table {...tableProps} rowKey="id">
           <Table.Column
             dataIndex={["variant", "name"]}
-            title="Variant"
+            title="Stock Unit"
             render={(value: string) => <TextField value={value} />}
           />
           <Table.Column
@@ -157,7 +157,7 @@ export default function InventoryList() {
             <div style={{ marginBottom: 16 }}>
               <strong>Product:</strong> {selectedInventory.variant?.product?.title}
               <br />
-              <strong>Variant:</strong> {selectedInventory.variant?.name}
+              <strong>Stock Unit:</strong> {selectedInventory.variant?.name}
               <br />
               <strong>Current Stock:</strong> {selectedInventory.on_hand}
             </div>
