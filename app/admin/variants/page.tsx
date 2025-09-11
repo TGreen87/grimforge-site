@@ -17,10 +17,10 @@ export default function VariantList() {
 
   return (
     <List
-      title="Variants (Stock Units)"
+      title="Stock Units"
       headerButtons={
         <div className="text-sm text-muted-foreground">
-          Variants represent purchasable stock units (e.g., a specific pressing or format). Use Receive on Inventory to add stock.
+          Stock Units are the purchasable items for a product (e.g., a specific pressing or format). Use Receive in Inventory to add stock.
         </div>
       }
     >

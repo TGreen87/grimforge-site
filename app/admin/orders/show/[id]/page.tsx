@@ -111,7 +111,7 @@ export default function OrderShow() {
                   key: "product",
                 },
                 {
-                  title: "Variant",
+                title: "Stock Unit",
                   dataIndex: ["variant", "name"],
                   key: "variant",
                 },

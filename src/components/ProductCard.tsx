@@ -136,27 +136,27 @@ const ProductCard = ({ id, slug, title, artist, format, price, image, limited, p
           </div>
 
           {/* Hover Actions - Touch optimized */}
-          <div className="absolute inset-0 bg-background/80 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center gap-1.5 md:gap-2">
+          <div className="absolute inset-0 bg-background/80 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center gap-2">
             <Link href={href} onClick={(e) => e.stopPropagation()}>
               <Button 
-                size="sm" 
-                variant="outline" 
-                className="h-8 w-8 md:h-9 md:w-9 border-frost text-frost hover:bg-frost hover:text-background p-0"
+                size="default"
+                variant="outline"
+                className="h-11 w-11 sm:h-10 sm:w-10 border-frost text-frost hover:bg-frost hover:text-background p-0"
                 aria-label={`View details for ${artist} - ${title}`}
               >
                 <Eye className="h-3.5 w-3.5 md:h-4 md:w-4" />
               </Button>
             </Link>
             <Button 
-              size="sm" 
+              size="default"
               variant={isInWishlist(id) ? "default" : "outline"}
-              className={`h-8 w-8 md:h-9 md:w-9 p-0 ${isInWishlist(id) ? "bg-accent hover:bg-accent/90" : "border-frost text-frost hover:bg-frost hover:text-background"}`}
+              className={`h-11 w-11 sm:h-10 sm:w-10 p-0 ${isInWishlist(id) ? "bg-accent hover:bg-accent/90" : "border-frost text-frost hover:bg-frost hover:text-background"}`}
               onClick={handleWishlistToggle}
               aria-label={`${isInWishlist(id) ? 'Remove from' : 'Add to'} wishlist: ${artist} - ${title}`}
             >
               <Heart className={`h-3.5 w-3.5 md:h-4 md:w-4 ${isInWishlist(id) ? 'fill-current' : ''}`} />
             </Button>
-            <Button size="sm" className="h-8 w-8 md:h-9 md:w-9 bg-accent hover:bg-accent/90 p-0" onClick={(e) => {
+            <Button size="default" className="h-11 w-11 sm:h-10 sm:w-10 bg-accent hover:bg-accent/90 p-0" onClick={(e) => {
               e.stopPropagation();
               handleAddToCart();
             }} aria-label={`Add to cart: ${artist} - ${title}`}>

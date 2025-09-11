@@ -28,7 +28,7 @@ export default function InventoryEdit() {
             <Descriptions.Item label="Product">
               {record.variant?.product?.title}
             </Descriptions.Item>
-            <Descriptions.Item label="Variant">{record.variant?.name}</Descriptions.Item>
+            <Descriptions.Item label="Stock Unit">{record.variant?.name}</Descriptions.Item>
             <Descriptions.Item label="SKU">{record.variant?.sku}</Descriptions.Item>
             <Descriptions.Item label="Current Stock">{record.on_hand}</Descriptions.Item>
           </Descriptions>

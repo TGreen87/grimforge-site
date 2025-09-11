@@ -22,7 +22,7 @@ export default function StockUnitShow() {
     <Show isLoading={isLoading} title="Stock Unit">
       {record && (
         <Space direction="vertical" size="large" style={{ width: "100%" }}>
-          <Descriptions title="Variant Information" bordered column={2}>
+          <Descriptions title="Stock Unit Information" bordered column={2}>
             <Descriptions.Item label="Name">
               <TextField value={record.name} />
             </Descriptions.Item>

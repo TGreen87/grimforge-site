@@ -26,7 +26,7 @@ export default function VariantSelector({
 
   return (
     <div className="space-y-2">
-      <label className="text-sm text-bone">Variant</label>
+      <label className="text-sm text-bone">Stock Unit</label>
       <select
         className="bg-secondary/50 border border-border rounded px-3 py-2 text-foreground"
         value={current?.id}
@@ -46,4 +46,3 @@ export default function VariantSelector({
     </div>
   )
 }
-

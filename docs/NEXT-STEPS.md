@@ -38,8 +38,10 @@ Next:
 - Added console/nav breadcrumbs and correlation IDs (cookie/header) to enrich client error reports.
 
 ## Mobile UX Polish — Planned
-- Header/menu spacing on small screens; drawer widths; card grid/paddings; break long words.
+- Header/menu spacing on small screens; drawer widths; card grid/paddings; break long words. [in progress]
 - Catalog: add skeletons while products load. [done]
+- Increase touch targets on card overlay actions and primary buttons. [done]
+- Reduce section margins on small screens; ensure no horizontal overflow. [done]
 
 Next:
 - Add optional correlation ID (e.g., from headers) to tie client logs to sessions.
@@ -78,6 +80,7 @@ Next:
 - Visual: branded shell header, sticky bulk actions, skeletons, refined empty/error states, unified toasts, focus rings.
 - Usability: quick in-table editors (price/active/stock), orders timeline + actions, customers link auth↔customer, audit log viewer.
 - Self‑service: invite user + assign role; role badges.
+- Terminology: prefer “Stock Unit” over “Variant”; show “URL (link)” labels instead of “slug” with helper text. [done]
 
 ## Branch Discipline
 - Work on `dev`. Small, reversible commits.
