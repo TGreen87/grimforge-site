@@ -37,6 +37,7 @@ export interface CatalogProduct {
 
 export function useSupabaseProducts() {
   const [products, setProducts] = useState<CatalogProduct[]>([]);
+  const [loading, setLoading] = useState(true);
 
   const mapRow = (r: SupabaseProductRow): CatalogProduct => ({
     id: r.id,
@@ -69,10 +70,12 @@ export function useSupabaseProducts() {
         .order("created_at", { ascending: false });
       if (error) {
         console.error("Failed to load products", error);
+        setLoading(false);
         return;
       }
       if (!isMounted) return;
       setProducts((data ?? []).map(mapRow));
+      setLoading(false);
     };
 
     fetchProducts();
@@ -95,5 +98,5 @@ export function useSupabaseProducts() {
     };
   }, []);
 
-  return products;
+  return { products, loading };
 }

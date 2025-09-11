@@ -6,6 +6,7 @@ import CatalogFilters from "./CatalogFilters";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useState, useMemo, useEffect } from "react";
 import { useSupabaseProducts } from "@/hooks/useSupabaseProducts";
+import CatalogSkeleton from "./catalog/CatalogSkeleton";
 import { catalog as catalogCopy } from "@/content/copy";
 
 interface Filters {
@@ -57,8 +58,7 @@ const ProductCatalog = () => {
   ];
 
   // Products from Supabase (live)
-  const supabaseProducts = useSupabaseProducts();
-
+  const { products: supabaseProducts, loading } = useSupabaseProducts();
   const allProductsCombined = useMemo(() => [...supabaseProducts], [supabaseProducts]);
 
   // Filter and sort products
@@ -178,7 +178,9 @@ const ProductCatalog = () => {
           <div id="cds" className="block h-0 scroll-mt-24" />
 
           <TabsContent value="all">
-            {filteredProducts.length === 0 ? (
+            {loading ? (
+              <CatalogSkeleton />
+            ) : filteredProducts.length === 0 ? (
               <div className="text-center py-12">
                 <p className="text-muted-foreground text-lg">{catalogCopy.emptyState}</p>
               </div>

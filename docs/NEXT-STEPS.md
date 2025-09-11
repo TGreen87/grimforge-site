@@ -39,6 +39,7 @@ Next:
 
 ## Mobile UX Polish — Planned
 - Header/menu spacing on small screens; drawer widths; card grid/paddings; break long words.
+- Catalog: add skeletons while products load. [done]
 
 Next:
 - Add optional correlation ID (e.g., from headers) to tie client logs to sessions.

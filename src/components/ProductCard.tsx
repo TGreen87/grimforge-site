@@ -167,8 +167,8 @@ const ProductCard = ({ id, slug, title, artist, format, price, image, limited, p
 
         {/* Product Info - Mobile optimized */}
         <div className="space-y-1.5 md:space-y-2">
-          <h3 className="gothic-heading text-sm md:text-base font-semibold text-bone line-clamp-1">
-            <Link href={href} onClick={(e)=>e.stopPropagation()} className="hover:underline" aria-label={`View details for ${artist} - ${title}`}>
+          <h3 className="gothic-heading text-sm md:text-base font-semibold text-bone line-clamp-1 break-words">
+            <Link href={href} onClick={(e)=>e.stopPropagation()} className="hover:underline break-words" aria-label={`View details for ${artist} - ${title}`}>
               {title}
             </Link>
           </h3>
