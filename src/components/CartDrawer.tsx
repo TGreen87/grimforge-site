@@ -26,7 +26,7 @@ const CartDrawer = () => {
         </Button>
       </SheetTrigger>
       
-      <SheetContent className="bg-background border-border w-full sm:max-w-lg">
+      <SheetContent className="bg-background border-border w-[92vw] xs:w-[90vw] sm:w-[84vw] md:w-[70vw] lg:w-[520px] max-w-[92vw]">
         <SheetHeader>
           <SheetTitle className="gothic-heading text-bone">Your Cart</SheetTitle>
         </SheetHeader>

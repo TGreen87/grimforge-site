@@ -23,7 +23,7 @@ export default function RootLayout({
           description="Independent underground metal label. Limited vinyl, cassettes, and merchandise from the darkest corners of the metal underground."
         />
       </head>
-      <body className={inter.className}>
+      <body className={`${inter.className} overflow-x-hidden`}>
         <Providers>
           {children}
         </Providers>

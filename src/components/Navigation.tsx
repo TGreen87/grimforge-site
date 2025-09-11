@@ -39,7 +39,7 @@ const Navigation = () => {
   };
   return (
     <nav className="fixed top-0 w-full z-50 bg-background/95 backdrop-blur-sm border-b border-border">
-      <div className="container mx-auto px-4 h-16 flex items-center justify-between">
+      <div className="container mx-auto px-3 sm:px-4 h-14 sm:h-16 flex items-center justify-between">
         {/* Logo - Desktop Only */}
         <div className="hidden md:flex items-center">
           <Link href="/" className="flex items-center hover:opacity-80 transition-opacity">
@@ -73,7 +73,7 @@ const Navigation = () => {
         </div>
 
         {/* Desktop Navigation */}
-        <div className="hidden md:flex items-center space-x-8" role="navigation" aria-label="Primary">
+        <div className="hidden md:flex items-center space-x-6" role="navigation" aria-label="Primary">
           {navLinks.map((link) => (
             <button
               key={link.id}
@@ -86,7 +86,7 @@ const Navigation = () => {
         </div>
 
         {/* Action Buttons */}
-        <div className="flex items-center space-x-4">
+        <div className="flex items-center space-x-3 sm:space-x-4">
           <div className="hidden md:block">
             <AdvancedSearch />
           </div>

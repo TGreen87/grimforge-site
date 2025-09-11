@@ -30,8 +30,35 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
   const article = await getArticle(slug)
   if (!article) notFound()
 
-  // Basic markdown-like paragraphs; can upgrade with MDX later
-  const body = (article.content || article.excerpt || '').split(/\n{2,}/)
+  // Minimal markdown rendering: supports headings (#), lists (-), code blocks (```), and paragraphs.
+  const raw = (article.content || article.excerpt || '').trim()
+  const lines = raw.split(/\n/)
+  const blocks: Array<{ type: string; content: string[] }> = []
+  let inCode = false
+  lines.forEach((ln) => {
+    if (ln.trim().startsWith('```')) {
+      inCode = !inCode
+      if (inCode) blocks.push({ type: 'code', content: [] })
+      return
+    }
+    if (inCode) {
+      blocks[blocks.length - 1].content.push(ln)
+      return
+    }
+    if (/^\s*#/.test(ln)) {
+      blocks.push({ type: 'heading', content: [ln.replace(/^\s*#+\s*/, '')] })
+    } else if (/^\s*-\s+/.test(ln)) {
+      const last = blocks[blocks.length - 1]
+      if (!last || last.type !== 'list') blocks.push({ type: 'list', content: [] })
+      blocks[blocks.length - 1].content.push(ln.replace(/^\s*-\s+/, ''))
+    } else if (ln.trim() === '') {
+      blocks.push({ type: 'br', content: [] })
+    } else {
+      const last = blocks[blocks.length - 1]
+      if (!last || last.type !== 'p') blocks.push({ type: 'p', content: [] })
+      blocks[blocks.length - 1].content.push(ln)
+    }
+  })
 
   return (
     <main>
@@ -49,10 +76,25 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
           <h1 className="blackletter text-4xl md:text-6xl mb-2 text-bone">{article.title}</h1>
           {article.excerpt && <p className="text-lg text-muted-foreground max-w-3xl">{article.excerpt}</p>}
         </header>
+        {article.image_url && (
+          <div className="mb-6">
+            <img src={article.image_url} alt={article.title} className="w-full max-w-3xl rounded border border-border" />
+          </div>
+        )}
         <div className="prose prose-invert max-w-3xl">
-          {body.length > 0 ? body.map((p: string, i: number) => (
-            <p key={i}>{p}</p>
-          )) : (
+          {blocks.length > 0 ? (
+            blocks.map((b, i) => {
+              if (b.type === 'heading') return <h2 key={i}>{b.content.join(' ')}</h2>
+              if (b.type === 'list') return (
+                <ul key={i}>
+                  {b.content.map((li, j) => <li key={j}>{li}</li>)}
+                </ul>
+              )
+              if (b.type === 'code') return <pre key={i}><code>{b.content.join('\n')}</code></pre>
+              if (b.type === 'p') return <p key={i}>{b.content.join(' ')}</p>
+              return <br key={i} />
+            })
+          ) : (
             <p>{article.description || ''}</p>
           )}
         </div>
