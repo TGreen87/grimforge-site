@@ -1,3 +1,4 @@
+"use client";
 import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { storageKeys, getJSON, setJSON } from "@/src/lib/storage";
 
@@ -9,6 +10,7 @@ export interface CartItem {
   price: number;
   image: string;
   quantity: number;
+  variantId?: string; // for multi-item checkout
 }
 
 interface CartContextType {
@@ -105,4 +107,3 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
     </CartContext.Provider>
   );
 };
-

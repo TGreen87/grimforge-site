@@ -114,6 +114,12 @@ export default async function ProductPage({ params }: ProductPageProps) {
             <VariantClientBlock
               variants={(product.variants || []) as any}
               initialPrice={Number(initialPrice ?? 0)}
+              productMeta={{
+                title: product.title,
+                artist: (product as any).artist || '',
+                image: (product as any).image || (product as any).image_url || '/placeholder.svg',
+                format: Array.isArray((product as any).format) ? (product as any).format[0] : (product as any).format
+              }}
             />
           </div>
         </div>
@@ -123,7 +129,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
 }
 
 // Client wrapper colocated for simplicity
-function VariantClientBlock({ variants, initialPrice }: { variants: any[]; initialPrice: number }) {
+function VariantClientBlock({ variants, initialPrice, productMeta }: { variants: any[]; initialPrice: number; productMeta: { title: string; artist: string; image: string; format?: string } }) {
   'use client'
   const [selected, setSelected] = (require('react') as typeof import('react')).useState<any>(variants[0] || null)
   const price = (selected?.price ?? initialPrice) as number
@@ -132,6 +138,7 @@ function VariantClientBlock({ variants, initialPrice }: { variants: any[]; initi
 
   const React = require('react') as typeof import('react')
   const e = React.createElement
+  const { addItem } = require('@/src/contexts/CartContext') as typeof import('@/src/contexts/CartContext')
 
   return e(React.Fragment, null,
     e('div', { className: 'mb-6 space-y-4' },
@@ -143,6 +150,22 @@ function VariantClientBlock({ variants, initialPrice }: { variants: any[]; initi
     ),
     e('div', { className: 'flex items-center gap-3 mt-2' },
       e(BuyNowButton as any, { variantId: selected?.id, quantity: 1 }),
+      e('button', {
+        className: 'px-4 py-2 border border-frost text-frost rounded hover:bg-frost hover:text-background',
+        disabled: !canBuy,
+        onClick: () => {
+          if (!selected) return
+          ;(addItem as any)({
+            id: selected.id,
+            title: productMeta.title || 'Item',
+            artist: productMeta.artist || '',
+            format: selected?.format || productMeta.format || 'vinyl',
+            price: Number(price || 0),
+            image: productMeta.image,
+            variantId: selected.id,
+          })
+        }
+      }, 'Add to Cart'),
       !canBuy && e('span', { className: 'text-sm text-muted-foreground' }, 'Select variant unavailable')
     )
   )

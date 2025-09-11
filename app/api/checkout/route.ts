@@ -7,7 +7,10 @@ import { v4 as uuidv4 } from 'uuid'
 export async function POST(req: NextRequest) {
   try {
     // Parse request body
-    const { variant_id, quantity } = await req.json()
+    const body = await req.json()
+    const variant_id: string | undefined = body?.variant_id
+    const quantity: number | undefined = body?.quantity
+    const items: Array<{ variant_id: string; quantity: number }> | undefined = Array.isArray(body?.items) ? body.items : undefined
 
     // Validate input
     if (!variant_id || !quantity || quantity < 1) {
@@ -20,52 +23,66 @@ export async function POST(req: NextRequest) {
     // Initialize Supabase service client (bypasses RLS)
     const supabase = createServiceClient()
 
-    // 1. Fetch variant details from database
-    const { data: variant, error: variantError } = await supabase
-      .from('variants')
-      .select(`
-        *,
-        product:products!inner(
-          id,
-          title,
-          artist,
-          image,
-          active,
-          stock
-        ),
-        inventory!inner(
-          available
-        )
-      `)
-      .eq('id', variant_id)
-      .single()
-
-    if (variantError || !variant) {
-      await writeAuditLog(
-        createPaymentAuditLog({
-          eventType: 'checkout.variant_not_found',
-          error: variantError?.message || 'Variant not found',
-          metadata: { variant_id, quantity },
-        })
-      )
-      return NextResponse.json(
-        { error: 'Product variant not found' },
-        { status: 404 }
-      )
+    // Helper to fetch a single variant with product+inventory
+    const fetchVariant = async (vid: string) => {
+      const { data, error } = await supabase
+        .from('variants')
+        .select(`
+          *,
+          product:products!inner(
+            id,
+            title,
+            artist,
+            image,
+            active,
+            stock
+          ),
+          inventory!inner(
+            available
+          )
+        `)
+        .eq('id', vid)
+        .single()
+      return { data, error }
     }
 
-    // Check if product is active
-    if (!variant.product.active) {
-      await writeAuditLog(
-        createPaymentAuditLog({
-          eventType: 'checkout.product_inactive',
-          metadata: { variant_id, product_id: variant.product.id },
-        })
-      )
-      return NextResponse.json(
-        { error: 'Product is not available for purchase' },
-        { status: 400 }
-      )
+    // Build order items list (supports single or multiple)
+    const orderItems: Array<{ v: any; qty: number }> = []
+    if (items && items.length > 0) {
+      for (const it of items) {
+        const { data: v, error } = await fetchVariant(it.variant_id)
+        if (error || !v) {
+          await writeAuditLog(createPaymentAuditLog({ eventType: 'checkout.variant_not_found', error: error?.message, metadata: { variant_id: it.variant_id } }))
+          return NextResponse.json({ error: 'One or more items not found' }, { status: 404 })
+        }
+        if (!v.product.active) {
+          await writeAuditLog(createPaymentAuditLog({ eventType: 'checkout.product_inactive', metadata: { variant_id: it.variant_id, product_id: v.product.id } }))
+          return NextResponse.json({ error: 'Product is not available' }, { status: 400 })
+        }
+        const available = Array.isArray((v as any).inventory) ? ((v as any).inventory[0]?.available ?? 0) : ((v as any).inventory?.available ?? 0)
+        if (available < it.quantity) {
+          await writeAuditLog(createPaymentAuditLog({ eventType: 'checkout.insufficient_inventory', metadata: { variant_id: it.variant_id, requested_quantity: it.quantity, available_quantity: available } }))
+          return NextResponse.json({ error: 'Insufficient inventory' }, { status: 400 })
+        }
+        orderItems.push({ v, qty: it.quantity })
+      }
+    } else {
+      // Single item flow (back-compat)
+      const { data: v, error } = await fetchVariant(variant_id as string)
+      if (error || !v) {
+        await writeAuditLog(createPaymentAuditLog({ eventType: 'checkout.variant_not_found', error: error?.message, metadata: { variant_id } }))
+        return NextResponse.json({ error: 'Product variant not found' }, { status: 404 })
+      }
+      if (!v.product.active) {
+        await writeAuditLog(createPaymentAuditLog({ eventType: 'checkout.product_inactive', metadata: { variant_id, product_id: v.product.id } }))
+        return NextResponse.json({ error: 'Product is not available for purchase' }, { status: 400 })
+      }
+      const available = Array.isArray((v as any).inventory) ? ((v as any).inventory[0]?.available ?? 0) : ((v as any).inventory?.available ?? 0)
+      if (available < (quantity as number)) {
+        await writeAuditLog(createPaymentAuditLog({ eventType: 'checkout.insufficient_inventory', metadata: { variant_id, requested_quantity: quantity, available_quantity: available } }))
+        return NextResponse.json({ error: 'Insufficient inventory available' }, { status: 400 })
+      }
+      orderItems.push({ v, qty: quantity as number })
     }
 
     // Check inventory availability (handle potential array shape from join)
@@ -92,7 +109,7 @@ export async function POST(req: NextRequest) {
 
     // 2. Create pending order in database
     const orderNumber = `ORR-${Date.now().toString().slice(-6)}`
-    const subtotal = variant.price * quantity
+    const subtotal = orderItems.reduce((s, it) => s + (it.v.price * it.qty), 0)
     const total = subtotal // Tax and shipping will be calculated by Stripe
 
     const { data: order, error: orderError } = await supabase
@@ -107,8 +124,7 @@ export async function POST(req: NextRequest) {
         total,
         currency: STRIPE_CONFIG.currency,
         metadata: {
-          variant_id,
-          quantity,
+          items: orderItems.map((it) => ({ variant_id: it.v.id, quantity: it.qty })),
           created_via: 'api',
         },
       })
@@ -132,15 +148,15 @@ export async function POST(req: NextRequest) {
     // Add order item
     const { error: itemError } = await supabase
       .from('order_items')
-      .insert({
+      .insert(orderItems.map(({ v, qty }) => ({
         order_id: order.id,
-        variant_id: variant.id,
-        product_name: variant.product.title,
-        variant_name: variant.name,
-        quantity,
-        price: variant.price,
-        total: variant.price * quantity,
-      })
+        variant_id: v.id,
+        product_name: v.product.title,
+        variant_name: v.name,
+        quantity: qty,
+        price: v.price,
+        total: v.price * qty,
+      })))
 
     if (itemError) {
       // Clean up order if item creation fails
@@ -168,24 +184,22 @@ export async function POST(req: NextRequest) {
     const stripe = getStripe()
     const session = await stripe.checkout.sessions.create(
       {
-        line_items: [
-          {
-            price_data: {
-              currency: STRIPE_CONFIG.currency,
-              product_data: {
-                name: `${variant.product.title} - ${variant.name}`,
-                description: `By ${variant.product.artist}`,
-                images: variant.product.image ? [variant.product.image] : undefined,
-                metadata: {
-                  variant_id: variant.id,
-                  product_id: variant.product.id,
-                },
+        line_items: orderItems.map(({ v, qty }) => ({
+          price_data: {
+            currency: STRIPE_CONFIG.currency,
+            product_data: {
+              name: `${v.product.title} - ${v.name}`,
+              description: v.product.artist ? `By ${v.product.artist}` : undefined,
+              images: v.product.image ? [v.product.image] : undefined,
+              metadata: {
+                variant_id: v.id,
+                product_id: v.product.id,
               },
-              unit_amount: Math.round(variant.price * 100), // Convert to cents
             },
-            quantity,
+            unit_amount: Math.round(v.price * 100),
           },
-        ],
+          quantity: qty,
+        })),
         mode: 'payment',
         automatic_tax: {
           enabled: true, // Enable Stripe Tax for Australian GST
@@ -203,13 +217,12 @@ export async function POST(req: NextRequest) {
         cancel_url: `${siteUrl}/cart?cancelled=true`,
         metadata: {
           order_id: order.id,
-          variant_id: variant.id,
-          quantity: quantity.toString(),
+          items: JSON.stringify(orderItems.map(it => ({ variant_id: it.v.id, quantity: it.qty }))),
         },
         payment_intent_data: {
           metadata: {
             order_id: order.id,
-            variant_id: variant.id,
+            items: JSON.stringify(orderItems.map(it => ({ variant_id: it.v.id, quantity: it.qty }))),
           },
         },
         locale: 'en',
@@ -248,8 +261,7 @@ export async function POST(req: NextRequest) {
         amount: subtotal,
         currency: STRIPE_CONFIG.currency,
         metadata: {
-          variant_id,
-          quantity,
+          items: orderItems.map(it => ({ variant_id: it.v.id, quantity: it.qty })),
           order_number: orderNumber,
         },
       })

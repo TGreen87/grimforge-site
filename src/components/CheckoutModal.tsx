@@ -65,23 +65,36 @@ const CheckoutModal = ({ children }: CheckoutModalProps) => {
 
   const handleProcessOrder = async () => {
     setIsProcessing(true);
-    
-    // Simulate payment processing
-    await new Promise(resolve => setTimeout(resolve, 3000));
-    
-    // Mock successful order
-    const orderId = `BP${Date.now()}`;
-    
-    clearCart();
-    setIsProcessing(false);
-    setIsOpen(false);
-    setCurrentStep(1);
-    
-    toast({
-      title: "Order placed",
-      description: `Order ${orderId} confirmed. You’ll receive a confirmation email shortly.`,
-      duration: 5000,
-    });
+    try {
+      const payloadItems = items
+        .filter((it) => it.variantId && it.quantity > 0)
+        .map((it) => ({ variant_id: it.variantId as string, quantity: it.quantity }))
+
+      if (payloadItems.length === 0) {
+        // Fallback to mock if variant ids are missing
+        await new Promise((r) => setTimeout(r, 1500))
+        toast({ title: 'Cart not ready for checkout', description: 'Please add items from the product page (ensures stock unit is selected).', variant: 'destructive' })
+        setIsProcessing(false)
+        return
+      }
+
+      const res = await fetch('/api/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ items: payloadItems }),
+      })
+      if (!res.ok) throw new Error('Checkout failed')
+      const data = await res.json()
+      if (data.checkoutUrl) {
+        window.location.href = data.checkoutUrl as string
+        return
+      }
+      throw new Error('No checkout URL returned')
+    } catch (e) {
+      console.error(e)
+      toast({ title: 'Unable to start checkout', description: 'Please try again.', variant: 'destructive' })
+      setIsProcessing(false)
+    }
   };
 
   const renderStep1 = () => (
