@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
-import { Skull, Eye, EyeOff, Crown, Users } from "lucide-react";
+import { Eye, EyeOff, Crown, Users } from "lucide-react";
 
 interface AuthModalProps {
   trigger?: React.ReactNode;
@@ -47,7 +47,7 @@ const AuthModal = ({ trigger }: AuthModalProps) => {
   const handleGoogle = async () => {
     try {
       const supabase = getSupabaseBrowserClient();
-      const origin = getBaseUrl();
+      const origin = typeof window !== 'undefined' ? window.location.origin : getBaseUrl();
       await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: { redirectTo: `${origin}/auth/callback?next=${encodeURIComponent('/')}` },
@@ -91,7 +91,6 @@ const AuthModal = ({ trigger }: AuthModalProps) => {
       <DialogTrigger asChild>
         {trigger || (
           <Button variant="outline" className="border-frost text-frost hover:bg-frost hover:text-background gothic-heading">
-            <Skull className="h-4 w-4 mr-2" />
             Sign in
           </Button>
         )}
@@ -99,8 +98,7 @@ const AuthModal = ({ trigger }: AuthModalProps) => {
       
       <DialogContent className="bg-background border-border max-w-md">
         <DialogHeader>
-          <DialogTitle className="blackletter text-2xl text-bone text-center flex items-center justify-center">
-            <Skull className="h-6 w-6 mr-2 text-accent" />
+          <DialogTitle className="blackletter text-2xl text-bone text-center">
             Sign in or register
           </DialogTitle>
         </DialogHeader>

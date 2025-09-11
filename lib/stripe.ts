@@ -57,5 +57,6 @@ export const STRIPE_CONFIG = {
       },
     },
   ],
-  allowedCountries: ['AU'] as Stripe.Checkout.SessionCreateParams.ShippingAddressCollection.AllowedCountry[],
+  // Allow AU plus common international destinations; can be refined later
+  allowedCountries: ['AU','NZ','US','GB','CA','DE','FR','NL','NO','SE','FI','IE','IT','ES','JP'] as Stripe.Checkout.SessionCreateParams.ShippingAddressCollection.AllowedCountry[],
 }

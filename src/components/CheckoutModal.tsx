@@ -12,7 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { useCart } from "@/contexts/CartContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
-import { CreditCard, Truck, Shield, Skull, MapPin, Mail, Phone } from "lucide-react";
+import { CreditCard, Truck, Shield, MapPin, Mail, Phone } from "lucide-react";
 
 interface CheckoutModalProps {
   children: React.ReactNode;
@@ -332,8 +332,7 @@ const CheckoutModal = ({ children }: CheckoutModalProps) => {
       
       <DialogContent className="bg-background border-border max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="blackletter text-2xl text-bone text-center flex items-center justify-center">
-            <Skull className="h-6 w-6 mr-2 text-accent" />
+          <DialogTitle className="blackletter text-2xl text-bone text-center">
             Checkout
           </DialogTitle>
         </DialogHeader>

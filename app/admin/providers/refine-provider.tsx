@@ -40,7 +40,7 @@ const resources = [
     edit: "/admin/variants/edit/:id",
     show: "/admin/variants/show/:id",
     meta: {
-      label: "Variants",
+      label: "Stock Units",
       icon: <TagsOutlined />,
     },
   },
