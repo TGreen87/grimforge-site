@@ -72,9 +72,12 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
           author={article.author}
           url={(process.env.NEXT_PUBLIC_SITE_URL || process.env.SITE_URL_STAGING || '') + `/articles/${article.slug}`}
         />
-        <header className="mb-8">
-          <h1 className="blackletter text-4xl md:text-6xl mb-2 text-bone">{article.title}</h1>
-          {article.excerpt && <p className="text-lg text-muted-foreground max-w-3xl">{article.excerpt}</p>}
+        <header className="mb-6">
+          <h1 className="blackletter text-4xl md:text-6xl mb-2 text-bone break-words">{article.title}</h1>
+          <p className="text-sm text-muted-foreground">
+            {article.author ? `${article.author} • ` : ''}{article.published_at ? new Date(article.published_at).toLocaleDateString() : ''}
+          </p>
+          {article.excerpt && <p className="text-base md:text-lg text-muted-foreground max-w-3xl mt-2">{article.excerpt}</p>}
         </header>
         {article.image_url && (
           <div className="mb-6">
