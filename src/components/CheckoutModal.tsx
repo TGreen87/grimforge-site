@@ -100,6 +100,7 @@ const CheckoutModal = ({ children }: CheckoutModalProps) => {
             onChange={(e) => setShippingData(prev => ({ ...prev, fullName: e.target.value }))}
             className="bg-secondary/50 border-border"
             placeholder="Dark Lord Supreme"
+            required
           />
         </div>
         
@@ -112,6 +113,7 @@ const CheckoutModal = ({ children }: CheckoutModalProps) => {
             onChange={(e) => setShippingData(prev => ({ ...prev, email: e.target.value }))}
             className="bg-secondary/50 border-border"
             placeholder="arg@obsidianriterecords.com"
+            required
           />
         </div>
         
@@ -123,6 +125,7 @@ const CheckoutModal = ({ children }: CheckoutModalProps) => {
             onChange={(e) => setShippingData(prev => ({ ...prev, phone: e.target.value }))}
             className="bg-secondary/50 border-border"
             placeholder="+61 xxx xxx xxx"
+            required
           />
         </div>
         
@@ -145,13 +148,14 @@ const CheckoutModal = ({ children }: CheckoutModalProps) => {
 
       <div className="space-y-2">
         <Label htmlFor="address" className="text-bone">Address</Label>
-        <Textarea
+          <Textarea
           id="address"
           value={shippingData.address}
           onChange={(e) => setShippingData(prev => ({ ...prev, address: e.target.value }))}
           className="bg-secondary/50 border-border"
           placeholder="123 Darkthrone Street, Blackmetal Suburb"
           rows={3}
+          required
         />
       </div>
 
@@ -164,6 +168,7 @@ const CheckoutModal = ({ children }: CheckoutModalProps) => {
             onChange={(e) => setShippingData(prev => ({ ...prev, city: e.target.value }))}
             className="bg-secondary/50 border-border"
             placeholder="Melbourne"
+            required
           />
         </div>
         
@@ -175,6 +180,7 @@ const CheckoutModal = ({ children }: CheckoutModalProps) => {
             onChange={(e) => setShippingData(prev => ({ ...prev, state: e.target.value }))}
             className="bg-secondary/50 border-border"
             placeholder="VIC"
+            required
           />
         </div>
         
@@ -186,6 +192,7 @@ const CheckoutModal = ({ children }: CheckoutModalProps) => {
             onChange={(e) => setShippingData(prev => ({ ...prev, postalCode: e.target.value }))}
             className="bg-secondary/50 border-border"
             placeholder="3000"
+            required
           />
         </div>
       </div>
@@ -385,7 +392,17 @@ const CheckoutModal = ({ children }: CheckoutModalProps) => {
               
               {currentStep === 1 ? (
                 <Button 
-                  onClick={() => setCurrentStep(2)}
+                  onClick={() => {
+                    // Basic validation before continuing
+                    const emailOk = /.+@.+\..+/.test(shippingData.email)
+                    const phoneOk = (shippingData.phone || '').replace(/\D/g,'').length >= 6
+                    const allOk = shippingData.fullName && emailOk && phoneOk && shippingData.address && shippingData.city && shippingData.state && shippingData.postalCode
+                    if (!allOk) {
+                      toast({ title: 'Missing details', description: 'Please complete all shipping fields (valid email/phone).' , variant: 'destructive'})
+                      return
+                    }
+                    setCurrentStep(2)
+                  }}
                   className="bg-accent hover:bg-accent/90 text-accent-foreground gothic-heading"
                 >
                   Continue

@@ -15,7 +15,22 @@ export default function ProductCreate() {
 
   return (
     <Create saveButtonProps={saveButtonProps}>
-      <Form {...formProps} layout="vertical">
+      <Form
+        {...formProps}
+        layout="vertical"
+        onValuesChange={(changed, all) => {
+          const t = (all as any)?.title as string | undefined;
+          const a = (all as any)?.artist as string | undefined;
+          const sku = (all as any)?.sku as string | undefined;
+          if ((t || a) && !sku) {
+            const slug = `${(a||'').trim()}-${(t||'').trim()}`
+              .toLowerCase()
+              .replace(/[^a-z0-9]+/g,'-')
+              .replace(/^-+|-+$/g,'');
+            formProps.form?.setFieldsValue({ sku: `${slug}-STD`.toUpperCase() });
+          }
+        }}
+      >
         <Form.Item
           label="Slug"
           name="slug"
