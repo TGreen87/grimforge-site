@@ -85,27 +85,7 @@ export async function POST(req: NextRequest) {
       orderItems.push({ v, qty: quantity as number })
     }
 
-    // Check inventory availability (handle potential array shape from join)
-    const available = Array.isArray((variant as any).inventory)
-      ? ((variant as any).inventory[0]?.available ?? 0)
-      : ((variant as any).inventory?.available ?? 0)
-
-    if (available < quantity) {
-      await writeAuditLog(
-        createPaymentAuditLog({
-          eventType: 'checkout.insufficient_inventory',
-          metadata: {
-            variant_id,
-            requested_quantity: quantity,
-            available_quantity: available,
-          },
-        })
-      )
-      return NextResponse.json(
-        { error: 'Insufficient inventory available' },
-        { status: 400 }
-      )
-    }
+    // Note: inventory availability is validated per item above
 
     // 2. Create pending order in database
     const orderNumber = `ORR-${Date.now().toString().slice(-6)}`
@@ -182,6 +162,33 @@ export async function POST(req: NextRequest) {
     const idempotencyKey = `checkout_${order.id}_${Date.now()}`
 
     const stripe = getStripe()
+
+    // Determine shipping options: allow client-selected shipping (e.g., AusPost)
+    let shippingOptions = STRIPE_CONFIG.shippingOptions
+    const shippingRateData = (body as any)?.shipping_rate_data
+    const shipping = (body as any)?.shipping as undefined | {
+      display_name?: string
+      amount_cents?: number
+      currency?: string
+      eta_min_days?: number
+      eta_max_days?: number
+    }
+    if (shippingRateData && typeof shippingRateData === 'object') {
+      shippingOptions = [{ shipping_rate_data: shippingRateData } as any]
+    } else if (shipping && typeof shipping.amount_cents === 'number' && shipping.display_name) {
+      shippingOptions = [{
+        shipping_rate_data: {
+          type: 'fixed_amount',
+          fixed_amount: { amount: Math.max(0, Math.floor(shipping.amount_cents)), currency: (shipping.currency || STRIPE_CONFIG.currency) },
+          display_name: shipping.display_name,
+          delivery_estimate: shipping.eta_min_days || shipping.eta_max_days ? {
+            minimum: shipping.eta_min_days ? { unit: 'business_day', value: shipping.eta_min_days } : undefined,
+            maximum: shipping.eta_max_days ? { unit: 'business_day', value: shipping.eta_max_days } : undefined,
+          } : undefined,
+        },
+      } as any]
+    }
+
     const session = await stripe.checkout.sessions.create(
       {
         line_items: orderItems.map(({ v, qty }) => ({
@@ -207,7 +214,7 @@ export async function POST(req: NextRequest) {
         shipping_address_collection: {
           allowed_countries: STRIPE_CONFIG.allowedCountries,
         },
-        shipping_options: STRIPE_CONFIG.shippingOptions,
+        shipping_options: shippingOptions,
         customer_email: undefined, // Let Stripe collect this
         billing_address_collection: 'required',
         phone_number_collection: {

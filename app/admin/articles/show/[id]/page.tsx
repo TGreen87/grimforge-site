@@ -2,11 +2,11 @@
 
 import React from "react";
 import { Show } from "@refinedev/antd";
-import { useOne } from "@refinedev/core";
+import { useShow } from "@refinedev/core";
 import { Typography, Descriptions, Tag } from "antd";
 
 export default function ArticleShow() {
-  const { queryResult } = useOne({ resource: "articles" });
+  const { queryResult } = useShow({ resource: "articles" });
   const { data, isLoading } = queryResult;
   const record = data?.data as any;
 

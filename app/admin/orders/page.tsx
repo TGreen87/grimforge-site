@@ -3,6 +3,7 @@
 import React from "react";
 import { List, useTable, TextField, NumberField, DateField } from "@refinedev/antd";
 import { Table, Space, Button, Tag, Select } from "antd";
+import AdminTableToolbar, { TableSize } from "../ui/AdminTableToolbar";
 import { EyeOutlined } from "@ant-design/icons";
 import Link from "next/link";
 import { useUpdate } from "@refinedev/core";
@@ -60,9 +61,10 @@ export default function OrderList() {
     );
   };
 
+  const [size, setSize] = React.useState<TableSize>("small")
   return (
-    <List>
-      <Table {...tableProps} rowKey="id">
+    <List headerButtons={<AdminTableToolbar title="Orders" size={size} onSizeChange={setSize} onRefresh={() => tableQueryResult.refetch()} searchPlaceholder="Search orders" />}>
+      <Table {...tableProps} rowKey="id" size={size} sticky rowClassName={(_, index) => (index % 2 === 1 ? 'admin-row-zebra' : '')}>
         <Table.Column
           dataIndex="id"
           title="Order ID"

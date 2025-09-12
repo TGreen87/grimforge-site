@@ -79,11 +79,8 @@ export default async function ProductPage({ params }: ProductPageProps) {
           image={(product.image as string) || product.image_url || '/placeholder.svg'}
           sku={product.sku}
           price={Number(initialPrice ?? 0)}
-          priceCurrency="AUD"
-          availability={(product as any)?.variants?.[0]?.inventory?.available > 0 ? 'InStock' : 'OutOfStock'}
+          availability={((product as any)?.variants?.[0]?.inventory?.available ?? 0) > 0}
           brand={product.artist || 'Obsidian Rite Records'}
-          category={(product.format?.[0] as string) || 'Music'}
-          url={(process.env.NEXT_PUBLIC_SITE_URL || process.env.SITE_URL_STAGING || '') + `/products/${product.slug || slug}`}
         />
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           <div className="relative w-full aspect-square bg-secondary/20 rounded overflow-hidden">
@@ -138,7 +135,8 @@ function VariantClientBlock({ variants, initialPrice, productMeta }: { variants:
 
   const React = require('react') as typeof import('react')
   const e = React.createElement
-  const { addItem } = require('@/src/contexts/CartContext') as typeof import('@/src/contexts/CartContext')
+  const { useCart } = require('@/src/contexts/CartContext') as typeof import('@/src/contexts/CartContext')
+  const { addItem } = useCart()
 
   return e(React.Fragment, null,
     e('div', { className: 'mb-6 space-y-4' },

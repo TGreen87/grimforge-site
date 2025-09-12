@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import { List, useTable, TextField, NumberField } from "@refinedev/antd";
 import { Table, Space, Button, Tag, Modal, Form, InputNumber, Input, message } from "antd";
+import AdminTableToolbar, { TableSize } from "../ui/AdminTableToolbar";
 import { PlusOutlined, EditOutlined } from "@ant-design/icons";
 import Link from "next/link";
 import { getSupabaseBrowserClient } from "@/integrations/supabase/browser";
@@ -55,24 +56,34 @@ export default function InventoryList() {
     }
   };
 
+  const [size, setSize] = useState<TableSize>("small")
   return (
     <>
       <List
         headerButtons={
-          <Button
-            type="primary"
-            icon={<PlusOutlined />}
-            onClick={() => {
-              setSelectedInventory(null);
-              form.resetFields();
-              setIsReceiveStockModalOpen(true);
-            }}
-          >
-            Receive Stock
-          </Button>
+          <div className="flex w-full items-center justify-between">
+            <AdminTableToolbar
+              title="Inventory"
+              size={size}
+              onSizeChange={setSize}
+              onRefresh={() => tableQueryResult.refetch()}
+              searchPlaceholder="Search inventory"
+            />
+            <Button
+              type="primary"
+              icon={<PlusOutlined />}
+              onClick={() => {
+                setSelectedInventory(null);
+                form.resetFields();
+                setIsReceiveStockModalOpen(true);
+              }}
+            >
+              Receive Stock
+            </Button>
+          </div>
         }
       >
-        <Table {...tableProps} rowKey="id">
+        <Table {...tableProps} rowKey="id" size={size} sticky rowClassName={(_, index) => (index % 2 === 1 ? 'admin-row-zebra' : '')}>
           <Table.Column
             dataIndex={["variant", "name"]}
             title="Stock Unit"
@@ -159,7 +170,12 @@ export default function InventoryList() {
               <br />
               <strong>Stock Unit:</strong> {selectedInventory.variant?.name}
               <br />
+              <strong>SKU:</strong> {selectedInventory.variant?.sku}
+              <br />
               <strong>Current Stock:</strong> {selectedInventory.on_hand}
+              <div style={{ fontSize: 12, color: '#9CA3AF', marginTop: 4 }}>
+                Available is calculated from On hand minus Allocated.
+              </div>
             </div>
           )}
 

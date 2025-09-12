@@ -31,6 +31,8 @@ export default function ProductCreate() {
           }
         }}
       >
+        {/* Basics */}
+        <h3 style={{ marginTop: 0, marginBottom: 8 }}>Basics</h3>
         <Form.Item
           label="URL (link)"
           name="slug"
@@ -73,6 +75,8 @@ export default function ProductCreate() {
           <TextArea rows={4} />
         </Form.Item>
 
+        {/* Pricing & Format */}
+        <h3 style={{ marginTop: 16, marginBottom: 8 }}>Format & Pricing</h3>
         <Form.Item
           label="Format"
           name="format"
@@ -95,14 +99,18 @@ export default function ProductCreate() {
           <InputNumber min={0} step={0.01} style={{ width: "100%" }} />
         </Form.Item>
 
+        {/* Inventory setup */}
+        <h3 style={{ marginTop: 16, marginBottom: 8 }}>Inventory</h3>
         <Form.Item label="Stock" name="stock" initialValue={0}>
           <InputNumber min={0} style={{ width: "100%" }} />
         </Form.Item>
 
-        <Form.Item label="SKU" name="sku">
+        <Form.Item label="SKU" name="sku" extra="Auto-suggested from Title/Artist; edit to match your scheme.">
           <Input />
         </Form.Item>
 
+        {/* Media & Metadata */}
+        <h3 style={{ marginTop: 16, marginBottom: 8 }}>Media & Metadata</h3>
         <Form.Item label="Release Year" name="release_year">
           <InputNumber min={1900} max={new Date().getFullYear() + 5} style={{ width: "100%" }} />
         </Form.Item>
@@ -121,6 +129,8 @@ export default function ProductCreate() {
           </Select>
         </Form.Item>
 
+        {/* Publishing */}
+        <h3 style={{ marginTop: 16, marginBottom: 8 }}>Publishing</h3>
         <Form.Item label="Active" name="active" valuePropName="checked" initialValue={true}>
           <Switch />
         </Form.Item>

@@ -3,28 +3,34 @@
 import React from "react";
 import { List, useTable, TextField, NumberField, BooleanField } from "@refinedev/antd";
 import { Table, Space, Button, Tag } from "antd";
+import AdminTableToolbar, { TableSize } from "../ui/AdminTableToolbar";
 import { EditOutlined, EyeOutlined } from "@ant-design/icons";
 import Link from "next/link";
 import type { Variant } from "../types";
 
 export default function VariantList() {
-  const { tableProps } = useTable<Variant>({
+  const { tableProps, tableQueryResult } = useTable<Variant>({
     resource: "variants",
     meta: {
       select: "*, product:products(*), inventory(*)",
     },
   });
+  const [size, setSize] = React.useState<TableSize>("small")
 
   return (
     <List
       title="Stock Units"
       headerButtons={
-        <div className="text-sm text-muted-foreground">
-          Stock Units are the purchasable items for a product (e.g., a specific pressing or format). Use Receive in Inventory to add stock.
-        </div>
+        <AdminTableToolbar
+          title="Stock Units"
+          size={size}
+          onSizeChange={setSize}
+          onRefresh={() => tableQueryResult.refetch()}
+          searchPlaceholder="Search stock units"
+        />
       }
     >
-      <Table {...tableProps} rowKey="id">
+      <Table {...tableProps} rowKey="id" size={size} sticky rowClassName={(_, index) => (index % 2 === 1 ? 'admin-row-zebra' : '')}>
         <Table.Column
           dataIndex="name"
           title="Name"

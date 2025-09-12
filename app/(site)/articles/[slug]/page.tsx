@@ -32,10 +32,10 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
 
   // Minimal markdown rendering: supports headings (#), lists (-), code blocks (```), and paragraphs.
   const raw = (article.content || article.excerpt || '').trim()
-  const lines = raw.split(/\n/)
+  const lines: string[] = raw.split(/\n/)
   const blocks: Array<{ type: string; content: string[] }> = []
   let inCode = false
-  lines.forEach((ln) => {
+  lines.forEach((ln: string) => {
     if (ln.trim().startsWith('```')) {
       inCode = !inCode
       if (inCode) blocks.push({ type: 'code', content: [] })
@@ -64,13 +64,12 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
     <main>
       <article className="container mx-auto px-4 py-8">
         <ArticleJsonLd
-          headline={article.title}
+          title={article.title}
           description={article.excerpt || article.description || ''}
           image={article.image_url}
           datePublished={article.published_at}
           dateModified={article.updated_at}
           author={article.author}
-          url={(process.env.NEXT_PUBLIC_SITE_URL || process.env.SITE_URL_STAGING || '') + `/articles/${article.slug}`}
         />
         <header className="mb-6">
           <h1 className="blackletter text-4xl md:text-6xl mb-2 text-bone break-words">{article.title}</h1>

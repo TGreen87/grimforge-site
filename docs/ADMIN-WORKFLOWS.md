@@ -36,9 +36,14 @@ This guide explains the key concepts in the admin and the typical flows.
 - Customers add items from product pages (this captures the Stock Unit for checkout).
 - The cart supports multi‑item Stripe Checkout.
 - Shipping address and phone are required in the checkout modal; wallets (Apple/Google Pay) appear when enabled in Stripe.
+- Shipping: when Australia Post is configured, customers will see AusPost rate options at checkout; otherwise, static Stripe rates are offered. See `docs/SHIPPING-AUSPOST.md`.
 
 ## Tips
 - Use lowercase URL links with hyphens; keep them short and descriptive.
 - Keep SKUs consistent (auto‑generated, but edit if you have a store‑wide scheme).
 - Prefer “Stock Units” to refer to purchasable items (we’ve renamed UI labels accordingly).
 
+## Form Grouping (Admin UI)
+- Products: Basics → Format & Pricing → Inventory → Media & Metadata → Publishing.
+- Stock Units: Basics → Identification → Pricing & Attributes → Publishing.
+- Inline helpers: URL link pattern; SKU auto‑suggest; shipping weight/dimensions usage.

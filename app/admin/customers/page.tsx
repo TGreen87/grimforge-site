@@ -3,12 +3,13 @@
 import React from "react";
 import { List, useTable, TextField, DateField } from "@refinedev/antd";
 import { Table, Space, Button, Tag } from "antd";
+import AdminTableToolbar, { TableSize } from "../ui/AdminTableToolbar";
 import { EditOutlined, EyeOutlined } from "@ant-design/icons";
 import Link from "next/link";
 import type { Customer, Order, Address } from "../types";
 
 export default function CustomerList() {
-  const { tableProps } = useTable<Customer>({
+  const { tableProps, tableQueryResult } = useTable<Customer>({
     resource: "customers",
     meta: {
       select: "*, orders(id), addresses(id)",
@@ -23,9 +24,10 @@ export default function CustomerList() {
     },
   });
 
+  const [size, setSize] = React.useState<TableSize>("small")
   return (
-    <List>
-      <Table {...tableProps} rowKey="id">
+    <List headerButtons={<AdminTableToolbar title="Customers" size={size} onSizeChange={setSize} onRefresh={() => tableQueryResult.refetch()} searchPlaceholder="Search customers" />}>
+      <Table {...tableProps} rowKey="id" size={size} sticky rowClassName={(_, index) => (index % 2 === 1 ? 'admin-row-zebra' : '')}>
         <Table.Column
           dataIndex="email"
           title="Email"

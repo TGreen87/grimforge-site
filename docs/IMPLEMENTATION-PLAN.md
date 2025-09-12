@@ -54,6 +54,14 @@ Acceptance:
 Acceptance:
 - Client errors persist (Supabase) with essential context; can be filtered by time/user. [partially met]
 
+### Phase 4.1 — Shipping (AusPost Scaffold)
+- Add AusPost quote service and API: `src/services/shipping/auspost.ts`, `POST /api/shipping/quote`. [done]
+- Update checkout to accept a selected shipping option (`shipping_rate_data` or `{ shipping: ... }`) and compose Stripe Checkout accordingly. [done]
+- Degrade to static Stripe rates when AusPost env is absent. [done]
+
+Acceptance:
+- With `AUSPOST_API_KEY` and origin configured, shipping options return from `/api/shipping/quote` for AU and international; when not configured, static Stripe rates are returned. Checkout reflects the chosen option.
+
 ### Phase 5 — Admin Gating (Prod Only)
 - Keep previews relaxed; on production, require `user_roles.role = 'admin'` server-side.
 - Ensure non-admins see a friendly restriction (read-only or access denied page).
@@ -92,6 +100,33 @@ Acceptance:
 - Add Admin improvements: Users & Roles UI (grant/remove admin by email), OAuth customers auto‑provision, future admin polish roadmap. [in progress]
 - Add Payments Enhancements: wallet support via Stripe Checkout (Apple/Google Pay), PayPal investigation (separate integration).
 - Add Data Seeding: scripts to populate products/orders for branch testing.
+
+### Phase 10 — Admin Visual Overhaul
+- Goals: improve readability, hierarchy, and speed in daily ops; align visuals with brand while keeping Refine/AntD usability.
+- Tasks:
+  - Theme tokens: colors, typography scale, spacing, radii, shadows; consistent dark mode.
+  - Layout: tighter header/sider; improved section headers; breadcrumbs.
+  - Tables: denser rows option, sticky headers, zebra, selection affordances, compact column presets.
+  - Forms: vertical rhythm, clearer labels/help text, inline validation, field grouping.
+  - Buttons/controls: sensible sizes for desktop/mobile; accessible focus states.
+  - Empty/loading: skeletons and helpful empty-state messaging.
+  - Quick actions: inline price/active/stock editors, Receive Stock dialog clarity (SKU/notes).
+- Acceptance:
+  - All admin pages adopt the new theme; key flows (Products, Stock Units, Inventory, Orders) feel faster and clearer on desktop and tablet.
+
+Status:
+- RFC created: `docs/ADMIN-VISUALS-RFC.md` [done]
+- Default density set to `small` via ConfigProvider; table/header tokens aligned [done]
+
+### Phase 11 — Site Visual Improvements
+- Goals: improve hierarchy and readability on mobile and desktop; keep brand vibe.
+- Tasks:
+  - Header/Menu polish; hero readability; section spacing.
+  - Catalog: card uniformity, badges, skeletons, grid consistency.
+  - Product: image sizing, variant selector visual treatment, CTA grouping.
+  - Footer: links and spacing on mobile.
+- Acceptance:
+  - Mobile pages have no overflow; tap targets are accessible; layout feels consistent across sections.
 
 ## Rollback
 - Netlify: reset Node to previous major if a runtime regression appears; rebuild branch.

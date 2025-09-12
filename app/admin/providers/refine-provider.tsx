@@ -3,10 +3,10 @@
 import { Refine, Authenticated } from "@refinedev/core";
 import { RefineKbar, RefineKbarProvider } from "@refinedev/kbar";
 import routerProvider from "@refinedev/nextjs-router";
-import { ThemedLayoutV2, ThemedSiderV2, ThemedTitleV2 } from "@refinedev/antd";
 import { App as AntdAppWrapper, ConfigProvider, theme as antdTheme } from "antd";
 import { brand } from "@/config/brand";
 import { usePathname } from "next/navigation";
+import AdminLayout from "../ui/AdminLayout";
 import { 
   ShoppingCartOutlined, 
   AppstoreOutlined, 
@@ -132,6 +132,7 @@ export function RefineProvider({ children }: { children: React.ReactNode }) {
             },
           },
         }}
+        componentSize="small"
       >
         <AntdAppWrapper>
           <Refine
@@ -145,19 +146,13 @@ export function RefineProvider({ children }: { children: React.ReactNode }) {
               projectId: "grimforge-admin",
             }}
           >
-            <ThemedLayoutV2
-              Sider={() => (
-                <ThemedSiderV2 
-                  Title={() => (
-                    <ThemedTitleV2 
-                      collapsed={false} 
-                      text={`${brand.shortName} Admin`} 
-                      icon={<DashboardOutlined />}
-                    />
-                  )}
-                />
-              )}
-            >
+            <AdminLayout>
+              {/* Global styles for admin table zebra rows */}
+              <style jsx global>{`
+                .ant-table-tbody > tr.admin-row-zebra > td {
+                  background-color: #0d0f12 !important;
+                }
+              `}</style>
               {isLoginRoute ? (
                 children
               ) : (
@@ -179,7 +174,7 @@ export function RefineProvider({ children }: { children: React.ReactNode }) {
                   {children}
                 </Authenticated>
               )}
-            </ThemedLayoutV2>
+            </AdminLayout>
             <RefineKbar />
           </Refine>
         </AntdAppWrapper>

@@ -3,6 +3,7 @@
 import React from "react";
 import { List, useTable, TextField, DateField } from "@refinedev/antd";
 import { Table, Tag, Collapse, Typography } from "antd";
+import AdminTableToolbar, { TableSize } from "../ui/AdminTableToolbar";
 import type { AuditLog } from "../types";
 
 const { Panel } = Collapse;
@@ -23,7 +24,7 @@ const eventTypeColors: Record<string, string> = {
 };
 
 export default function AuditLogList() {
-  const { tableProps } = useTable<AuditLog>({
+  const { tableProps, tableQueryResult } = useTable<AuditLog>({
     resource: "audit_logs",
     sorters: {
       initial: [
@@ -38,9 +39,10 @@ export default function AuditLogList() {
     },
   });
 
+  const [size, setSize] = React.useState<TableSize>("small")
   return (
-    <List>
-      <Table {...tableProps} rowKey="id">
+    <List headerButtons={<AdminTableToolbar title="Audit Logs" size={size} onSizeChange={setSize} onRefresh={() => tableQueryResult.refetch()} searchPlaceholder="Filter by type..." />}>
+      <Table {...tableProps} rowKey="id" size={size} sticky rowClassName={(_, index) => (index % 2 === 1 ? 'admin-row-zebra' : '')}>
         <Table.Column
           dataIndex="event_type"
           title="Event Type"

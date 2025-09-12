@@ -20,6 +20,7 @@ export default function StockUnitEdit() {
   return (
     <Edit saveButtonProps={saveButtonProps} title="Edit Stock Unit">
       <Form {...formProps} layout="vertical">
+        <h3 style={{ marginTop: 0, marginBottom: 8 }}>Basics</h3>
         <Form.Item
           label="Product"
           name="product_id"
@@ -36,6 +37,7 @@ export default function StockUnitEdit() {
           <Input placeholder="e.g., Black Vinyl, Limited Edition CD" />
         </Form.Item>
 
+        <h3 style={{ marginTop: 16, marginBottom: 8 }}>Identification</h3>
         <Form.Item
           label="SKU"
           name="sku"
@@ -44,6 +46,7 @@ export default function StockUnitEdit() {
           <Input placeholder="e.g., PROD-001-BLK" />
         </Form.Item>
 
+        <h3 style={{ marginTop: 16, marginBottom: 8 }}>Pricing & Attributes</h3>
         <Form.Item
           label="Price (AUD)"
           name="price"
@@ -60,11 +63,11 @@ export default function StockUnitEdit() {
           <Input placeholder="e.g., Black, Red Splatter" />
         </Form.Item>
 
-        <Form.Item label="Weight (grams)" name="weight">
+        <Form.Item label="Weight (grams)" name="weight" extra="Used for shipping quotes.">
           <InputNumber min={0} style={{ width: "100%" }} />
         </Form.Item>
 
-        <Form.Item label="Dimensions" name="dimensions">
+        <Form.Item label="Dimensions" name="dimensions" extra="L×W×H in cm (for shipping quotes).">
           <Input placeholder="e.g., 30x30x1 cm" />
         </Form.Item>
 
@@ -72,6 +75,7 @@ export default function StockUnitEdit() {
           <Input placeholder="e.g., 1234567890123" />
         </Form.Item>
 
+        <h3 style={{ marginTop: 16, marginBottom: 8 }}>Publishing</h3>
         <Form.Item label="Active" name="active" valuePropName="checked">
           <Switch />
         </Form.Item>

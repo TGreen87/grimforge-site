@@ -3,6 +3,7 @@
 import React from "react";
 import { List, useTable, TextField, BooleanField } from "@refinedev/antd";
 import { Table, Space, Button, Tag } from "antd";
+import AdminTableToolbar, { TableSize } from "../ui/AdminTableToolbar";
 import { EditOutlined, EyeOutlined } from "@ant-design/icons";
 import Link from "next/link";
 
@@ -16,14 +17,15 @@ interface ArticleRow {
 }
 
 export default function ArticlesList() {
-  const { tableProps } = useTable<ArticleRow>({
+  const { tableProps, tableQueryResult } = useTable<ArticleRow>({
     resource: "articles",
     meta: { select: "*" },
   });
+  const [size, setSize] = React.useState<TableSize>("small")
 
   return (
-    <List title="Articles">
-      <Table {...tableProps} rowKey="id">
+    <List title="Articles" headerButtons={<AdminTableToolbar title="Articles" size={size} onSizeChange={setSize} onRefresh={() => tableQueryResult.refetch()} searchPlaceholder="Search articles" />}>
+      <Table {...tableProps} rowKey="id" size={size} sticky rowClassName={(_, index) => (index % 2 === 1 ? 'admin-row-zebra' : '')}>
         <Table.Column dataIndex="title" title="Title" render={(v: string) => <TextField value={v} />} />
         <Table.Column dataIndex="slug" title="Slug" render={(v: string) => <TextField value={v} />} />
         <Table.Column dataIndex="author" title="Author" render={(v?: string) => <TextField value={v || '—'} />} />
@@ -47,4 +49,3 @@ export default function ArticlesList() {
     </List>
   );
 }
-

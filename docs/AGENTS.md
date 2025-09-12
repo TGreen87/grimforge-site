@@ -142,12 +142,13 @@ This guide encodes how we use Codex CLI here: plan first, one working branch, ex
 - Observability: added `/api/client-logs` endpoint and mounted a client error logger in `app/providers.tsx`.
 - Observability: rate limit + dedupe on `/api/client-logs`, correlation ID cookie (`orr_cid`) included with reports, and a React ErrorBoundary wraps the app.
 - Observability: middleware now propagates correlation IDs via `x-correlation-id` header and sets `orr_cid` cookie when absent.
+- Shipping (scaffold): Added AusPost quote service + API; checkout accepts selected shipping rate; degrades to static Stripe rates when AusPost env is absent. See `docs/SHIPPING-AUSPOST.md`.
 
 ## Deployment Status
 
-- 2025-09-10: Promoted `dev` → `main` via fast‑forward merge. Production HEAD: `a9ab53d`.
-- Highlights now live: Articles scaffold (admin list/create/edit/show + public list/detail), mobile polish (no horizontal scroll, header/menu tweaks, responsive cart drawer), catalog skeletons, product detail Add to Cart, multi‑item checkout API, shipping validation in modal.
-- Ongoing work on `dev`: mobile polish, Articles markdown styling, admin clarity (rename variants to stock units across forms).
+- 2025-09-10: Promoted `dev` → `main` via fast‑forward merge. Production HEAD: `63fb47a`.
+- Highlights now live: Articles scaffold (admin list/create/edit/show + public list/detail), mobile polish (no horizontal scroll, header/menu tweaks, responsive cart drawer), catalog skeletons, product detail Add to Cart, multi‑item checkout API, shipping validation in modal, admin wording updates (URL link + Stock Unit terminology).
+- Ongoing work on `dev`: mobile polish, Articles markdown styling, admin clarity across forms, upcoming admin visual overhaul.
 
 ## Open TODOs
 

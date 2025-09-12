@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -36,7 +36,6 @@ const CheckoutModal = ({ children }: CheckoutModalProps) => {
     state: "",
     postalCode: "",
     country: "Australia",
-    shippingMethod: "standard"
   });
 
   const [paymentData, setPaymentData] = useState({
@@ -47,17 +46,89 @@ const CheckoutModal = ({ children }: CheckoutModalProps) => {
     billingAddress: "",
     saveCard: false
   });
+  
+  // Shipping options via API (AusPost when configured; Stripe static fallback otherwise)
+  type StripeRateData = {
+    type: 'fixed_amount'
+    fixed_amount: { amount: number; currency: string }
+    display_name: string
+    delivery_estimate?: {
+      minimum?: { unit: string; value: number }
+      maximum?: { unit: string; value: number }
+    }
+  }
+  type StripeStaticOption = { provider: 'stripe_static'; shipping_rate_data: StripeRateData }
+  type AusPostOption = { carrier: 'AUSPOST'; service_code: string; display_name: string; amount_cents: number; currency: 'AUD'; eta_min_days?: number; eta_max_days?: number }
+  type AnyOption = (StripeStaticOption | AusPostOption)
 
-  const shippingOptions = [
-    { value: "standard", label: "Standard delivery (5-7 days)", price: 9.95 },
-    { value: "express", label: "Express delivery (2-3 days)", price: 19.95 },
-    { value: "overnight", label: "Overnight (1 day)", price: 39.95 }
-  ];
+  const [shipLoading, setShipLoading] = useState(false)
+  const [shipError, setShipError] = useState<string | null>(null)
+  const [shipConfigured, setShipConfigured] = useState<boolean>(false)
+  const [shipOptions, setShipOptions] = useState<AnyOption[]>([])
+  const [selectedShip, setSelectedShip] = useState<AnyOption | null>(null)
+
+  const getCountryCode = (label: string) => {
+    switch (label) {
+      case 'Australia': return 'AU'
+      case 'New Zealand': return 'NZ'
+      case 'United States': return 'US'
+      case 'United Kingdom': return 'GB'
+      case 'Norway': return 'NO'
+      default: return 'AU'
+    }
+  }
+
+  const isAddressValid = useMemo(() => {
+    const emailOk = /.+@.+\..+/.test(shippingData.email)
+    const phoneOk = (shippingData.phone || '').replace(/\D/g,'').length >= 6
+    return Boolean(shippingData.fullName && emailOk && phoneOk && shippingData.address && shippingData.city && shippingData.state && shippingData.postalCode)
+  }, [shippingData])
+
+  const fetchShippingOptions = async () => {
+    try {
+      setShipLoading(true); setShipError(null)
+      const destination = {
+        country: getCountryCode(shippingData.country),
+        postcode: shippingData.postalCode,
+        state: shippingData.state,
+        suburb: shippingData.city,
+      }
+      // Default package per item: 250g, 31x22x3 cm
+      const itemsForQuote = items.map(it => ({ weight_g: 250, length_cm: 31, width_cm: 22, height_cm: 3, quantity: it.quantity }))
+      const res = await fetch('/api/shipping/quote', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ destination, items: itemsForQuote })
+      })
+      if (!res.ok) throw new Error('Failed to fetch shipping options')
+      const data = await res.json() as { configured: boolean; options: AnyOption[] }
+      setShipConfigured(Boolean(data.configured))
+      setShipOptions(Array.isArray(data.options) ? data.options : [])
+      setSelectedShip((prev) => prev && data.options.find(o => 'provider' in o ? ('provider' in (prev as any)) : ('carrier' in (prev as any))) ? prev : (data.options[0] || null))
+    } catch (e:any) {
+      console.error(e)
+      setShipError(e?.message || 'Unable to load shipping options')
+      setShipOptions([])
+      setSelectedShip(null)
+    } finally {
+      setShipLoading(false)
+    }
+  }
+
+  // Optionally auto-fetch when address becomes valid
+  useEffect(() => {
+    if (isAddressValid) {
+      fetchShippingOptions()
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAddressValid, shippingData.country, shippingData.postalCode])
 
   const getShippingPrice = () => {
-    const option = shippingOptions.find(opt => opt.value === shippingData.shippingMethod);
-    return option?.price || 0;
-  };
+    if (!selectedShip) return 0
+    if ('shipping_rate_data' in selectedShip) {
+      return (selectedShip.shipping_rate_data.fixed_amount.amount || 0) / 100
+    }
+    return (selectedShip.amount_cents || 0) / 100
+  }
 
   const getTotalWithShipping = () => {
     return getTotalPrice() + getShippingPrice();
@@ -78,10 +149,26 @@ const CheckoutModal = ({ children }: CheckoutModalProps) => {
         return
       }
 
+      // Build shipping selection payload
+      let shippingPayload: any = {}
+      if (selectedShip) {
+        if ('shipping_rate_data' in selectedShip) {
+          shippingPayload.shipping_rate_data = selectedShip.shipping_rate_data
+        } else {
+          shippingPayload.shipping = {
+            display_name: selectedShip.display_name,
+            amount_cents: selectedShip.amount_cents,
+            currency: selectedShip.currency,
+            eta_min_days: selectedShip.eta_min_days,
+            eta_max_days: selectedShip.eta_max_days,
+          }
+        }
+      }
+
       const res = await fetch('/api/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ items: payloadItems }),
+        body: JSON.stringify({ items: payloadItems, ...shippingPayload }),
       })
       if (!res.ok) throw new Error('Checkout failed')
       const data = await res.json()
@@ -212,25 +299,48 @@ const CheckoutModal = ({ children }: CheckoutModalProps) => {
 
       {/* Shipping Methods */}
       <div className="space-y-3">
-        <Label className="text-bone">Delivery Method</Label>
-        {shippingOptions.map((option) => (
-          <div
-            key={option.value}
-            className={`p-3 border rounded cursor-pointer transition-all ${
-              shippingData.shippingMethod === option.value
-                ? "border-accent bg-accent/10"
-                : "border-border hover:border-frost"
-            }`}
-            onClick={() => setShippingData(prev => ({ ...prev, shippingMethod: option.value }))}
-          >
-            <div className="flex justify-between items-center">
-              <div>
-                <p className="text-bone font-medium">{option.label}</p>
+        <div className="flex items-center justify-between">
+          <Label className="text-bone">Delivery method</Label>
+          <Button type="button" variant="outline" size="sm" onClick={fetchShippingOptions} disabled={!isAddressValid || shipLoading}
+            className="border-frost text-frost hover:bg-frost hover:text-background">
+            {shipLoading ? 'Fetching…' : 'Refresh rates'}
+          </Button>
+        </div>
+
+        {!isAddressValid && (
+          <p className="text-xs text-muted-foreground">Enter a valid email, phone, and address to fetch shipping rates.</p>
+        )}
+        {shipError && (
+          <p className="text-xs text-destructive">{shipError}</p>
+        )}
+        {shipOptions.length === 0 && isAddressValid && !shipLoading && (
+          <p className="text-xs text-muted-foreground">No live rates available. A standard shipping option will be shown at payment.</p>
+        )}
+        {shipOptions.map((option, idx) => {
+          const key = 'shipping_rate_data' in option ? option.shipping_rate_data.display_name + idx : option.display_name + idx
+          const label = 'shipping_rate_data' in option ? option.shipping_rate_data.display_name : option.display_name
+          const amount = 'shipping_rate_data' in option ? (option.shipping_rate_data.fixed_amount.amount/100) : (option.amount_cents/100)
+          const selected = selectedShip === option
+          return (
+            <div
+              key={key}
+              className={`p-3 border rounded cursor-pointer transition-all ${selected ? 'border-accent bg-accent/10' : 'border-border hover:border-frost'}`}
+              onClick={() => setSelectedShip(option)}
+            >
+              <div className="flex justify-between items-center">
+                <div>
+                  <p className="text-bone font-medium">{label}</p>
+                  {'shipping_rate_data' in option && option.shipping_rate_data.delivery_estimate && (
+                    <p className="text-xs text-muted-foreground">
+                      {option.shipping_rate_data.delivery_estimate.minimum?.value && `${option.shipping_rate_data.delivery_estimate.minimum.value}-${option.shipping_rate_data.delivery_estimate.maximum?.value ?? option.shipping_rate_data.delivery_estimate.minimum.value} business days`}
+                    </p>
+                  )}
+                </div>
+                <span className="text-accent font-bold">${amount.toFixed(2)}</span>
               </div>
-              <span className="text-accent font-bold">${option.price}</span>
             </div>
-          </div>
-        ))}
+          )
+        })}
       </div>
     </div>
   );
@@ -406,13 +516,13 @@ const CheckoutModal = ({ children }: CheckoutModalProps) => {
               {currentStep === 1 ? (
                 <Button 
                   onClick={() => {
-                    // Basic validation before continuing
-                    const emailOk = /.+@.+\..+/.test(shippingData.email)
-                    const phoneOk = (shippingData.phone || '').replace(/\D/g,'').length >= 6
-                    const allOk = shippingData.fullName && emailOk && phoneOk && shippingData.address && shippingData.city && shippingData.state && shippingData.postalCode
-                    if (!allOk) {
+                    if (!isAddressValid) {
                       toast({ title: 'Missing details', description: 'Please complete all shipping fields (valid email/phone).' , variant: 'destructive'})
                       return
+                    }
+                    // If rates loaded and not selected, pick first for convenience
+                    if (shipOptions.length > 0 && !selectedShip) {
+                      setSelectedShip(shipOptions[0])
                     }
                     setCurrentStep(2)
                   }}

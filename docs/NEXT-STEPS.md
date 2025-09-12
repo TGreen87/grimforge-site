@@ -37,6 +37,16 @@ Next:
 - Mounted client error listener (window.error/unhandledrejection) via `ClientErrorLogger` in app providers.
 - Added console/nav breadcrumbs and correlation IDs (cookie/header) to enrich client error reports.
 
+## Shipping — AusPost (Scaffold)
+- Implemented server scaffold for Australia Post quotes and checkout integration.
+- `POST /api/shipping/quote` returns AusPost rates when configured; falls back to static Stripe options otherwise.
+- `POST /api/checkout` accepts `shipping_rate_data` or `{ shipping: ... }` and uses that for Stripe Checkout shipping.
+
+Next:
+- Add UI in checkout to display selectable shipping options from `/api/shipping/quote`.
+- Confirm service list (Domestic: Parcel Post/Express; Key Intl zones) and labels.
+- Add weight/dimension defaults on Stock Units to improve quotes.
+
 ## Mobile UX Polish — Planned
 - Header/menu spacing on small screens; drawer widths; card grid/paddings; break long words. [in progress]
 - Catalog: add skeletons while products load. [done]
