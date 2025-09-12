@@ -3,13 +3,6 @@ import React from "react";
 import { Layout, Breadcrumb, Input, Space, Dropdown, Avatar } from "antd";
 import { usePathname } from "next/navigation";
 import { SearchOutlined, UserOutlined } from "@ant-design/icons";
-// Attempt to programmatically toggle Refine Kbar palette when search is clicked
-let kbarQuery: any = null;
-try {
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
-  const kbar = require('kbar');
-  kbarQuery = kbar.useKBar ? kbar.useKBar().query : null;
-} catch {}
 
 const { Header } = Layout;
 
@@ -48,11 +41,6 @@ export default function AdminHeader() {
             style={{ width: 300 }}
             onFocus={() => {
               try {
-                if (kbarQuery && typeof kbarQuery.toggle === 'function') {
-                  kbarQuery.toggle();
-                  return;
-                }
-                // Fallback: dispatch meta+K keydown to trigger palette
                 const ev = new KeyboardEvent('keydown', { key: 'k', metaKey: true });
                 window.dispatchEvent(ev);
               } catch {}
@@ -60,12 +48,8 @@ export default function AdminHeader() {
             onClick={(e) => {
               (e.target as HTMLInputElement).blur();
               try {
-                if (kbarQuery && typeof kbarQuery.toggle === 'function') {
-                  kbarQuery.toggle();
-                } else {
-                  const ev = new KeyboardEvent('keydown', { key: 'k', metaKey: true });
-                  window.dispatchEvent(ev);
-                }
+                const ev = new KeyboardEvent('keydown', { key: 'k', metaKey: true });
+                window.dispatchEvent(ev);
               } catch {}
             }}
             readOnly

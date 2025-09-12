@@ -64,6 +64,25 @@ export default function OrderList() {
 
   const [size, setSize] = React.useState<TableSize>("small")
   const [view, setView] = React.useState<AdminView>(typeof window === 'undefined' ? 'table' : getStoredView('orders'))
+
+  const onDropChangeStatus = (status: string, e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    const id = e.dataTransfer.getData('text/plain');
+    if (!id) return;
+    updateOrder(
+      {
+        resource: 'orders',
+        id,
+        values: { status, updated_at: new Date().toISOString() },
+      },
+      {
+        onSuccess: () => {
+          message.success(`Order moved to ${status}`);
+          tableQueryResult.refetch();
+        },
+      }
+    );
+  }
   return (
     <List headerButtons={<AdminTableToolbar title="Orders" size={size} onSizeChange={setSize} onRefresh={() => tableQueryResult.refetch()} searchPlaceholder="Search orders" rightSlot={<AdminViewToggle resource='orders' value={view} onChange={setView} allowBoard />} />}>
       {view === 'table' ? (
@@ -147,11 +166,14 @@ export default function OrderList() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
           {['pending','paid','processing','shipped'].map((status) => (
-            <div key={status} className="border border-border rounded-lg p-3 bg-[#0b0b0b]">
+            <div key={status} className="border border-border rounded-lg p-3 bg-[#0b0b0b]"
+              onDragOver={(e) => e.preventDefault()}
+              onDrop={(e) => onDropChangeStatus(status, e)}
+            >
               <div className="text-sm mb-2 font-semibold capitalize">{status}</div>
               <div className="space-y-2 max-h-[70vh] overflow-auto pr-1">
                 {((tableProps.dataSource as Order[] | undefined) || []).filter(o => o.status === status).map((o) => (
-                  <div key={o.id} className="p-3 rounded border border-border bg-[#0e0e0e]">
+                  <div key={o.id} className="p-3 rounded border border-border bg-[#0e0e0e]" draggable onDragStart={(e)=> e.dataTransfer.setData('text/plain', o.id)}>
                     <div className="flex items-center justify-between text-xs">
                       <span className="font-mono">{o.id.substring(0,8)}…</span>
                       <span>${(o.total as any).toFixed ? (o.total as any).toFixed(2) : o.total} AUD</span>
