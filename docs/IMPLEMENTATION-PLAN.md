@@ -117,6 +117,15 @@ Acceptance:
 Status:
 - RFC created: `docs/ADMIN-VISUALS-RFC.md` [done]
 - Default density set to `small` via ConfigProvider; table/header tokens aligned [done]
+- Modern shell (header+sider) with breadcrumbs and header search tied to Kbar [done]
+- Table toolbar with density and column presets (persist per resource) [done]
+- Alternate views:
+  - Products → Cards [done]
+  - Orders → Board with drag-and-drop status updates [done]
+  - Inventory → Cards + quick filters (All/Low/Out) [done]
+  - Customers → Cards [done]
+  - Articles → Cards [done]
+- Kbar actions registered (create product/article/stock unit, jump to boards/cards) [done]
 
 ### Phase 11 — Site Visual Improvements
 - Goals: improve hierarchy and readability on mobile and desktop; keep brand vibe.

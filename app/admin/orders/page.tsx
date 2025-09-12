@@ -64,6 +64,8 @@ export default function OrderList() {
 
   const [size, setSize] = React.useState<TableSize>("small")
   const [view, setView] = React.useState<AdminView>(typeof window === 'undefined' ? 'table' : getStoredView('orders'))
+  const [dragId, setDragId] = React.useState<string | null>(null)
+  const [overStatus, setOverStatus] = React.useState<string | null>(null)
 
   const onDropChangeStatus = (status: string, e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
@@ -84,7 +86,14 @@ export default function OrderList() {
     );
   }
   return (
-    <List headerButtons={<AdminTableToolbar title="Orders" size={size} onSizeChange={setSize} onRefresh={() => tableQueryResult.refetch()} searchPlaceholder="Search orders" rightSlot={<AdminViewToggle resource='orders' value={view} onChange={setView} allowBoard />} />}>
+    <>
+      <style jsx global>{`
+        .kanban-card { transition: transform 160ms ease, box-shadow 160ms ease, background-color 160ms ease; }
+        .kanban-card.dragging { transform: scale(1.02); box-shadow: 0 8px 24px rgba(0,0,0,0.35); background-color: #121212; }
+        .kanban-column { transition: border-color 120ms ease, background-color 120ms ease; border: 1px solid var(--border, #1f2937); }
+        .kanban-column.drop-target { border-color: #8B0000; background-color: rgba(139,0,0,0.08); }
+      `}</style>
+      <List headerButtons={<AdminTableToolbar title="Orders" size={size} onSizeChange={setSize} onRefresh={() => tableQueryResult.refetch()} searchPlaceholder="Search orders" rightSlot={<AdminViewToggle resource='orders' value={view} onChange={setView} allowBoard />} />}>
       {view === 'table' ? (
       <Table {...tableProps} rowKey="id" size={size} sticky rowClassName={(_, index) => (index % 2 === 1 ? 'admin-row-zebra' : '')}>
         <Table.Column
@@ -164,16 +173,24 @@ export default function OrderList() {
         />
       </Table>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
-          {['pending','paid','processing','shipped'].map((status) => (
-            <div key={status} className="border border-border rounded-lg p-3 bg-[#0b0b0b]"
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-4">
+          {['pending','paid','processing','shipped','delivered'].map((status) => (
+            <div key={status}
+              className={`kanban-column rounded-lg p-3 bg-[#0b0b0b] ${overStatus===status ? 'drop-target' : ''}`}
               onDragOver={(e) => e.preventDefault()}
-              onDrop={(e) => onDropChangeStatus(status, e)}
+              onDragEnter={() => setOverStatus(status)}
+              onDragLeave={() => setOverStatus(null)}
+              onDrop={(e) => { setOverStatus(null); onDropChangeStatus(status, e); }}
             >
               <div className="text-sm mb-2 font-semibold capitalize">{status}</div>
               <div className="space-y-2 max-h-[70vh] overflow-auto pr-1">
                 {((tableProps.dataSource as Order[] | undefined) || []).filter(o => o.status === status).map((o) => (
-                  <div key={o.id} className="p-3 rounded border border-border bg-[#0e0e0e]" draggable onDragStart={(e)=> e.dataTransfer.setData('text/plain', o.id)}>
+                  <div key={o.id}
+                    className={`kanban-card p-3 rounded border border-border bg-[#0e0e0e] ${dragId===o.id ? 'dragging' : ''}`}
+                    draggable
+                    onDragStart={(e)=> { e.dataTransfer.setData('text/plain', o.id); setDragId(o.id); }}
+                    onDragEnd={()=> setDragId(null)}
+                  >
                     <div className="flex items-center justify-between text-xs">
                       <span className="font-mono">{o.id.substring(0,8)}…</span>
                       <span>${(o.total as any).toFixed ? (o.total as any).toFixed(2) : o.total} AUD</span>
@@ -188,6 +205,7 @@ export default function OrderList() {
           ))}
         </div>
       )}
-    </List>
+      </List>
+    </>
   );
 }

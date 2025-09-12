@@ -143,6 +143,7 @@ This guide encodes how we use Codex CLI here: plan first, one working branch, ex
 - Observability: rate limit + dedupe on `/api/client-logs`, correlation ID cookie (`orr_cid`) included with reports, and a React ErrorBoundary wraps the app.
 - Observability: middleware now propagates correlation IDs via `x-correlation-id` header and sets `orr_cid` cookie when absent.
 - Shipping (scaffold): Added AusPost quote service + API; checkout accepts selected shipping rate; degrades to static Stripe rates when AusPost env is absent. See `docs/SHIPPING-AUSPOST.md`.
+ - Admin UI overhaul: modern shell (header/sider), table toolbar (density + column presets), alternate views (Products Cards; Orders Board with drag-and-drop; Inventory/Customers/Articles Cards), header search wired to Kbar, and Kbar actions for create/jump.
 
 ## Deployment Status
 

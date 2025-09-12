@@ -50,9 +50,37 @@ export default function AdminKbarActions() {
       section: "Navigate",
       perform: () => { try { localStorage.setItem("admin:view:products", "cards"); } catch {}; router.push("/admin/products"); },
     },
+    {
+      id: "new-stock-unit",
+      name: "Create Stock Unit",
+      shortcut: ["n", "s"],
+      keywords: "variant stock unit create",
+      section: "Create",
+      perform: () => router.push("/admin/variants/create"),
+    },
+    {
+      id: "inventory-cards",
+      name: "Inventory (Cards)",
+      shortcut: ["i", "c"],
+      section: "Navigate",
+      perform: () => { try { localStorage.setItem("admin:view:inventory", "cards"); } catch {}; router.push("/admin/inventory"); },
+    },
+    {
+      id: "customers-cards",
+      name: "Customers (Cards)",
+      shortcut: ["c", "c"],
+      section: "Navigate",
+      perform: () => { try { localStorage.setItem("admin:view:customers", "cards"); } catch {}; router.push("/admin/customers"); },
+    },
+    {
+      id: "articles-cards",
+      name: "Articles (Cards)",
+      shortcut: ["a", "c"],
+      section: "Navigate",
+      perform: () => { try { localStorage.setItem("admin:view:articles", "cards"); } catch {}; router.push("/admin/articles"); },
+    },
   ];
 
   useRegisterActions(actions, []);
   return null;
 }
-

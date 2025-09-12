@@ -37,6 +37,21 @@ Next:
 - Mounted client error listener (window.error/unhandledrejection) via `ClientErrorLogger` in app providers.
 - Added console/nav breadcrumbs and correlation IDs (cookie/header) to enrich client error reports.
 
+## Admin UI — Progress (dev)
+- Modern shell (header+sider) with breadcrumbs and header search wired to Kbar.
+- Table toolbar with density toggle and per‑resource column presets (persisted).
+- Alternate views:
+  - Products → Cards (inline price/active)
+  - Orders → Board with drag‑and‑drop status updates
+  - Inventory → Cards + quick filters (All/Low/Out)
+  - Customers → Cards; Articles → Cards
+- Kbar actions: create product/article/stock unit; jump to boards/cards.
+
+Next:
+- Board polish: drag animations (initial implemented), include “Delivered” column (added), consider “Cancelled/Refunded” read columns.
+- Cards filters: Products (featured/active), Articles (published), Customers (has orders).
+- Accessibility pass: focus rings and keyboard nav across cards/toolbar.
+
 ## Shipping — AusPost (Scaffold)
 - Implemented server scaffold for Australia Post quotes and checkout integration.
 - `POST /api/shipping/quote` returns AusPost rates when configured; falls back to static Stripe options otherwise.

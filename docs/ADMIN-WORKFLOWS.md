@@ -43,6 +43,16 @@ This guide explains the key concepts in the admin and the typical flows.
 - Keep SKUs consistent (auto‑generated, but edit if you have a store‑wide scheme).
 - Prefer “Stock Units” to refer to purchasable items (we’ve renamed UI labels accordingly).
 
+## Admin UI — Views & Shortcuts
+- Views:
+  - Products: switch between Table and Cards (toolbar toggle). Cards support inline price and active toggles.
+  - Orders: switch between Table and Board. In Board, drag cards between status columns to update status.
+  - Inventory: Table or Cards. Cards show Available/On hand/Allocated chips and a Receive button. Quick filters for All/Low/Out.
+  - Customers and Articles: Table or Cards for quick scanning and actions.
+- Search & Shortcuts:
+  - Header search opens the command palette (Kbar). Keyboard: Cmd/Ctrl+K.
+  - Actions: Create Product (n,p), Create Article (n,a), Create Stock Unit (n,s), Orders Board (o,b), Products Cards (p,c), Inventory Cards (i,c), Customers Cards (c,c), Articles Cards (a,c).
+
 ## Form Grouping (Admin UI)
 - Products: Basics → Format & Pricing → Inventory → Media & Metadata → Publishing.
 - Stock Units: Basics → Identification → Pricing & Attributes → Publishing.
