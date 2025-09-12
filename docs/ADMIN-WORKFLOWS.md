@@ -47,7 +47,7 @@ This guide explains the key concepts in the admin and the typical flows.
 - Views:
   - Products: switch between Table and Cards (toolbar toggle). Cards support inline price and active toggles.
   - Orders: switch between Table and Board. In Board, drag cards between status columns to update status.
-  - Inventory: Table or Cards. Cards show Available/On hand/Allocated chips and a Receive button. Quick filters for All/Low/Out.
+  - Inventory: Table or Cards. Cards show Available/On hand/Allocated chips and a Receive button. Quick filters for All/Out.
   - Customers and Articles: Table or Cards for quick scanning and actions.
 - Search & Shortcuts:
   - Header search opens the command palette (Kbar). Keyboard: Cmd/Ctrl+K.
@@ -57,3 +57,16 @@ This guide explains the key concepts in the admin and the typical flows.
 - Products: Basics → Format & Pricing → Inventory → Media & Metadata → Publishing.
 - Stock Units: Basics → Identification → Pricing & Attributes → Publishing.
 - Inline helpers: URL link pattern; SKU auto‑suggest; shipping weight/dimensions usage.
+
+## Empty States
+- When a list has no items, a warm EmptyState appears with a clear call to action:
+  - Products: “Create your first product or import a CSV.”
+  - Stock Units: “Add stock units to start tracking inventory and pricing.”
+  - Inventory: “Add stock units or receive stock.”
+  - Orders: “When customers buy, orders appear here.”
+  - Customers: “Customers who check out will appear here.”
+  - Articles: “Write your first post.”
+
+## CSV Export
+- Products: toolbar → Export CSV (products.csv) honoring visible rows.
+- Inventory: toolbar → Export CSV (inventory.csv).

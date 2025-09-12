@@ -1,10 +1,12 @@
 # Puppeteer MCP — Smoke Test Prompts
 
+Last modified: 2025-09-13
+
 This guide provides ready‑to‑run prompts for your Puppeteer MCP server to validate the dev Branch Deploy and key admin UX without changing code.
 
 ## MCP Server
 
-Configured in your client:
+Configured in your client (or via `.mcp.json`):
 
 ```
 [mcp_servers.puppeteer]
@@ -61,4 +63,3 @@ Then run the prompts below in order. If a step fails, capture the screenshot and
 - Checkout modal shows shipping options (AusPost when configured; fallback Stripe static otherwise), selection updates the order summary.
 - Stripe Checkout opens on 'Place order' (no purchase required).
 - Admin tables show sticky headers and zebra rows; create pages show grouped sections and helper text.
-

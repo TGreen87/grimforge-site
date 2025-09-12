@@ -78,6 +78,14 @@ This repo follows Codex CLI conventions for a small team: plan first, minimal bl
 - If Playwright MCP is available, we can add a smoke suite that navigates the homepage, enters Catalog, opens a product, adds to cart, opens checkout, and verifies the redirect (without completing payment). Another set covers admin login (preview), create/publish an article, and check `/articles` list/detail.
 - To enable: provide MCP endpoint and confirm CLI command to run (e.g., `npm run test:e2e`). We will keep specs small and idempotent.
 
+See also:
+- MCP config details: `docs/MCP-CONFIG.md`
+- Puppeteer smoke prompts: `docs/MCP-PUPPETEER.md`
+
+## QA Checklist
+
+- Use `docs/QA-CHECKLIST.md` when verifying branch deploys. It covers homepage, catalog/product, checkout (shipping), SEO endpoints, admin shell/views/forms, accessibility, observability, and go‑live items.
+
 ## Puppeteer Smoke (Branch URL)
 
 - Quick local smoke: `npm run test:puppeteer` (uses `BASE_URL` env; defaults to dev branch deploy).

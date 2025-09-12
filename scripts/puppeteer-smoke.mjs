@@ -53,6 +53,12 @@ async function run() {
     // Navigate to first product
     let wentProduct = false;
     try {
+      // Try to bring catalog into view then look for product links
+      await page.evaluate(() => {
+        const el = document.getElementById('catalog');
+        if (el) el.scrollIntoView({ behavior: 'instant', block: 'start' });
+      });
+      await new Promise(r => setTimeout(r, 400));
       const prodLink = await page.$('a[href^="/products/"]') || await page.$('a[href^="/product/"]');
       if (prodLink) {
         await Promise.all([
@@ -102,6 +108,24 @@ async function run() {
         }
       } catch (e) { log('Fetch shipping rates', false, String(e)); }
     }
+
+    // Robots and sitemap
+    try {
+      const respRobots = await page.goto(BASE_URL.replace(/\/$/, '') + '/robots.txt', { waitUntil: 'domcontentloaded' });
+      log('robots.txt', !!respRobots && respRobots.status() === 200, `status: ${respRobots && respRobots.status()}`);
+    } catch (e) { log('robots.txt', false, String(e)); }
+    try {
+      const respSitemap = await page.goto(BASE_URL.replace(/\/$/, '') + '/sitemap.xml', { waitUntil: 'domcontentloaded' });
+      log('sitemap.xml', !!respSitemap && respSitemap.status() === 200, `status: ${respSitemap && respSitemap.status()}`);
+    } catch (e) { log('sitemap.xml', false, String(e)); }
+
+    // Admin login page renders
+    try {
+      const resp = await page.goto(BASE_URL.replace(/\/$/, '') + '/admin/login', { waitUntil: 'domcontentloaded' });
+      const ok = !!resp && resp.status() === 200;
+      await page.waitForSelector('button, input, form', { timeout: TIMEOUT_MS }).catch(()=>{});
+      log('Admin login renders', ok, `status: ${resp && resp.status()}`);
+    } catch (e) { log('Admin login renders', false, String(e)); }
 
   } catch (e) {
     log('Open homepage', false, String(e));
