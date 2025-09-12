@@ -66,6 +66,15 @@ function labelFor(serviceName: string): string {
   return serviceName
 }
 
+function allowDomestic(serviceName: string): boolean {
+  return /express/i.test(serviceName) || /parcel\s*post/i.test(serviceName)
+}
+
+function allowInternational(serviceName: string): boolean {
+  // Keep it simple and customer-friendly: Standard and Express
+  return /standard/i.test(serviceName) || /express/i.test(serviceName)
+}
+
 // Public: quote rates (returns [] if not configured)
 export async function quoteAusPostRates(params: QuoteParams): Promise<ShippingOption[]> {
   const { apiKey } = getConfig()
@@ -99,7 +108,9 @@ export async function quoteAusPostRates(params: QuoteParams): Promise<ShippingOp
       if (!res.ok) throw new Error(`AusPost domestic service fetch failed: ${res.status}`)
       const data = (await res.json()) as any
       const services: any[] = data?.services?.service || []
-      const options: ShippingOption[] = services.map((s) => ({
+      const options: ShippingOption[] = services
+        .filter((s) => allowDomestic(String(s.name || s.code || '')))
+        .map((s) => ({
         carrier: 'AUSPOST',
         service_code: String(s.code || s.product_id || s.service_code || s.name || 'DOM'),
         display_name: labelFor(String(s.name || s.code || 'AusPost')),
@@ -108,7 +119,7 @@ export async function quoteAusPostRates(params: QuoteParams): Promise<ShippingOp
         eta_min_days: s.delivery_time && parseInt(String(s.delivery_time).split('-')[0]) || undefined,
         eta_max_days: s.delivery_time && parseInt(String(s.delivery_time).split('-').pop()!) || undefined,
       }))
-      return options.filter(o => o.amount_cents > 0)
+      return options.filter(o => o.amount_cents > 0).sort((a,b)=>a.amount_cents-b.amount_cents)
     } else {
       // AusPost Postage Assessment: International Parcel Service
       // Docs: https://developers.auspost.com.au/apis/international-postage
@@ -124,14 +135,16 @@ export async function quoteAusPostRates(params: QuoteParams): Promise<ShippingOp
       if (!res.ok) throw new Error(`AusPost intl service fetch failed: ${res.status}`)
       const data = (await res.json()) as any
       const services: any[] = data?.services?.service || []
-      const options: ShippingOption[] = services.map((s) => ({
+      const options: ShippingOption[] = services
+        .filter((s) => allowInternational(String(s.name || s.code || '')))
+        .map((s) => ({
         carrier: 'AUSPOST',
         service_code: String(s.code || s.product_id || s.service_code || s.name || 'INTL'),
         display_name: labelFor(String(s.name || s.code || 'AusPost')),
         amount_cents: Math.round(Number(s.price) * 100) || 0,
         currency: 'AUD',
       }))
-      return options.filter(o => o.amount_cents > 0)
+      return options.filter(o => o.amount_cents > 0).sort((a,b)=>a.amount_cents-b.amount_cents)
     }
   } catch (e) {
     // Silent degrade to empty on error; caller should fallback
@@ -139,4 +152,3 @@ export async function quoteAusPostRates(params: QuoteParams): Promise<ShippingOp
     return []
   }
 }
-

@@ -53,13 +53,16 @@ Alternatively, pass raw Stripe shape:
 }
 ```
 
-## Service Scope & Next Steps
-- Services: start with Domestic Parcel Post + Express, plus key International services. We will narrow/label exactly per business preferences.
+## Service Scope (Locked)
+- Domestic: Parcel Post and Express Post only (customer pays). Labels render as “Parcel Post (AusPost)” and “Express (AusPost)”.
+- International: Standard and Express services where available (customer pays). Labelled “Standard (AusPost)” / “Express (AusPost)”.
+- Options are sorted by price ascending. Unknown or legacy services are filtered out for clarity.
+
+## Next Steps
 - Product data: add default weight/dimensions per Stock Unit to improve quote accuracy; fall back to package defaults when missing.
-- UI: Show returned options in checkout step, allow selection, and pass through to `/api/checkout`.
-- Testing: Add a Playwright step to pick a shipping option and verify the Stripe summary shows that amount.
+- UI: selection persists within the modal; the chosen option is sent to `/api/checkout` and charged via Stripe Checkout.
+- Testing: branch smoke via Puppeteer (`npm run test:puppeteer`); Playwright e2e on demand.
 
 ## Safety & Fallback
 - If `AUSPOST_API_KEY` or `AUSPOST_ORIGIN_POSTCODE` is missing, quotes return `configured:false` and static Stripe rates; checkout continues to work.
 - Errors from AusPost are logged and also fall back to static rates to avoid blocking sales.
-
