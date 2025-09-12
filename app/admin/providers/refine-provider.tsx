@@ -7,6 +7,7 @@ import { App as AntdAppWrapper, ConfigProvider, theme as antdTheme } from "antd"
 import { brand } from "@/config/brand";
 import { usePathname } from "next/navigation";
 import AdminLayout from "../ui/AdminLayout";
+import AdminKbarActions from "../ui/AdminKbarActions";
 import { 
   ShoppingCartOutlined, 
   AppstoreOutlined, 
@@ -147,6 +148,7 @@ export function RefineProvider({ children }: { children: React.ReactNode }) {
             }}
           >
             <AdminLayout>
+              <AdminKbarActions />
               {/* Global styles for admin table zebra rows */}
               <style jsx global>{`
                 .ant-table-tbody > tr.admin-row-zebra > td {

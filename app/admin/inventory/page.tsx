@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import { List, useTable, TextField, NumberField } from "@refinedev/antd";
 import { Table, Space, Button, Tag, Modal, Form, InputNumber, Input, message } from "antd";
 import AdminTableToolbar, { TableSize } from "../ui/AdminTableToolbar";
+import { Segmented } from "antd";
 import AdminViewToggle, { AdminView, getStoredView } from "../ui/AdminViewToggle";
 import { PlusOutlined, EditOutlined } from "@ant-design/icons";
 import Link from "next/link";
@@ -59,6 +60,7 @@ export default function InventoryList() {
 
   const [size, setSize] = useState<TableSize>("small")
   const [view, setView] = useState<AdminView>(typeof window === 'undefined' ? 'table' : getStoredView('inventory'))
+  const [quickFilter, setQuickFilter] = useState<'all'|'low'|'out'>('all')
   return (
     <>
       <List
@@ -70,7 +72,14 @@ export default function InventoryList() {
               onSizeChange={setSize}
               onRefresh={() => tableQueryResult.refetch()}
               searchPlaceholder="Search inventory"
-              rightSlot={<AdminViewToggle resource='inventory' value={view} onChange={setView} />}
+              rightSlot={<div className="flex items-center gap-2">
+                <Segmented size="small" value={quickFilter} onChange={(v)=>setQuickFilter(v as any)} options={[
+                  { label: 'All', value: 'all' },
+                  { label: 'Low', value: 'low' },
+                  { label: 'Out', value: 'out' },
+                ]} />
+                <AdminViewToggle resource='inventory' value={view} onChange={setView} />
+              </div>}
             />
             <Button
               type="primary"
@@ -157,7 +166,9 @@ export default function InventoryList() {
         </Table>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-            {(tableProps.dataSource as Inventory[] | undefined)?.map((inv) => (
+            {((tableProps.dataSource as Inventory[] | undefined) || [])
+              .filter((inv) => quickFilter === 'all' ? true : quickFilter === 'low' ? (inv.available > 0 && inv.available <= 5) : (inv.available === 0))
+              .map((inv) => (
               <div key={inv.id} className="border border-border rounded-lg p-4 bg-[#0b0b0b]">
                 <div className="flex items-start gap-3">
                   <div className="w-16 h-16 bg-secondary/30 rounded overflow-hidden flex-shrink-0">
