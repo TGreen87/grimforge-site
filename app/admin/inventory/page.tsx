@@ -71,6 +71,17 @@ export default function InventoryList() {
               size={size}
               onSizeChange={setSize}
               onRefresh={() => tableQueryResult.refetch()}
+              onExport={() => {
+                const rows = ((tableProps.dataSource as any[]) || []).map((inv:any) => ({
+                  product: inv.variant?.product?.title || '',
+                  stock_unit: inv.variant?.name || '',
+                  sku: inv.variant?.sku || '',
+                  on_hand: inv.on_hand,
+                  allocated: inv.allocated,
+                  available: inv.available,
+                }));
+                import('../ui/exportCsv').then(m => m.exportCsv('inventory.csv', rows));
+              }}
               searchPlaceholder="Search inventory"
               rightSlot={<div className="flex items-center gap-2">
                 <Segmented size="small" value={quickFilter} onChange={(v)=>setQuickFilter(v as any)} options={[

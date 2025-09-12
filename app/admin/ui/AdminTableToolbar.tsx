@@ -60,8 +60,8 @@ export default function AdminTableToolbar({
           </Tooltip>
         )}
         {onExport && (
-          <Tooltip title="Export CSV (coming soon)">
-            <Button icon={<DownloadOutlined />} disabled onClick={onExport}>
+          <Tooltip title="Export CSV">
+            <Button icon={<DownloadOutlined />} onClick={onExport}>
               Export
             </Button>
           </Tooltip>

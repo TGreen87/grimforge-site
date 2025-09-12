@@ -66,6 +66,7 @@ export default function OrderList() {
   const [view, setView] = React.useState<AdminView>(typeof window === 'undefined' ? 'table' : getStoredView('orders'))
   const [dragId, setDragId] = React.useState<string | null>(null)
   const [overStatus, setOverStatus] = React.useState<string | null>(null)
+  const [ariaMsg, setAriaMsg] = React.useState<string>("")
 
   const onDropChangeStatus = (status: string, e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
@@ -81,6 +82,7 @@ export default function OrderList() {
         onSuccess: () => {
           message.success(`Order moved to ${status}`);
           tableQueryResult.refetch();
+          setAriaMsg(`Moved order ${id.substring(0,8)} to ${status}`);
         },
       }
     );
@@ -173,14 +175,17 @@ export default function OrderList() {
         />
       </Table>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-4">
+        <div className="flex gap-4 overflow-auto" style={{ paddingBottom: 8 }}>
           {['pending','paid','processing','shipped','delivered'].map((status) => (
             <div key={status}
               className={`kanban-column rounded-lg p-3 bg-[#0b0b0b] ${overStatus===status ? 'drop-target' : ''}`}
               onDragOver={(e) => e.preventDefault()}
-              onDragEnter={() => setOverStatus(status)}
+              onDragEnter={() => { setOverStatus(status); setAriaMsg(`Over ${status} column`); }}
               onDragLeave={() => setOverStatus(null)}
               onDrop={(e) => { setOverStatus(null); onDropChangeStatus(status, e); }}
+              style={{ minWidth: 360 }}
+              role="region"
+              aria-label={`Orders ${status} column`}
             >
               <div className="text-sm mb-2 font-semibold capitalize">{status}</div>
               <div className="space-y-2 max-h-[70vh] overflow-auto pr-1">
@@ -188,7 +193,7 @@ export default function OrderList() {
                   <div key={o.id}
                     className={`kanban-card p-3 rounded border border-border bg-[#0e0e0e] ${dragId===o.id ? 'dragging' : ''}`}
                     draggable
-                    onDragStart={(e)=> { e.dataTransfer.setData('text/plain', o.id); setDragId(o.id); }}
+                    onDragStart={(e)=> { e.dataTransfer.setData('text/plain', o.id); setDragId(o.id); setAriaMsg(`Picked up order ${o.id.substring(0,8)}`); }}
                     onDragEnd={()=> setDragId(null)}
                   >
                     <div className="flex items-center justify-between text-xs">

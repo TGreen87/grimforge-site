@@ -180,6 +180,8 @@ export function RefineProvider({ children }: { children: React.ReactNode }) {
                   --rad-xs:6px; --rad-sm:8px; --rad-md:12px; --rad-lg:16px; --rad-xl:20px;
                   --sh-sm:0 1px 0 rgba(255,255,255,0.03), 0 1px 8px rgba(0,0,0,0.35);
                   --sh-md:0 2px 16px rgba(0,0,0,0.45); --sh-lg:0 8px 32px rgba(0,0,0,0.5);
+                  --dur-90:90ms; --dur-140:140ms; --dur-190:190ms; --dur-240:240ms;
+                  --ease-enter:cubic-bezier(.2,.8,.2,1); --ease-leave:cubic-bezier(.4,0,.2,1);
                 }
                 a:focus-visible, button:focus-visible, [role="button"]:focus-visible, .ant-segmented:focus-visible, .ant-input:focus-visible {
                   outline: 2px solid var(--clr-focus);
@@ -187,6 +189,8 @@ export function RefineProvider({ children }: { children: React.ReactNode }) {
                   border-color: var(--clr-focus) !important;
                 }
                 .ant-table-tbody > tr.admin-row-zebra > td { background-color: #0d0f12 !important; }
+                .kanban-card { transition: transform var(--dur-140) var(--ease-enter), box-shadow var(--dur-140) var(--ease-enter), background-color var(--dur-140) var(--ease-enter); }
+                .kanban-card:hover { transform: translateY(-2px); box-shadow: var(--sh-sm); }
               `}</style>
               {isLoginRoute ? (
                 children
