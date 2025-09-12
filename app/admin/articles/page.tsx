@@ -28,7 +28,7 @@ export default function ArticlesList() {
   const [quickFilter, setQuickFilter] = React.useState<'all'|'published'|'drafts'>('all')
 
   return (
-    <List title="Articles" headerButtons={<AdminTableToolbar title="Articles" size={size} onSizeChange={setSize} onRefresh={() => tableQueryResult.refetch()} searchPlaceholder="Search articles" rightSlot={<div className="flex items-center gap-2"><AdminViewToggle resource='articles' value={view} onChange={setView} />{view==='cards' && (<Segmented size='small' value={quickFilter} onChange={(v)=>setQuickFilter(v as any)} options={[{label:'All',value:'all'},{label:'Published',value:'published'},{label:'Drafts',value:'drafts'}]} />)}</div>} />}>
+    <List title="Articles" headerButtons={<AdminTableToolbar title="Articles" size={size} onSizeChange={setSize} onRefresh={() => tableQueryResult.refetch()} searchPlaceholder="Search articles" rightSlot={<div className="flex items-center gap-2"><AdminViewToggle resource='articles' value={view} onChange={setView} />{view==='cards' && (<Segmented size='small' value={quickFilter} onChange={(v)=>setQuickFilter(v as any)} options={[{label:'All',value:'all'},{label:'Published',value:'published'},{label:'Drafts',value:'drafts'}]} />)}</div>} count={(tableProps.dataSource as any[])?.length || 0} newPath="/admin/articles/create" />}>
       {view === 'table' ? (
       <Table {...tableProps} rowKey="id" size={size} sticky rowClassName={(_, index) => (index % 2 === 1 ? 'admin-row-zebra' : '')}>
         <Table.Column dataIndex="title" title="Title" render={(v: string) => <TextField value={v} />} />

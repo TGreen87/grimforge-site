@@ -102,6 +102,7 @@ export default function ProductList() {
   const [size, setSize] = useState<TableSize>("small")
   const [view, setView] = useState<AdminView>(typeof window === 'undefined' ? 'table' : getStoredView('products'))
   const [quickFilter, setQuickFilter] = useState<'all'|'active'|'inactive'|'featured'>('all')
+  const [query, setQuery] = useState<string>("")
   const allColumnDefs = [
     { key: 'title', label: 'Title' },
     { key: 'artist', label: 'Artist' },
@@ -198,7 +199,19 @@ export default function ProductList() {
             size={size}
             onSizeChange={setSize}
             onRefresh={() => tableQueryResult.refetch()}
-            onExport={() => {}}
+            onExport={() => {
+              const rows = ((tableProps.dataSource as any[]) || []).map((p:any) => ({
+                title: p.title,
+                artist: p.artist || '',
+                format: Array.isArray(p.format) ? p.format.join('|') : (p.format || ''),
+                price: p.price,
+                stock: p.stock,
+                active: p.active ? 'yes' : 'no',
+                featured: p.featured ? 'yes' : 'no',
+                updated_at: p.updated_at || ''
+              }));
+              import('../ui/exportCsv').then(m => m.exportCsv('products.csv', rows));
+            }}
             searchPlaceholder="Search products"
             rightSlot={<Space>
               {view === 'cards' && (
@@ -212,6 +225,10 @@ export default function ProductList() {
               <AdminColumnSettings resource="products" columns={allColumnDefs as any} value={visible} onChange={setVisible} />
               <AdminViewToggle resource="products" value={view} onChange={setView} />
             </Space>}
+            count={(tableProps.dataSource as any[])?.length || 0}
+            onSearch={(q)=>setQuery(q)}
+            ariaHint={view==='cards' ? (quickFilter==='all' ? 'No filters active' : `Filter active: ${quickFilter}`) : undefined}
+            newPath="/admin/products/create"
           />
           {bulkEnabled && (
             <Space>
@@ -237,6 +254,7 @@ export default function ProductList() {
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
           {((tableProps.dataSource as Product[] | undefined) || [])
             .filter((p) => quickFilter==='all' ? true : quickFilter==='featured' ? (p as any).featured : quickFilter==='active' ? (p as any).active : !(p as any).active)
+            .filter((p) => !query ? true : ((p.title||'')+(p.artist||'')).toLowerCase().includes(query.toLowerCase()))
             .map((p) => (
             <div key={p.id} className="border border-border rounded-lg p-4 bg-[#0b0b0b]">
               <div className="flex items-start gap-3">

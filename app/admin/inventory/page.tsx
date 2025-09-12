@@ -80,6 +80,8 @@ export default function InventoryList() {
                 ]} />
                 <AdminViewToggle resource='inventory' value={view} onChange={setView} />
               </div>}
+              count={(tableProps.dataSource as any[])?.length || 0}
+              newPath="/admin/products/create"
             />
             <Button
               type="primary"

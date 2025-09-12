@@ -16,6 +16,7 @@ interface AdminTableToolbarProps {
   count?: number;
   onSearch?: (q: string) => void;
   newPath?: string;
+  ariaHint?: string;
 }
 
 export default function AdminTableToolbar({
@@ -29,6 +30,7 @@ export default function AdminTableToolbar({
   count,
   onSearch,
   newPath,
+  ariaHint,
 }: AdminTableToolbarProps) {
   const [q, setQ] = React.useState("");
   return (
@@ -44,7 +46,11 @@ export default function AdminTableToolbar({
             value={q}
             onChange={(e)=>setQ(e.target.value)}
             onPressEnter={()=>{ if (q.trim().length>=2 && onSearch) onSearch(q.trim()); }}
+            aria-describedby={ariaHint ? 'toolbar-filter-hint' : undefined}
           />
+          {ariaHint && (
+            <div id="toolbar-filter-hint" className="sr-only">{ariaHint}</div>
+          )}
         </div>
       </div>
       <Space size="small" wrap>
