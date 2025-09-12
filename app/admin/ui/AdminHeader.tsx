@@ -1,8 +1,8 @@
 "use client";
 import React from "react";
-import { Layout, Breadcrumb, Input, Space, Dropdown, Avatar } from "antd";
-import { usePathname } from "next/navigation";
-import { SearchOutlined, UserOutlined } from "@ant-design/icons";
+import { Layout, Breadcrumb, Input, Space, Dropdown, Avatar, Button, Tooltip } from "antd";
+import { usePathname, useRouter } from "next/navigation";
+import { SearchOutlined, UserOutlined, PlusOutlined, InboxOutlined, FileTextOutlined } from "@ant-design/icons";
 
 const { Header } = Layout;
 
@@ -20,6 +20,19 @@ function useBreadcrumb() {
 
 export default function AdminHeader() {
   const crumbs = useBreadcrumb();
+  const router = useRouter();
+  React.useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (!e.altKey) return;
+      if (e.key === '1') router.push('/admin/products');
+      if (e.key === '2') router.push('/admin/inventory');
+      if (e.key === '3') router.push('/admin/orders');
+      if (e.key === '4') router.push('/admin/customers');
+      if (e.key === '5') router.push('/admin/articles');
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [router]);
   const menu = {
     items: [
       { key: 'profile', label: 'Profile' },
@@ -57,6 +70,11 @@ export default function AdminHeader() {
           <Dropdown menu={menu} trigger={["click"]}>
             <Avatar style={{ backgroundColor: "#8B0000" }} icon={<UserOutlined />} />
           </Dropdown>
+          <Space size="small">
+            <Tooltip title="New Product (n p)"><Button icon={<PlusOutlined />} onClick={()=>router.push('/admin/products/create')} /></Tooltip>
+            <Tooltip title="Receive Stock (r s)"><Button icon={<InboxOutlined />} onClick={()=>router.push('/admin/inventory')} /></Tooltip>
+            <Tooltip title="New Article (n a)"><Button icon={<FileTextOutlined />} onClick={()=>router.push('/admin/articles/create')} /></Tooltip>
+          </Space>
         </Space>
       </div>
     </Header>

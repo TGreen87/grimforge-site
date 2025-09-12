@@ -13,6 +13,9 @@ interface AdminTableToolbarProps {
   onExport?: () => void;
   searchPlaceholder?: string;
   rightSlot?: React.ReactNode;
+  count?: number;
+  onSearch?: (q: string) => void;
+  newPath?: string;
 }
 
 export default function AdminTableToolbar({
@@ -23,13 +26,25 @@ export default function AdminTableToolbar({
   onExport,
   searchPlaceholder = "Search...",
   rightSlot,
+  count,
+  onSearch,
+  newPath,
 }: AdminTableToolbarProps) {
+  const [q, setQ] = React.useState("");
   return (
     <div className="flex items-center justify-between w-full">
       <div className="flex items-center gap-2">
-        {title && <h3 className="m-0 text-base text-bone/90">{title}</h3>}
+        {title && <h3 className="m-0 text-base text-bone/90">{title}{typeof count==='number' ? ` (${count})` : ''}</h3>}
         <div className="hidden md:block">
-          <Input allowClear prefix={<SearchOutlined />} placeholder={searchPlaceholder} style={{ width: 280 }} disabled />
+          <Input 
+            allowClear 
+            prefix={<SearchOutlined />} 
+            placeholder={searchPlaceholder} 
+            style={{ width: 280 }} 
+            value={q}
+            onChange={(e)=>setQ(e.target.value)}
+            onPressEnter={()=>{ if (q.trim().length>=2 && onSearch) onSearch(q.trim()); }}
+          />
         </div>
       </div>
       <Space size="small" wrap>
@@ -56,6 +71,9 @@ export default function AdminTableToolbar({
           ]}
         />
         {rightSlot}
+        {newPath && (
+          <Button type="primary" href={newPath}>New</Button>
+        )}
       </Space>
     </div>
   );

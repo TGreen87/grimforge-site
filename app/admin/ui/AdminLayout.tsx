@@ -7,12 +7,16 @@ import AdminSider from "../ui/AdminSider";
 const { Content } = Layout;
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
+  const [collapsed, setCollapsed] = React.useState(false);
   return (
     <Layout style={{ minHeight: "100vh", background: "#0a0a0a" }}>
-      <AdminSider />
+      <a href="#admin-content" className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:bg-white focus:text-black focus:px-3 focus:py-2 focus:rounded">
+        Skip to content
+      </a>
+      <AdminSider collapsed={collapsed} onCollapse={setCollapsed} />
       <Layout>
         <AdminHeader />
-        <Content style={{ margin: 16 }}>
+        <Content id="admin-content" style={{ margin: 16 }}>
           <div style={{ padding: 16, background: "#0a0a0a" }}>
             {children}
           </div>

@@ -104,33 +104,50 @@ export function RefineProvider({ children }: { children: React.ReactNode }) {
         theme={{
           algorithm: antdTheme.darkAlgorithm,
           token: {
-            colorPrimary: "#8B0000", // blood-accent
-            colorBgBase: "#0a0a0a",
-            colorText: "#e5e7eb",
-            colorBorder: "#1f2937",
-            borderRadius: 4,
+            colorPrimary: 'var(--clr-primary)',
+            colorInfo: 'var(--clr-primary)',
+            colorSuccess: 'var(--clr-success-text)',
+            colorWarning: 'var(--clr-warn-text)',
+            colorError: 'var(--clr-danger-text)',
+            colorLink: 'var(--clr-primary)',
+            colorBgBase: 'var(--clr-bg-base)',
+            colorBgContainer: 'var(--clr-bg-elev0)',
+            colorText: 'var(--clr-text-high)',
+            colorTextSecondary: 'var(--clr-text-med)',
+            colorBorder: 'var(--clr-border)',
+            borderRadius: 8,
             fontFamily: "ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Helvetica Neue, Arial, \"Apple Color Emoji\", \"Segoe UI Emoji\"",
           },
           components: {
             Layout: {
-              bodyBg: "#0a0a0a",
-              headerBg: "#0f0f0f",
-              siderBg: "#0f0f0f",
+              bodyBg: 'var(--clr-bg-base)',
+              headerBg: 'var(--clr-bg-elev0)',
+              siderBg: 'var(--clr-bg-elev0)',
             },
             Menu: {
-              darkItemBg: "#0f0f0f",
-              itemSelectedBg: "#1f2937",
-              itemSelectedColor: "#ffffff",
+              darkItemBg: 'var(--clr-bg-elev0)',
+              itemSelectedBg: 'var(--clr-bg-elev1)',
+              itemSelectedColor: 'var(--clr-text-high)',
             },
             Table: {
-              headerBg: "#111827",
-              headerColor: "#e5e7eb",
-              rowHoverBg: "#111827",
+              headerBg: 'var(--clr-bg-elev1)',
+              headerColor: 'var(--clr-text-high)',
+              rowHoverBg: 'var(--clr-bg-elev1)',
             },
             Button: {
-              colorPrimaryHover: "#a30000",
-              colorPrimaryActive: "#7a0000",
+              colorPrimaryHover: 'var(--clr-primary-hover)',
+              colorPrimaryActive: 'var(--clr-primary-active)',
             },
+            Input: {
+              activeBorderColor: 'var(--clr-focus)'
+            },
+            Segmented: {
+              itemSelectedBg: 'var(--clr-bg-elev1)'
+            },
+            Tag: {
+              defaultBg: 'var(--clr-bg-elev1)',
+              defaultColor: 'var(--clr-text-med)'
+            }
           },
         }}
         componentSize="small"
@@ -149,17 +166,27 @@ export function RefineProvider({ children }: { children: React.ReactNode }) {
           >
             <AdminLayout>
               <AdminKbarActions />
-              {/* Global styles for admin focus + table zebra rows */}
+              {/* Global styles for tokens, focus, and zebra */}
               <style jsx global>{`
-                :root { --focus: #8B0000; --border: #1f2937; }
+                :root {
+                  --clr-bg-base:#0B0F14; --clr-bg-elev0:#0E131A; --clr-bg-elev1:#121924; --clr-bg-elev2:#182333;
+                  --clr-text-high:#E6EDF3; --clr-text-med:#A7B1BD; --clr-text-low:#7A8694;
+                  --clr-primary:#2DD4BF; --clr-primary-hover:#26BFAE; --clr-primary-active:#1CA394;
+                  --clr-border:#1E2A3A; --clr-focus:#7DD3FC;
+                  --clr-success-bg:#0E2B22; --clr-success-text:#86EFAC;
+                  --clr-warn-bg:#2B220E; --clr-warn-text:#FACC15;
+                  --clr-danger-bg:#2B1414; --clr-danger-text:#F87171;
+                  --clr-info-bg:#102336; --clr-info-text:#93C5FD;
+                  --rad-xs:6px; --rad-sm:8px; --rad-md:12px; --rad-lg:16px; --rad-xl:20px;
+                  --sh-sm:0 1px 0 rgba(255,255,255,0.03), 0 1px 8px rgba(0,0,0,0.35);
+                  --sh-md:0 2px 16px rgba(0,0,0,0.45); --sh-lg:0 8px 32px rgba(0,0,0,0.5);
+                }
                 a:focus-visible, button:focus-visible, [role="button"]:focus-visible, .ant-segmented:focus-visible, .ant-input:focus-visible {
-                  outline: 2px solid var(--focus);
+                  outline: 2px solid var(--clr-focus);
                   outline-offset: 2px;
-                  border-color: var(--focus) !important;
+                  border-color: var(--clr-focus) !important;
                 }
-                .ant-table-tbody > tr.admin-row-zebra > td {
-                  background-color: #0d0f12 !important;
-                }
+                .ant-table-tbody > tr.admin-row-zebra > td { background-color: #0d0f12 !important; }
               `}</style>
               {isLoginRoute ? (
                 children
