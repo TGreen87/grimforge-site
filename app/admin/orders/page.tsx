@@ -4,6 +4,7 @@ import React from "react";
 import { List, useTable, TextField, NumberField, DateField } from "@refinedev/antd";
 import { Table, Space, Button, Tag, Select } from "antd";
 import AdminTableToolbar, { TableSize } from "../ui/AdminTableToolbar";
+import AdminViewToggle, { AdminView, getStoredView } from "../ui/AdminViewToggle";
 import { EyeOutlined } from "@ant-design/icons";
 import Link from "next/link";
 import { useUpdate } from "@refinedev/core";
@@ -62,8 +63,10 @@ export default function OrderList() {
   };
 
   const [size, setSize] = React.useState<TableSize>("small")
+  const [view, setView] = React.useState<AdminView>(typeof window === 'undefined' ? 'table' : getStoredView('orders'))
   return (
-    <List headerButtons={<AdminTableToolbar title="Orders" size={size} onSizeChange={setSize} onRefresh={() => tableQueryResult.refetch()} searchPlaceholder="Search orders" />}>
+    <List headerButtons={<AdminTableToolbar title="Orders" size={size} onSizeChange={setSize} onRefresh={() => tableQueryResult.refetch()} searchPlaceholder="Search orders" rightSlot={<AdminViewToggle resource='orders' value={view} onChange={setView} allowBoard />} />}>
+      {view === 'table' ? (
       <Table {...tableProps} rowKey="id" size={size} sticky rowClassName={(_, index) => (index % 2 === 1 ? 'admin-row-zebra' : '')}>
         <Table.Column
           dataIndex="id"
@@ -141,6 +144,28 @@ export default function OrderList() {
           )}
         />
       </Table>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+          {['pending','paid','processing','shipped'].map((status) => (
+            <div key={status} className="border border-border rounded-lg p-3 bg-[#0b0b0b]">
+              <div className="text-sm mb-2 font-semibold capitalize">{status}</div>
+              <div className="space-y-2 max-h-[70vh] overflow-auto pr-1">
+                {((tableProps.dataSource as Order[] | undefined) || []).filter(o => o.status === status).map((o) => (
+                  <div key={o.id} className="p-3 rounded border border-border bg-[#0e0e0e]">
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="font-mono">{o.id.substring(0,8)}…</span>
+                      <span>${(o.total as any).toFixed ? (o.total as any).toFixed(2) : o.total} AUD</span>
+                    </div>
+                    <div className="text-xs text-muted-foreground truncate">{(o as any).customer?.email || 'Guest'}</div>
+                    <div className="text-[11px] text-muted-foreground">{new Date(o.created_at as any).toLocaleString()}</div>
+                    <div className="text-[11px] mt-1">Items: {(o as any).order_items?.length || 0}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </List>
   );
 }

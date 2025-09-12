@@ -4,6 +4,7 @@ import React, { useMemo, useState } from "react";
 import { List, useTable, DateField, BooleanField, NumberField, TextField, TagField } from "@refinedev/antd";
 import { Table, Space, Button, Tag, Modal, InputNumber, Radio, message, Switch } from "antd";
 import AdminTableToolbar, { TableSize } from "../ui/AdminTableToolbar";
+import AdminViewToggle, { AdminView, getStoredView } from "../ui/AdminViewToggle";
 import { EditOutlined, EyeOutlined, DeleteOutlined } from "@ant-design/icons";
 import type { ColumnsType } from 'antd/es/table'
 import AdminColumnSettings, { getStoredColumns } from "../ui/AdminColumnSettings";
@@ -98,6 +99,7 @@ export default function ProductList() {
   }
 
   const [size, setSize] = useState<TableSize>("small")
+  const [view, setView] = useState<AdminView>(typeof window === 'undefined' ? 'table' : getStoredView('products'))
   const allColumnDefs = [
     { key: 'title', label: 'Title' },
     { key: 'artist', label: 'Artist' },
@@ -196,7 +198,10 @@ export default function ProductList() {
             onRefresh={() => tableQueryResult.refetch()}
             onExport={() => {}}
             searchPlaceholder="Search products"
-            rightSlot={<AdminColumnSettings resource="products" columns={allColumnDefs as any} value={visible} onChange={setVisible} />}
+            rightSlot={<Space>
+              <AdminColumnSettings resource="products" columns={allColumnDefs as any} value={visible} onChange={setVisible} />
+              <AdminViewToggle resource="products" value={view} onChange={setView} />
+            </Space>}
           />
           {bulkEnabled && (
             <Space>
@@ -207,6 +212,7 @@ export default function ProductList() {
         </Space>
       )}
     >
+      {view === 'table' ? (
       <Table 
         {...tableProps} 
         columns={columns}
@@ -217,6 +223,39 @@ export default function ProductList() {
         tableLayout="fixed"
         rowSelection={{ selectedRowKeys, onChange:setSelectedRowKeys }}
       />
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+          {(tableProps.dataSource as Product[] | undefined)?.map((p) => (
+            <div key={p.id} className="border border-border rounded-lg p-4 bg-[#0b0b0b]">
+              <div className="flex items-start gap-3">
+                <div className="w-16 h-16 bg-secondary/30 rounded overflow-hidden flex-shrink-0">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={(p as any).image || (p as any).image_url || '/placeholder.svg'} alt={p.title} className="w-full h-full object-cover" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-2">
+                    <h4 className="m-0 text-bone truncate">{p.title}</h4>
+                    {p.featured && <span className="text-xs px-2 py-0.5 rounded bg-yellow-600/30 text-yellow-300">Featured</span>}
+                    {!p.active && <span className="text-xs px-2 py-0.5 rounded bg-gray-600/30 text-gray-300">Inactive</span>}
+                  </div>
+                  {p.artist && <div className="text-xs text-muted-foreground truncate">{p.artist}</div>}
+                </div>
+              </div>
+              <div className="mt-3 flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <InlinePrice product={p as any} onSaved={()=>tableQueryResult.refetch()} />
+                  <span className={`text-xs px-2 py-0.5 rounded ${p.stock > 0 ? 'bg-green-600/20 text-green-300' : 'bg-red-600/20 text-red-300'}`}>{p.stock}</span>
+                </div>
+                <InlineActive product={p as any} onSaved={()=>tableQueryResult.refetch()} />
+              </div>
+              <div className="mt-3 flex items-center gap-2">
+                <Link href={`/admin/products/show/${p.id}`}><Button size="small">View</Button></Link>
+                <Link href={`/admin/products/edit/${p.id}`}><Button size="small">Edit</Button></Link>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
 
       {/* Bulk Price Modal */}
       <Modal title="Bulk Price Update" open={priceOpen} onCancel={()=>setPriceOpen(false)} onOk={doBulkPrice} confirmLoading={loading} okText="Apply">
