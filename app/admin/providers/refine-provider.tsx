@@ -149,8 +149,14 @@ export function RefineProvider({ children }: { children: React.ReactNode }) {
           >
             <AdminLayout>
               <AdminKbarActions />
-              {/* Global styles for admin table zebra rows */}
+              {/* Global styles for admin focus + table zebra rows */}
               <style jsx global>{`
+                :root { --focus: #8B0000; --border: #1f2937; }
+                a:focus-visible, button:focus-visible, [role="button"]:focus-visible, .ant-segmented:focus-visible, .ant-input:focus-visible {
+                  outline: 2px solid var(--focus);
+                  outline-offset: 2px;
+                  border-color: var(--focus) !important;
+                }
                 .ant-table-tbody > tr.admin-row-zebra > td {
                   background-color: #0d0f12 !important;
                 }

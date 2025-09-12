@@ -5,6 +5,7 @@ import { List, useTable, TextField, BooleanField } from "@refinedev/antd";
 import { Table, Space, Button, Tag } from "antd";
 import AdminTableToolbar, { TableSize } from "../ui/AdminTableToolbar";
 import AdminViewToggle, { AdminView, getStoredView } from "../ui/AdminViewToggle";
+import { Segmented } from "antd";
 import { EditOutlined, EyeOutlined } from "@ant-design/icons";
 import Link from "next/link";
 
@@ -24,9 +25,10 @@ export default function ArticlesList() {
   });
   const [size, setSize] = React.useState<TableSize>("small")
   const [view, setView] = React.useState<AdminView>(typeof window === 'undefined' ? 'table' : getStoredView('articles'))
+  const [quickFilter, setQuickFilter] = React.useState<'all'|'published'|'drafts'>('all')
 
   return (
-    <List title="Articles" headerButtons={<AdminTableToolbar title="Articles" size={size} onSizeChange={setSize} onRefresh={() => tableQueryResult.refetch()} searchPlaceholder="Search articles" rightSlot={<AdminViewToggle resource='articles' value={view} onChange={setView} />} />}>
+    <List title="Articles" headerButtons={<AdminTableToolbar title="Articles" size={size} onSizeChange={setSize} onRefresh={() => tableQueryResult.refetch()} searchPlaceholder="Search articles" rightSlot={<div className="flex items-center gap-2"><AdminViewToggle resource='articles' value={view} onChange={setView} />{view==='cards' && (<Segmented size='small' value={quickFilter} onChange={(v)=>setQuickFilter(v as any)} options={[{label:'All',value:'all'},{label:'Published',value:'published'},{label:'Drafts',value:'drafts'}]} />)}</div>} />}>
       {view === 'table' ? (
       <Table {...tableProps} rowKey="id" size={size} sticky rowClassName={(_, index) => (index % 2 === 1 ? 'admin-row-zebra' : '')}>
         <Table.Column dataIndex="title" title="Title" render={(v: string) => <TextField value={v} />} />
@@ -51,7 +53,9 @@ export default function ArticlesList() {
       </Table>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-          {(tableProps.dataSource as ArticleRow[] | undefined)?.map((a) => (
+          {((tableProps.dataSource as ArticleRow[] | undefined) || [])
+            .filter((a) => quickFilter==='all' ? true : quickFilter==='published' ? (a as any).published : !(a as any).published)
+            .map((a) => (
             <div key={a.id} className="border border-border rounded-lg p-4 bg-[#0b0b0b]">
               <div className="flex items-center justify-between">
                 <div className="min-w-0">

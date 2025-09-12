@@ -2,7 +2,7 @@
 
 import React from "react";
 import { List, useTable, TextField, DateField } from "@refinedev/antd";
-import { Table, Space, Button, Tag } from "antd";
+import { Table, Space, Button, Tag, Segmented } from "antd";
 import AdminTableToolbar, { TableSize } from "../ui/AdminTableToolbar";
 import AdminViewToggle, { AdminView, getStoredView } from "../ui/AdminViewToggle";
 import { EditOutlined, EyeOutlined } from "@ant-design/icons";
@@ -27,8 +27,9 @@ export default function CustomerList() {
 
   const [size, setSize] = React.useState<TableSize>("small")
   const [view, setView] = React.useState<AdminView>(typeof window === 'undefined' ? 'table' : getStoredView('customers'))
+  const [quickFilter, setQuickFilter] = React.useState<'all'|'hasOrders'>('all')
   return (
-    <List headerButtons={<AdminTableToolbar title="Customers" size={size} onSizeChange={setSize} onRefresh={() => tableQueryResult.refetch()} searchPlaceholder="Search customers" rightSlot={<AdminViewToggle resource='customers' value={view} onChange={setView} />} />}>
+    <List headerButtons={<AdminTableToolbar title="Customers" size={size} onSizeChange={setSize} onRefresh={() => tableQueryResult.refetch()} searchPlaceholder="Search customers" rightSlot={<div className="flex items-center gap-2"><AdminViewToggle resource='customers' value={view} onChange={setView} />{view==='cards' && (<Segmented size='small' value={quickFilter} onChange={(v)=>setQuickFilter(v as any)} options={[{label:'All',value:'all'},{label:'Has Orders',value:'hasOrders'}]} />)}</div>} />}>
       {view === 'table' ? (
       <Table {...tableProps} rowKey="id" size={size} sticky rowClassName={(_, index) => (index % 2 === 1 ? 'admin-row-zebra' : '')}>
         <Table.Column
@@ -87,7 +88,9 @@ export default function CustomerList() {
       </Table>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-          {(tableProps.dataSource as Customer[] | undefined)?.map((c) => (
+          {((tableProps.dataSource as Customer[] | undefined) || [])
+            .filter((c) => quickFilter==='all' ? true : (((c as any).orders?.length || 0) > 0))
+            .map((c) => (
             <div key={c.id} className="border border-border rounded-lg p-4 bg-[#0b0b0b]">
               <div className="flex items-center justify-between">
                 <div className="min-w-0">

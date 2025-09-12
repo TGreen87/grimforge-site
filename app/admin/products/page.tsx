@@ -5,6 +5,7 @@ import { List, useTable, DateField, BooleanField, NumberField, TextField, TagFie
 import { Table, Space, Button, Tag, Modal, InputNumber, Radio, message, Switch } from "antd";
 import AdminTableToolbar, { TableSize } from "../ui/AdminTableToolbar";
 import AdminViewToggle, { AdminView, getStoredView } from "../ui/AdminViewToggle";
+import { Segmented } from "antd";
 import { EditOutlined, EyeOutlined, DeleteOutlined } from "@ant-design/icons";
 import type { ColumnsType } from 'antd/es/table'
 import AdminColumnSettings, { getStoredColumns } from "../ui/AdminColumnSettings";
@@ -100,6 +101,7 @@ export default function ProductList() {
 
   const [size, setSize] = useState<TableSize>("small")
   const [view, setView] = useState<AdminView>(typeof window === 'undefined' ? 'table' : getStoredView('products'))
+  const [quickFilter, setQuickFilter] = useState<'all'|'active'|'inactive'|'featured'>('all')
   const allColumnDefs = [
     { key: 'title', label: 'Title' },
     { key: 'artist', label: 'Artist' },
@@ -199,6 +201,14 @@ export default function ProductList() {
             onExport={() => {}}
             searchPlaceholder="Search products"
             rightSlot={<Space>
+              {view === 'cards' && (
+                <Segmented size="small" value={quickFilter} onChange={(v)=>setQuickFilter(v as any)} options={[
+                  { label: 'All', value: 'all' },
+                  { label: 'Active', value: 'active' },
+                  { label: 'Inactive', value: 'inactive' },
+                  { label: 'Featured', value: 'featured' },
+                ]} />
+              )}
               <AdminColumnSettings resource="products" columns={allColumnDefs as any} value={visible} onChange={setVisible} />
               <AdminViewToggle resource="products" value={view} onChange={setView} />
             </Space>}
@@ -225,7 +235,9 @@ export default function ProductList() {
       />
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-          {(tableProps.dataSource as Product[] | undefined)?.map((p) => (
+          {((tableProps.dataSource as Product[] | undefined) || [])
+            .filter((p) => quickFilter==='all' ? true : quickFilter==='featured' ? (p as any).featured : quickFilter==='active' ? (p as any).active : !(p as any).active)
+            .map((p) => (
             <div key={p.id} className="border border-border rounded-lg p-4 bg-[#0b0b0b]">
               <div className="flex items-start gap-3">
                 <div className="w-16 h-16 bg-secondary/30 rounded overflow-hidden flex-shrink-0">
