@@ -188,9 +188,11 @@ export function RefineProvider({ children }: { children: React.ReactNode }) {
                   outline-offset: 2px;
                   border-color: var(--clr-focus) !important;
                 }
+                .ant-table-thead > tr > th { height: 40px; font-size: 14px; }
                 .ant-table-tbody > tr.admin-row-zebra > td { background-color: #0d0f12 !important; }
                 .kanban-card { transition: transform var(--dur-140) var(--ease-enter), box-shadow var(--dur-140) var(--ease-enter), background-color var(--dur-140) var(--ease-enter); }
                 .kanban-card:hover { transform: translateY(-2px); box-shadow: var(--sh-sm); }
+                .ant-menu-dark .ant-menu-item-selected { border-left: 2px solid var(--clr-primary); padding-left: 14px !important; }
               `}</style>
               {isLoginRoute ? (
                 children
