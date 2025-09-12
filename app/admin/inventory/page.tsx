@@ -10,6 +10,7 @@ import { PlusOutlined, EditOutlined } from "@ant-design/icons";
 import Link from "next/link";
 import { getSupabaseBrowserClient } from "@/integrations/supabase/browser";
 import type { Inventory, ReceiveStockFormValues } from "../types";
+import EmptyState from "../ui/EmptyState";
 
 const { TextArea } = Input;
 
@@ -60,7 +61,7 @@ export default function InventoryList() {
 
   const [size, setSize] = useState<TableSize>("small")
   const [view, setView] = useState<AdminView>(typeof window === 'undefined' ? 'table' : getStoredView('inventory'))
-  const [quickFilter, setQuickFilter] = useState<'all'|'low'|'out'>('all')
+  const [quickFilter, setQuickFilter] = useState<'all'|'out'>('all')
   return (
     <>
       <List
@@ -86,7 +87,6 @@ export default function InventoryList() {
               rightSlot={<div className="flex items-center gap-2">
                 <Segmented size="small" value={quickFilter} onChange={(v)=>setQuickFilter(v as any)} options={[
                   { label: 'All', value: 'all' },
-                  { label: 'Low', value: 'low' },
                   { label: 'Out', value: 'out' },
                 ]} />
                 <AdminViewToggle resource='inventory' value={view} onChange={setView} />
@@ -109,6 +109,9 @@ export default function InventoryList() {
         }
       >
         {view === 'table' ? (
+        (((tableProps.dataSource as any[]) || []).length === 0) ? (
+          <EmptyState title="No inventory yet" helper="Add stock units or receive stock." primaryAction={{ label: 'Receive stock', onClick: () => { setSelectedInventory(null); setIsReceiveStockModalOpen(true); } }} />
+        ) : (
         <Table {...tableProps} rowKey="id" size={size} sticky rowClassName={(_, index) => (index % 2 === 1 ? 'admin-row-zebra' : '')}>
           <Table.Column
             dataIndex={["variant", "name"]}
@@ -177,11 +180,17 @@ export default function InventoryList() {
             )}
           />
         </Table>
+        )
         ) : (
+          (() => {
+            const filtered = ((tableProps.dataSource as Inventory[] | undefined) || [])
+              .filter((inv) => quickFilter === 'all' ? true : (inv.available === 0))
+            if (filtered.length === 0) {
+              return <EmptyState title="No inventory yet" helper="Add stock units or receive stock." primaryAction={{ label: 'Receive stock', onClick: () => { setSelectedInventory(null); setIsReceiveStockModalOpen(true); } }} />
+            }
+            return (
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-            {((tableProps.dataSource as Inventory[] | undefined) || [])
-              .filter((inv) => quickFilter === 'all' ? true : quickFilter === 'low' ? (inv.available > 0 && inv.available <= 5) : (inv.available === 0))
-              .map((inv) => (
+            {filtered.map((inv) => (
               <div key={inv.id} className="border border-border rounded-lg p-4 bg-[#0b0b0b]">
                 <div className="flex items-start gap-3">
                   <div className="w-16 h-16 bg-secondary/30 rounded overflow-hidden flex-shrink-0">
@@ -195,7 +204,7 @@ export default function InventoryList() {
                 </div>
                 <div className="mt-3 flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <span className={`text-xs px-2 py-0.5 rounded ${inv.available > 5 ? 'bg-green-600/20 text-green-300' : inv.available > 0 ? 'bg-yellow-600/20 text-yellow-300' : 'bg-red-600/20 text-red-300'}`}>Available: {inv.available}</span>
+                    <span className={`text-xs px-2 py-0.5 rounded ${inv.available > 0 ? 'bg-green-600/20 text-green-300' : 'bg-red-600/20 text-red-300'}`}>Available: {inv.available}</span>
                     <span className="text-xs px-2 py-0.5 rounded bg-blue-600/20 text-blue-300">On hand: {inv.on_hand}</span>
                     <span className="text-xs px-2 py-0.5 rounded bg-gray-600/20 text-gray-300">Allocated: {inv.allocated}</span>
                   </div>
@@ -204,6 +213,8 @@ export default function InventoryList() {
               </div>
             ))}
           </div>
+            )
+          })()
         )}
       </List>
 

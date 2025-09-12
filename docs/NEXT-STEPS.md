@@ -1,5 +1,7 @@
 # Next Steps (Dev Branch)
 
+Last modified: 2025-09-12
+
 This doc tracks the immediate backlog now that production auth is live. All work happens on `dev`; main stays protected until we say “go live”.
 
 ## Current Status — 2025-09-10
@@ -52,15 +54,14 @@ Next:
 - Cards filters: Products (featured/active), Articles (published), Customers (has orders).
 - Accessibility pass: focus rings and keyboard nav across cards/toolbar.
 
-## Shipping — AusPost (Scaffold)
-- Implemented server scaffold for Australia Post quotes and checkout integration.
+## Shipping — AusPost
+- Implemented AusPost quotes and checkout integration; customers pay shipping.
 - `POST /api/shipping/quote` returns AusPost rates when configured; falls back to static Stripe options otherwise.
 - `POST /api/checkout` accepts `shipping_rate_data` or `{ shipping: ... }` and uses that for Stripe Checkout shipping.
 
 Next:
-- Add UI in checkout to display selectable shipping options from `/api/shipping/quote`.
-- Confirm service list (Domestic: Parcel Post/Express; Key Intl zones) and labels.
-- Add weight/dimension defaults on Stock Units to improve quotes.
+- Confirm service list (Domestic: Parcel Post/Express; key international zones) and labels; keep customer-paying model.
+- Add weight/dimension defaults on Stock Units to improve quotes (sensible defaults used meanwhile).
 
 ## Mobile UX Polish — Planned
 - Header/menu spacing on small screens; drawer widths; card grid/paddings; break long words. [in progress]
@@ -69,8 +70,7 @@ Next:
 - Reduce section margins on small screens; ensure no horizontal overflow. [done]
 
 Next:
-- Add optional correlation ID (e.g., from headers) to tie client logs to sessions.
-- Consider simple dedup persistence keyed by session (server memory is best-effort only).
+- Add optional correlation ID to tie client logs to sessions (present); consider dedup per session.
 
 ## 1) Products / Variants — Bulk Tooling (Phase 1)
 - Bulk price updates: +/- %, absolute set, undo preview
@@ -88,6 +88,7 @@ Next:
 - Public: `/articles` (list), `/articles/[slug]` (detail) wired to Supabase
 - Admin editor: create/edit with markdown, publish/unpublish
 - SEO/OG: dynamic metadata + JSON‑LD
+- Note: deferred until after Sprint 1 polish.
 
 ## 4) Copy Cleanup (Site)
 - Replace remaining theme placeholders (hero, modals, toasts)

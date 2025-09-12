@@ -10,6 +10,7 @@ import Link from "next/link";
 import { useUpdate } from "@refinedev/core";
 import { message } from "antd";
 import type { Order, OrderItem } from "../types";
+import EmptyState from "../ui/EmptyState";
 
 const statusColors: Record<string, string> = {
   pending: "orange",
@@ -97,6 +98,9 @@ export default function OrderList() {
       `}</style>
       <List headerButtons={<AdminTableToolbar title="Orders" size={size} onSizeChange={setSize} onRefresh={() => tableQueryResult.refetch()} searchPlaceholder="Search orders" rightSlot={<AdminViewToggle resource='orders' value={view} onChange={setView} allowBoard />} />}>
       {view === 'table' ? (
+      (((tableProps.dataSource as any[]) || []).length === 0) ? (
+        <EmptyState title="No orders yet" helper="When customers buy, orders appear here." />
+      ) : (
       <Table {...tableProps} rowKey="id" size={size} sticky rowClassName={(_, index) => (index % 2 === 1 ? 'admin-row-zebra' : '')}>
         <Table.Column
           dataIndex="id"
@@ -174,7 +178,11 @@ export default function OrderList() {
           )}
         />
       </Table>
+      )
       ) : (
+        ((tableProps.dataSource as any[]) || []).length === 0 ? (
+          <EmptyState title="No orders yet" helper="When customers buy, orders appear here." />
+        ) : (
         <div className="flex gap-4 overflow-auto" style={{ paddingBottom: 8 }}>
           {['pending','paid','processing','shipped','delivered'].map((status) => (
             <div key={status}
@@ -209,6 +217,7 @@ export default function OrderList() {
             </div>
           ))}
         </div>
+        )
       )}
       </List>
     </>

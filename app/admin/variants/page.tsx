@@ -7,6 +7,7 @@ import AdminTableToolbar, { TableSize } from "../ui/AdminTableToolbar";
 import { EditOutlined, EyeOutlined } from "@ant-design/icons";
 import Link from "next/link";
 import type { Variant } from "../types";
+import EmptyState from "../ui/EmptyState";
 
 export default function VariantList() {
   const { tableProps, tableQueryResult } = useTable<Variant>({
@@ -30,6 +31,9 @@ export default function VariantList() {
         />
       }
     >
+      {(((tableProps.dataSource as any[]) || []).length === 0) ? (
+        <EmptyState title="No stock units yet" helper="Add stock units to start tracking inventory and pricing." primaryAction={{ label: 'New stock unit', href: '/admin/variants/create' }} />
+      ) : (
       <Table {...tableProps} rowKey="id" size={size} sticky rowClassName={(_, index) => (index % 2 === 1 ? 'admin-row-zebra' : '')}>
         <Table.Column
           dataIndex="name"
@@ -94,6 +98,7 @@ export default function VariantList() {
           )}
         />
       </Table>
+      )}
     </List>
   );
 }

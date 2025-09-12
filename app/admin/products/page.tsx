@@ -2,7 +2,7 @@
 
 import React, { useMemo, useState } from "react";
 import { List, useTable, DateField, BooleanField, NumberField, TextField, TagField } from "@refinedev/antd";
-import { Table, Space, Button, Tag, Modal, InputNumber, Radio, message, Switch } from "antd";
+import { Table, Space, Button, Tag, Modal, InputNumber, Radio, message, Switch, Select } from "antd";
 import AdminTableToolbar, { TableSize } from "../ui/AdminTableToolbar";
 import AdminViewToggle, { AdminView, getStoredView } from "../ui/AdminViewToggle";
 import { Segmented } from "antd";
@@ -12,6 +12,7 @@ import AdminColumnSettings, { getStoredColumns } from "../ui/AdminColumnSettings
 import Link from "next/link";
 import type { Product } from "../types";
 import { getSupabaseBrowserClient } from "@/integrations/supabase/browser";
+import EmptyState from "../ui/EmptyState";
 
 function InlinePrice({ product, onSaved }: { product: Product; onSaved: () => void }) {
   const [value, setValue] = React.useState<number>(product.price);
@@ -103,6 +104,8 @@ export default function ProductList() {
   const [view, setView] = useState<AdminView>(typeof window === 'undefined' ? 'table' : getStoredView('products'))
   const [quickFilter, setQuickFilter] = useState<'all'|'active'|'inactive'|'featured'>('all')
   const [query, setQuery] = useState<string>("")
+  const [formatFilter, setFormatFilter] = useState<string>('all')
+  const [artistFilter, setArtistFilter] = useState<string>('all')
   const allColumnDefs = [
     { key: 'title', label: 'Title' },
     { key: 'artist', label: 'Artist' },
@@ -240,22 +243,43 @@ export default function ProductList() {
       )}
     >
       {view === 'table' ? (
-      <Table 
-        {...tableProps} 
-        columns={columns}
-        rowKey="id" 
-        size={size}
-        sticky
-        rowClassName={(_, index) => (index % 2 === 1 ? 'admin-row-zebra' : '')}
-        tableLayout="fixed"
-        rowSelection={{ selectedRowKeys, onChange:setSelectedRowKeys }}
-      />
+      ((tableProps.dataSource as any[])?.length || 0) === 0 ? (
+        <EmptyState title="No products yet" helper="Create your first product or import a CSV." primaryAction={{ label: 'New product', href: '/admin/products/create' }} secondaryLink={{ label: 'Import CSV', href: '#' }} />
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-          {((tableProps.dataSource as Product[] | undefined) || [])
+        <Table 
+          {...tableProps} 
+          columns={columns}
+          rowKey="id" 
+          size={size}
+          sticky
+          rowClassName={(_, index) => (index % 2 === 1 ? 'admin-row-zebra' : '')}
+          tableLayout="fixed"
+          rowSelection={{ selectedRowKeys, onChange:setSelectedRowKeys }}
+        />
+      )
+      ) : (
+        (() => {
+          const ds = ((tableProps.dataSource as Product[] | undefined) || [])
+          const distinctFormats = Array.from(new Set(ds.map((p:any) => p.format).filter(Boolean))) as string[]
+          const distinctArtists = Array.from(new Set(ds.map((p:any) => p.artist).filter(Boolean))) as string[]
+          const filtered = ds
             .filter((p) => quickFilter==='all' ? true : quickFilter==='featured' ? (p as any).featured : quickFilter==='active' ? (p as any).active : !(p as any).active)
             .filter((p) => !query ? true : ((p.title||'')+(p.artist||'')).toLowerCase().includes(query.toLowerCase()))
-            .map((p) => (
+            .filter((p:any) => formatFilter==='all' ? true : (p.format === formatFilter))
+            .filter((p:any) => artistFilter==='all' ? true : (p.artist === artistFilter))
+          return (
+            <>
+              <div className="flex items-center gap-2 mb-2">
+                <Select size="small" value={formatFilter} style={{ minWidth: 160 }} onChange={setFormatFilter}
+                  options={[{ label:'All formats', value:'all' }, ...distinctFormats.map(f => ({ label: f, value: f }))]} />
+                <Select size="small" value={artistFilter} style={{ minWidth: 180 }} onChange={setArtistFilter}
+                  options={[{ label:'All artists', value:'all' }, ...distinctArtists.map(a => ({ label: a, value: a }))]} />
+              </div>
+              {filtered.length === 0 ? (
+                <EmptyState title="No products match" helper="Try clearing filters or create a new product." primaryAction={{ label: 'New product', href: '/admin/products/create' }} />
+              ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                {filtered.map((p) => (
             <div key={p.id} className="border border-border rounded-lg p-4 bg-[#0b0b0b]">
               <div className="flex items-start gap-3">
                 <div className="w-16 h-16 bg-secondary/30 rounded overflow-hidden flex-shrink-0">
@@ -283,8 +307,12 @@ export default function ProductList() {
                 <Link href={`/admin/products/edit/${p.id}`}><Button size="small">Edit</Button></Link>
               </div>
             </div>
-          ))}
-        </div>
+                ))}
+              </div>
+              )}
+            </>
+          )
+        })()
       )}
 
       {/* Bulk Price Modal */}

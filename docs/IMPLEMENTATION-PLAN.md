@@ -1,5 +1,7 @@
 # Implementation Plan (Dev Branch)
 
+Last modified: 2025-09-12
+
 This document captures the end-to-end plan to finish the storefront and admin for Obsidian Rite Records. It aligns with the solo workflow on the `dev` branch and Netlify Branch Deploys.
 
 ## Objectives
@@ -54,13 +56,13 @@ Acceptance:
 Acceptance:
 - Client errors persist (Supabase) with essential context; can be filtered by time/user. [partially met]
 
-### Phase 4.1 — Shipping (AusPost Scaffold)
+### Phase 4.1 — Shipping (AusPost)
 - Add AusPost quote service and API: `src/services/shipping/auspost.ts`, `POST /api/shipping/quote`. [done]
-- Update checkout to accept a selected shipping option (`shipping_rate_data` or `{ shipping: ... }`) and compose Stripe Checkout accordingly. [done]
+- Checkout accepts a selected shipping option (`shipping_rate_data` or `{ shipping: ... }`) and composes Stripe Checkout accordingly, charging the customer. [done]
 - Degrade to static Stripe rates when AusPost env is absent. [done]
 
 Acceptance:
-- With `AUSPOST_API_KEY` and origin configured, shipping options return from `/api/shipping/quote` for AU and international; when not configured, static Stripe rates are returned. Checkout reflects the chosen option.
+- With `AUSPOST_API_KEY` and origin configured, shipping options return from `/api/shipping/quote` for AU and international; when not configured, static Stripe rates are returned. Checkout reflects the chosen option (customer pays shipping).
 
 ### Phase 5 — Admin Gating (Prod Only)
 - Keep previews relaxed; on production, require `user_roles.role = 'admin'` server-side.
@@ -129,6 +131,8 @@ Status:
 - Accessibility: focus-visible rings, skip-to-content, toolbar search aria-describedby hints; Orders board ARIA live updates [partial]
 - Motion: tokenized durations/easings; subtle hover lift; board transitions [partial]
 - Toolbar: title+count, functional search input, New button; CSV export for Products & Inventory [done]
+- Empty states: added across Products/Stock Units/Inventory/Orders/Customers/Articles [done]
+- Cards filters: Products Cards add Format and Artist dropdown filters [done]
 
 ### Phase 11 — Site Visual Improvements
 - Goals: improve hierarchy and readability on mobile and desktop; keep brand vibe.

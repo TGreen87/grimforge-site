@@ -8,6 +8,7 @@ import AdminViewToggle, { AdminView, getStoredView } from "../ui/AdminViewToggle
 import { EditOutlined, EyeOutlined } from "@ant-design/icons";
 import Link from "next/link";
 import type { Customer, Order, Address } from "../types";
+import EmptyState from "../ui/EmptyState";
 
 export default function CustomerList() {
   const { tableProps, tableQueryResult } = useTable<Customer>({
@@ -31,6 +32,9 @@ export default function CustomerList() {
   return (
     <List headerButtons={<AdminTableToolbar title="Customers" size={size} onSizeChange={setSize} onRefresh={() => tableQueryResult.refetch()} searchPlaceholder="Search customers" rightSlot={<div className="flex items-center gap-2"><AdminViewToggle resource='customers' value={view} onChange={setView} />{view==='cards' && (<Segmented size='small' value={quickFilter} onChange={(v)=>setQuickFilter(v as any)} options={[{label:'All',value:'all'},{label:'Has Orders',value:'hasOrders'}]} />)}</div>} />}>
       {view === 'table' ? (
+      (((tableProps.dataSource as any[]) || []).length === 0) ? (
+        <EmptyState title="No customers yet" helper="Customers who check out will appear here." secondaryLink={{ label: 'Create test order', href: '#' }} />
+      ) : (
       <Table {...tableProps} rowKey="id" size={size} sticky rowClassName={(_, index) => (index % 2 === 1 ? 'admin-row-zebra' : '')}>
         <Table.Column
           dataIndex="email"
@@ -86,10 +90,17 @@ export default function CustomerList() {
           )}
         />
       </Table>
+      )
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-          {((tableProps.dataSource as Customer[] | undefined) || [])
+        (() => {
+          const filtered = ((tableProps.dataSource as Customer[] | undefined) || [])
             .filter((c) => quickFilter==='all' ? true : (((c as any).orders?.length || 0) > 0))
+          if (filtered.length === 0) {
+            return <EmptyState title="No customers yet" helper="Customers who check out will appear here." secondaryLink={{ label: 'Create test order', href: '#' }} />
+          }
+          return (
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+          {filtered
             .map((c) => (
             <div key={c.id} className="border border-border rounded-lg p-4 bg-[#0b0b0b]">
               <div className="flex items-center justify-between">
@@ -110,6 +121,8 @@ export default function CustomerList() {
             </div>
           ))}
         </div>
+          )
+        })()
       )}
     </List>
   );

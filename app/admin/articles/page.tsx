@@ -8,6 +8,7 @@ import AdminViewToggle, { AdminView, getStoredView } from "../ui/AdminViewToggle
 import { Segmented } from "antd";
 import { EditOutlined, EyeOutlined } from "@ant-design/icons";
 import Link from "next/link";
+import EmptyState from "../ui/EmptyState";
 
 interface ArticleRow {
   id: string;
@@ -30,6 +31,9 @@ export default function ArticlesList() {
   return (
     <List title="Articles" headerButtons={<AdminTableToolbar title="Articles" size={size} onSizeChange={setSize} onRefresh={() => tableQueryResult.refetch()} searchPlaceholder="Search articles" rightSlot={<div className="flex items-center gap-2"><AdminViewToggle resource='articles' value={view} onChange={setView} />{view==='cards' && (<Segmented size='small' value={quickFilter} onChange={(v)=>setQuickFilter(v as any)} options={[{label:'All',value:'all'},{label:'Published',value:'published'},{label:'Drafts',value:'drafts'}]} />)}</div>} count={(tableProps.dataSource as any[])?.length || 0} newPath="/admin/articles/create" />}>
       {view === 'table' ? (
+      (((tableProps.dataSource as any[]) || []).length === 0) ? (
+        <EmptyState title="No articles yet" helper="Write your first post." primaryAction={{ label: 'New article', href: '/admin/articles/create' }} />
+      ) : (
       <Table {...tableProps} rowKey="id" size={size} sticky rowClassName={(_, index) => (index % 2 === 1 ? 'admin-row-zebra' : '')}>
         <Table.Column dataIndex="title" title="Title" render={(v: string) => <TextField value={v} />} />
         <Table.Column dataIndex="slug" title="Slug" render={(v: string) => <TextField value={v} />} />
@@ -51,10 +55,17 @@ export default function ArticlesList() {
           )}
         />
       </Table>
+      )
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-          {((tableProps.dataSource as ArticleRow[] | undefined) || [])
+        (() => {
+          const filtered = ((tableProps.dataSource as ArticleRow[] | undefined) || [])
             .filter((a) => quickFilter==='all' ? true : quickFilter==='published' ? (a as any).published : !(a as any).published)
+          if (filtered.length === 0) {
+            return <EmptyState title="No articles yet" helper="Write your first post." primaryAction={{ label: 'New article', href: '/admin/articles/create' }} />
+          }
+          return (
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+          {filtered
             .map((a) => (
             <div key={a.id} className="border border-border rounded-lg p-4 bg-[#0b0b0b]">
               <div className="flex items-center justify-between">
@@ -72,6 +83,8 @@ export default function ArticlesList() {
             </div>
           ))}
         </div>
+          )
+        })()
       )}
     </List>
   );

@@ -1,5 +1,7 @@
 # Codex CLI Agents Guide (OpenAI‑Aligned)
 
+Last modified: 2025-09-12
+
 This repo follows Codex CLI conventions for a small team: plan first, minimal blast radius, single working branch, and explicit go‑live approval.
 
 ## Defaults & Tone
@@ -142,8 +144,21 @@ This guide encodes how we use Codex CLI here: plan first, one working branch, ex
 - Observability: added `/api/client-logs` endpoint and mounted a client error logger in `app/providers.tsx`.
 - Observability: rate limit + dedupe on `/api/client-logs`, correlation ID cookie (`orr_cid`) included with reports, and a React ErrorBoundary wraps the app.
 - Observability: middleware now propagates correlation IDs via `x-correlation-id` header and sets `orr_cid` cookie when absent.
-- Shipping (scaffold): Added AusPost quote service + API; checkout accepts selected shipping rate; degrades to static Stripe rates when AusPost env is absent. See `docs/SHIPPING-AUSPOST.md`.
- - Admin UI overhaul: modern shell (header/sider), table toolbar (density + column presets), alternate views (Products Cards; Orders Board with drag-and-drop; Inventory/Customers/Articles Cards), header search wired to Kbar, and Kbar actions for create/jump.
+- Shipping (customer pays): AusPost quote service + API wired; checkout accepts selected shipping rate and charges the customer via Stripe Checkout. Falls back to static Stripe rates when AusPost env is absent. See `docs/SHIPPING-AUSPOST.md`.
+- Admin UI overhaul: modern shell (header/sider), table toolbar (density + column presets), alternate views (Products Cards; Orders Board with drag-and-drop; Inventory/Customers/Articles Cards), header search wired to Kbar, and Kbar actions for create/jump.
+- Empty states: warm EmptyStates added across Products, Stock Units, Inventory, Orders, Customers, and Articles.
+- Products Cards: added Format and Artist dropdown filters.
+
+Decisions (current)
+- Shipping: customer pays; AusPost enabled when env present, Stripe static fallback otherwise.
+- Allowed countries: broad default set (AU, NZ, US, GB, CA, EU subset); refine later if needed.
+- Sitemap: include only active products and published articles (already implemented).
+- Articles: further polish deferred until after Sprint 1.
+- Kbar: present as the command palette (Cmd/Ctrl+K) for admin; no change needed.
+- CSV: export enabled (Products, Inventory); import (price/active) slated for Sprint 2.
+- Icons: use lucide-react now (tasteful, minimal); custom set optional later.
+- Observability: client error logs enabled with correlation IDs.
+- Admin theme: dark-only by default.
 
 ## Deployment Status
 
