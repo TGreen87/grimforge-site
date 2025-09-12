@@ -115,3 +115,14 @@ Next:
 ## Rollback
 - If `main` breaks: `git revert <sha>` → push → Netlify redeploys previous good state.
 - A11y: ProductCard keyboard navigation, aria labels, and title links.
+## Sprint 1 Status — 2025-09-12
+- Admin visuals foundation: dark tokens mapped to AntD, focus rings, sticky headers, density toggle, view toggles, CSV export, and warm EmptyStates across lists (Products/Stock Units/Inventory/Orders/Customers/Articles).
+- Shipping UI: checkout modal shows selectable rates from `/api/shipping/quote` (AusPost when configured; Stripe static fallback), and the selected option is charged to the customer in Stripe Checkout.
+- Sitemap: serves only active products and published articles.
+- Puppeteer: added a smoke script `npm run test:puppeteer` for branch URL health (homepage + vinyl anchor; product steps are best‑effort if data exists).
+- Articles polish: deferred to post‑Sprint‑1.
+
+Pending (manual verification on dev deploy):
+- Admin flows feel coherent on branch (Cards/Board/views/toolbar); Commands (Cmd/Ctrl+K) open Kbar.
+- Checkout modal successfully shows shipping options; selection persists until payment.
+- Client error logs received with correlation IDs.

@@ -2,6 +2,7 @@
 import puppeteer from 'puppeteer';
 
 const BASE_URL = process.env.BASE_URL || process.env.PLAYWRIGHT_BASE_URL || process.env.E2E_BASE_URL || 'https://dev--obsidianriterecords.netlify.app';
+const TIMEOUT_MS = Number(process.env.PUPPETEER_TIMEOUT || 45000);
 
 function log(step, ok, extra = '') {
   const status = ok ? 'OK' : 'FAIL';
@@ -11,27 +12,41 @@ function log(step, ok, extra = '') {
 async function run() {
   const browser = await puppeteer.launch({ headless: 'new' });
   const page = await browser.newPage();
-  page.setDefaultTimeout(15000);
+  page.setDefaultTimeout(TIMEOUT_MS);
+  page.setDefaultNavigationTimeout(TIMEOUT_MS);
 
   try {
-    await page.goto(BASE_URL, { waitUntil: 'networkidle2' });
+    await page.goto(BASE_URL, { waitUntil: 'domcontentloaded' });
+    await page.waitForSelector('body', { timeout: TIMEOUT_MS });
     const title = await page.title();
     log('Open homepage', true, `title: ${title}`);
 
     // Try footer Vinyl anchor
     try {
-      await page.evaluate(() => {
-        const a = document.querySelector('a[href*="#vinyl"]');
-        if (a) (a).scrollIntoView({ behavior: 'instant', block: 'center' });
+      // Try click link with text "Vinyl Records"
+      const clicked = await page.evaluate(() => {
+        const anchors = Array.from(document.querySelectorAll('a'));
+        const target = anchors.find(a => /vinyl\s*records/i.test(a.textContent || ''));
+        if (target) {
+          (target).scrollIntoView({ behavior: 'instant', block: 'center' });
+          (target).click();
+          return true;
+        }
+        return false;
       });
-      const vinylLink = await page.$('a[href*="#vinyl"]');
-      if (vinylLink) {
-        await vinylLink.click();
-        await page.waitForTimeout(500);
-        const url = page.url();
-        log('Footer Vinyl anchor', url.includes('#vinyl'));
+      if (!clicked) {
+        const vinylLink = await page.$('a[href*="#vinyl"]');
+        if (vinylLink) {
+          await vinylLink.click();
+          await new Promise(r => setTimeout(r, 600));
+          const url = page.url();
+          log('Footer Vinyl anchor', url.includes('#vinyl'));
+        } else {
+          log('Footer Vinyl anchor', false, 'link not found');
+        }
       } else {
-        log('Footer Vinyl anchor', false, 'link not found');
+        await new Promise(r => setTimeout(r, 600));
+        log('Footer Vinyl anchor', page.url().includes('#vinyl'));
       }
     } catch (e) { log('Footer Vinyl anchor', false, String(e)); }
 
@@ -42,7 +57,7 @@ async function run() {
       if (prodLink) {
         await Promise.all([
           prodLink.click(),
-          page.waitForNavigation({ waitUntil: 'networkidle2' })
+          page.waitForNavigation({ waitUntil: 'domcontentloaded' })
         ]);
         wentProduct = true;
         log('Open product detail', true, page.url());
@@ -57,10 +72,8 @@ async function run() {
         const addBtn = await page.$x("//button[contains(., 'Add to Cart') or contains(., 'Add to cart')]");
         if (addBtn[0]) {
           await addBtn[0].click();
-        } else {
-          // try Buy Now (will redirect) — skip to avoid navigation
         }
-        await page.waitForTimeout(500);
+        await new Promise(r => setTimeout(r, 600));
         // Try open cart and click Checkout button
         const checkoutBtns = await page.$x("//button[contains(., 'Checkout')] | //a[contains(., 'Checkout')]");
         if (checkoutBtns[0]) {
@@ -84,7 +97,7 @@ async function run() {
         const refresh = await page.$x("//button[contains(., 'Refresh rates')] | //button[contains(., 'Fetching…')]");
         if (refresh[0]) {
           await refresh[0].click();
-          await page.waitForTimeout(1500);
+          await new Promise(r => setTimeout(r, 1500));
           log('Fetch shipping rates', true);
         }
       } catch (e) { log('Fetch shipping rates', false, String(e)); }
@@ -98,4 +111,3 @@ async function run() {
 }
 
 run().then(() => process.exit(0)).catch(() => process.exit(0));
-

@@ -78,6 +78,15 @@ This repo follows Codex CLI conventions for a small team: plan first, minimal bl
 - If Playwright MCP is available, we can add a smoke suite that navigates the homepage, enters Catalog, opens a product, adds to cart, opens checkout, and verifies the redirect (without completing payment). Another set covers admin login (preview), create/publish an article, and check `/articles` list/detail.
 - To enable: provide MCP endpoint and confirm CLI command to run (e.g., `npm run test:e2e`). We will keep specs small and idempotent.
 
+## Puppeteer Smoke (Branch URL)
+
+- Quick local smoke: `npm run test:puppeteer` (uses `BASE_URL` env; defaults to dev branch deploy).
+- Validates homepage loads and footer “Vinyl Records” anchor; product/checkout steps run when data exists.
+
+## Kbar (Command Palette)
+
+- Admin header search opens Kbar (Cmd/Ctrl+K). Actions include create product/article/stock unit and jumps to boards/cards. Keyboard hints: `n p`, `n a`, `o b`, `p c`, etc.
+
 ## Patching Files (apply_patch)
 
 - Always use `apply_patch` with the minimal diff.
