@@ -126,6 +126,9 @@ Status:
   - Customers → Cards [done]
   - Articles → Cards [done]
 - Kbar actions registered (create product/article/stock unit, jump to boards/cards) [done]
+- Accessibility: focus-visible rings, skip-to-content, toolbar search aria-describedby hints; Orders board ARIA live updates [partial]
+- Motion: tokenized durations/easings; subtle hover lift; board transitions [partial]
+- Toolbar: title+count, functional search input, New button; CSV export for Products & Inventory [done]
 
 ### Phase 11 — Site Visual Improvements
 - Goals: improve hierarchy and readability on mobile and desktop; keep brand vibe.
