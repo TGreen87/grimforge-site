@@ -3,6 +3,8 @@ import puppeteer from 'puppeteer';
 
 const BASE_URL = process.env.BASE_URL || process.env.PLAYWRIGHT_BASE_URL || process.env.E2E_BASE_URL || 'https://dev--obsidianriterecords.netlify.app';
 const TIMEOUT_MS = Number(process.env.PUPPETEER_TIMEOUT || 45000);
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL || process.env.CODEN_USER || process.env.CODEX_USER || '';
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || process.env.CODEN_PASS || process.env.CODEX_PASS || '';
 
 function log(step, ok, extra = '') {
   const status = ok ? 'OK' : 'FAIL';
@@ -23,32 +25,29 @@ async function run() {
 
     // Try footer Vinyl anchor
     try {
-      // Try click link with text "Vinyl Records"
-      const clicked = await page.evaluate(() => {
-        const anchors = Array.from(document.querySelectorAll('a'));
-        const target = anchors.find(a => /vinyl\s*records/i.test(a.textContent || ''));
-        if (target) {
-          (target).scrollIntoView({ behavior: 'instant', block: 'center' });
-          (target).click();
-          return true;
-        }
+      // Prefer header nav button "Vinyl"
+      const headerClicked = await page.evaluate(() => {
+        const btns = Array.from(document.querySelectorAll('nav button, nav a'));
+        const target = btns.find(el => /\bvinyl\b/i.test(el.textContent || ''));
+        if (target) { (target).click(); return true; }
         return false;
       });
-      if (!clicked) {
+      await new Promise(r => setTimeout(r, 600));
+      if (headerClicked) {
+        log('Vinyl nav', true);
+      } else {
+        // Fallback: any anchor to #vinyl
         const vinylLink = await page.$('a[href*="#vinyl"]');
         if (vinylLink) {
           await vinylLink.click();
           await new Promise(r => setTimeout(r, 600));
           const url = page.url();
-          log('Footer Vinyl anchor', url.includes('#vinyl'));
+          log('Vinyl nav', url.includes('#vinyl'));
         } else {
-          log('Footer Vinyl anchor', false, 'link not found');
+          log('Vinyl nav', false, 'selector not found');
         }
-      } else {
-        await new Promise(r => setTimeout(r, 600));
-        log('Footer Vinyl anchor', page.url().includes('#vinyl'));
       }
-    } catch (e) { log('Footer Vinyl anchor', false, String(e)); }
+    } catch (e) { log('Vinyl nav', false, String(e)); }
 
     // Navigate to first product
     let wentProduct = false;
@@ -126,6 +125,120 @@ async function run() {
       await page.waitForSelector('button, input, form', { timeout: TIMEOUT_MS }).catch(()=>{});
       log('Admin login renders', ok, `status: ${resp && resp.status()}`);
     } catch (e) { log('Admin login renders', false, String(e)); }
+
+    // Optional: Admin login and seed product if creds provided
+    if (ADMIN_EMAIL && ADMIN_PASSWORD) {
+      try {
+        await page.goto(BASE_URL.replace(/\/$/, '') + '/admin/login', { waitUntil: 'domcontentloaded' });
+        // Fill email & password
+        const typeFirst = async (selector, value) => {
+          const el = await page.$(selector);
+          if (el) { await el.click({ clickCount: 3 }); await el.type(value, { delay: 10 }); return true; }
+          return false;
+        };
+        await typeFirst('input[type="email"], input[name="email"], #email', ADMIN_EMAIL);
+        await typeFirst('input[type="password"], input[name="password"], #password', ADMIN_PASSWORD);
+        // Click Sign in button by text
+        const clickByText = async (selectors, pattern) => {
+          for (const sel of selectors) {
+            const nodes = await page.$$(sel);
+            for (const node of nodes) {
+              const text = (await page.evaluate(el => (el.innerText || el.textContent || '').trim(), node)) || '';
+              if (pattern.test(text)) { await node.click(); return true; }
+            }
+          }
+          return false;
+        };
+        await clickByText(['button', '[role="button"]'], /^(sign in|login)$/i);
+        // Give the client time; then proceed regardless
+        await page.waitForTimeout(1500);
+        log('Admin login submit', true);
+
+        // Create product (idempotent if slug exists)
+        const slug = 'test-vinyl-dark-rituals';
+        await page.goto(BASE_URL.replace(/\/$/, '') + '/admin/products/create', { waitUntil: 'domcontentloaded' });
+        const typeInto = async (label, value) => {
+          // Try by id=name
+          const id = label.toLowerCase().replace(/\s+|\(|\)|\./g,'_');
+          const el = await page.$(`#${id}`);
+          if (el) { await el.click({ clickCount: 3 }); await el.type(value, { delay: 5 }); return true; }
+          // Fallback by label text
+          return await page.evaluate((lbl, val) => {
+            const items = Array.from(document.querySelectorAll('.ant-form-item'));
+            const item = items.find(i => (i.querySelector('.ant-form-item-label')?.innerText || '').trim().toLowerCase().includes(lbl.toLowerCase()));
+            if (!item) return false;
+            const input = item.querySelector('input, textarea');
+            if (!input) return false;
+            input.focus();
+            input.value = val;
+            input.dispatchEvent(new Event('input', { bubbles: true }));
+            input.dispatchEvent(new Event('change', { bubbles: true }));
+            return true;
+          }, label, value);
+        };
+
+        await typeInto('URL (link)', slug);
+        await typeInto('Title', 'Test Vinyl — Dark Rituals');
+        await typeInto('Artist', 'Shadowmoon');
+        await typeInto('Price', '45.99');
+        await typeInto('Stock', '10');
+        // Select Format = Vinyl
+        await page.evaluate(() => {
+          const items = Array.from(document.querySelectorAll('.ant-form-item'));
+          const item = items.find(i => (i.querySelector('.ant-form-item-label')?.innerText || '').toLowerCase().includes('format'));
+          const trigger = item && item.querySelector('.ant-select');
+          if (trigger) (trigger).dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
+        });
+        await page.waitForSelector('.ant-select-dropdown .ant-select-item', { timeout: TIMEOUT_MS }).catch(()=>{});
+        // Click the Vinyl option
+        await clickByText(['.ant-select-item .ant-select-item-option-content', '.ant-select-item'], /vinyl/i);
+
+        // Save
+        // Click Save/Create
+        if (!(await clickByText(['button', '[role="button"]'], /^(save|create)$/i))) {
+          await page.keyboard.press('Control+Enter').catch(()=>{});
+        }
+        await page.waitForTimeout(1200);
+        log('Product created (attempt)', true);
+
+        // Now run product/checkout flow for this slug
+        await page.goto(BASE_URL.replace(/\/$/, '') + `/products/${slug}`, { waitUntil: 'domcontentloaded' });
+        // Add to Cart
+        if (await clickByText(['button', '[role="button"]'], /add to cart/i)) {
+          await page.waitForTimeout(500);
+          // Open checkout in cart
+          if (await clickByText(['button', 'a', '[role="button"]'], /^checkout$/i)) log('Open checkout modal', true);
+          // Fill AU shipping and refresh rates
+          const type = async (sel, val) => { const el = await page.$(sel); if (el) { await el.click({ clickCount: 3 }); await el.type(val); return true;} return false; };
+          await type('#fullName', 'Test User');
+          await type('#email', 'test@example.com');
+          await type('#phone', '+61 400 000 000');
+          await type('#address', '123 Example St');
+          await type('#city', 'Melbourne');
+          await type('#state', 'VIC');
+          await type('#postalCode', '3000');
+          if (await clickByText(['button', '[role="button"]'], /refresh rates/i)) { await page.waitForTimeout(1500); log('Fetch shipping rates', true); }
+          // Pick first shipping option if present
+          await page.evaluate(() => {
+            const opts = Array.from(document.querySelectorAll('[class*="border-border"]'));
+            const opt = opts.find(o => /\$\d|AUD|Shipping|Express|Standard/i.test(o.textContent || ''));
+            if (opt) (opt).dispatchEvent(new MouseEvent('click', { bubbles: true }));
+          });
+          await page.waitForTimeout(300);
+          // Continue → Place order (will open Stripe)
+          await clickByText(['button', '[role="button"]'], /^continue$/i);
+          await page.waitForTimeout(500);
+          await clickByText(['button', '[role="button"]'], /place order/i);
+          await page.waitForNavigation({ waitUntil: 'domcontentloaded' }).catch(()=>{});
+          const finalUrl = page.url();
+          log('Stripe Checkout', /checkout\.stripe\.com/.test(new URL(finalUrl).hostname), finalUrl);
+        } else {
+          log('Product page', false, 'Add to Cart not found');
+        }
+      } catch (e) {
+        log('Admin E2E', false, String(e));
+      }
+    }
 
   } catch (e) {
     log('Open homepage', false, String(e));

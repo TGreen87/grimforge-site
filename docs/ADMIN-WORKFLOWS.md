@@ -43,6 +43,16 @@ This guide explains the key concepts in the admin and the typical flows.
 - Keep SKUs consistent (auto‑generated, but edit if you have a store‑wide scheme).
 - Prefer “Stock Units” to refer to purchasable items (we’ve renamed UI labels accordingly).
 
+## Users & Roles (Grant Admin)
+- Path: `/admin/users` (preview environments only; requires an existing authenticated session).
+- Grant admin:
+  1) Enter the user’s email (must exist in Supabase Auth).
+  2) Click “Grant Admin”. The server upserts `{ user_id, role: 'admin' }` into `user_roles`.
+- Remove admin: Click “Remove Admin” in the table row.
+- API (equivalent):
+  - POST `/api/admin/users/roles` `{ email: "user@example.com", role: "admin" }`
+  - DELETE `/api/admin/users/roles` `{ email: "user@example.com" }`
+
 ## Admin UI — Views & Shortcuts
 - Views:
   - Products: switch between Table and Cards (toolbar toggle). Cards support inline price and active toggles.

@@ -35,6 +35,8 @@ The repo includes a `.mcp.json` that registers both servers and points them at t
 
 Restart Codex/IDE so the servers are detected.
 
+Important: MCP tools are registered when a chat/session starts. If you add or change MCP settings, open a new chat to ensure tools are available.
+
 ## Global configuration (~/.codex/config.toml)
 
 Alternatively, register servers globally:
@@ -70,4 +72,3 @@ trust_level = "trusted"
 
 - Puppeteer MCP: run the prompts in `docs/MCP-PUPPETEER.md` (homepage, footer anchor, product → checkout, admin visuals).
 - Local fallback (no MCP): `npm run test:puppeteer` uses `scripts/puppeteer-smoke.mjs` with `BASE_URL` env.
-

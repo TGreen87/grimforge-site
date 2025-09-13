@@ -1,0 +1,22 @@
+[projects]
+[projects."/tmp/tmp.SDF2HBbOWL"]
+trust_level = "trusted"
+
+[projects."/mnt/a/dev/grimforge-site"]
+trust_level = "trusted"
+
+[projects."/mnt/a/Dev/grimforge-site"]
+trust_level = "trusted"
+
+[sandbox_workspace_write].network_access = true
+
+model = "gpt-5"
+model_verbosity = "high"
+sandbox_mode = "danger-full-access"
+network_access = true
+file_opener = "cursor"
+tools.web_search = true
+tools.mcp = true
+
+[history]
+persistence = "save-all"

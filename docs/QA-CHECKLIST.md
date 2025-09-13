@@ -44,6 +44,8 @@ Use this checklist to verify the dev Branch Deploy before promoting to main.
 - Header shortcuts: Alt+1 Products, Alt+2 Inventory, Alt+3 Orders, Alt+4 Customers, Alt+5 Articles.
 - Kbar opens via Cmd/Ctrl+K.
 
+Tip: Use a temporary QA admin account (email/password) for branch testing, or log in with an existing admin and keep the session open while running MCP.
+
 ## Admin — Products
 - Table view: sticky header; zebra rows; density toggle works; column settings persist.
 - Cards view: image/title; Featured/Inactive chips; inline price edit + active toggle refresh list.
@@ -86,4 +88,3 @@ Use this checklist to verify the dev Branch Deploy before promoting to main.
 - `npm run type-check`, `npm run lint`, `npm test` are green.
 - Sitemap and robots verified; shipping works (fallback without AusPost; live with AusPost).
 - Merge `dev` → `main` fast‑forward; monitor for 10–15 minutes; revert fast if regression.
-
