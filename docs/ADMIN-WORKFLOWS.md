@@ -53,6 +53,12 @@ This guide explains the key concepts in the admin and the typical flows.
   - POST `/api/admin/users/roles` `{ email: "user@example.com", role: "admin" }`
   - DELETE `/api/admin/users/roles` `{ email: "user@example.com" }`
 
+## Troubleshooting: Product Save appears to do nothing
+- Symptom: Clicking “Save” on `/admin/products/create` doesn’t navigate or show a success toast, and the slug URL 404s.
+- Likely cause: Supabase RLS rejection. Some older policies check `admin_users` while the app grants roles in `user_roles`. If your session isn’t recognized by that policy, inserts fail.
+- How to confirm: DevTools → Network → inspect `POST /rest/v1/products` response for RLS/constraint errors.
+- Fix fast: run the idempotent seed in `docs/SUPABASE-SEED.md` (via Supabase MCP/Studio). It grants admin in both tables and upserts a test Product + Stock Unit + Inventory used by QA checkout.
+
 ## Admin UI — Views & Shortcuts
 - Views:
   - Products: switch between Table and Cards (toolbar toggle). Cards support inline price and active toggles.

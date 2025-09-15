@@ -1,41 +1,48 @@
 # Continuation Prompt (New Chat)
 
-Use this prompt to spin up a fresh chat with MCP tools loaded and continue QA on the dev Branch Deploy.
+DO NOT WRITE CODE YET 
 
 ---
 
 Context:
-- Repo: grimforge-site (Next.js 15 App Router; Refine + AntD admin)
+- Repo: grimforge-site (Next.js 15 App Router; Refine + AntD admin), working on the dev branchg and pushing to main when the user asks for it.
 - Branch deploy (dev): https://dev--obsidianriterecords.netlify.app
 - Planning docs: `docs/AGENTS.md`, `docs/IMPLEMENTATION-PLAN.md`, `docs/NEXT-STEPS.md`
 - QA guide: `docs/QA-CHECKLIST.md`
-- MCP setup: `docs/MCP-CONFIG.md`; prompts: `docs/MCP-PUPPETEER.md`
+- Seed/setup: `docs/SUPABASE-SEED.md` (No‑DO Seed) and `docs/SESSION-2025-09-14.md`
+- MCP: Use your MCP function. Supabase configured and available, Context7 available for docs / api reference etc. Puppeteer/Playwright soon available; set BASE_URL to the dev Branch Deploy
 - Shipping: customer‑pays; AusPost when configured; Stripe static fallback otherwise
 - Admin visuals: modern shell, sticky headers, density toggle, Cards/Board views, Kbar actions
 - EmptyStates + CSV export: Products/Inventory enabled
 
 Goals:
-1) Run Puppeteer MCP smoke against the dev branch URL.
-2) Create a test product via admin (active + slug), then verify end‑to‑end checkout with selectable shipping.
-3) Capture brief pass/fail notes and screenshots, and update docs if anything regresses.
+1) Smoke‑check public pages with screenshots and error capture.
+2) Prepare data via seed (preferred) or admin create; ensure RLS allows public product read.
+3) Verify product → checkout flow (shipping selection → Stripe redirect).
+4) Return pass/fail notes and artifact paths.
+
+Codex admin credentials (temporary):
+User: Codex@greenaiautomation.ai
+PW: Codex1@3
 
 Instructions for the assistant:
-1) Confirm MCP tools are available (Puppeteer or Playwright). If not, ask to restart with MCP.
+1) Confirm MCP tools are available. If not, ask to restart with MCP.
+Preflight
+1) `/status`:
+   - Open `/status`; extract Node version, NEXT_PUBLIC_SITE_URL, Supabase presence flags.
+   - Screenshot status-<timestamp>.png; record any console errors and 4xx/5xx responses.
+
 2) Public checks:
    - Open the homepage; report status and title; screenshot home.png.
    - Click the header “Vinyl” control; confirm hash/tab sync; screenshot vinyl.png.
    - Check `/robots.txt` and `/sitemap.xml` return 200.
-3) Admin (pause for manual login if needed):
-   - Open `/admin/login`; wait for user to log in.
-   - Navigate to `/admin/products/create`; create:
-     - URL (link): `test-vinyl-dark-rituals`
-     - Title: `Test Vinyl — Dark Rituals`
-     - Artist: `Shadowmoon`
-     - Format: `Vinyl`
-     - Price: `45.99`
-     - Stock: `10`
-     - Active: `On`
-     - Save; screenshot admin-product-created.png.
+3) Data prep (prefer this over manual create):
+   - Run `docs/SUPABASE-SEED.md` → “No‑DO Seed”. This grants admin and upserts:
+     - Product slug: `test-vinyl-dark-rituals` (active: true; format: `vinyl`).
+     - Variant SKU: `SHADOWMOON-DARK-RITUALS-STD`, price: 45.99.
+     - Inventory: on_hand 10, allocated 0, available 10.
+   - Ensure policy `products_select_active` exists for public read of active rows.
+   - If you still use the Admin form, note the DB enforces lowercase `format`; prefer seeding for reliability in previews.
 4) Product + checkout (shipping):
    - Open `/products/test-vinyl-dark-rituals`; verify “Add to Cart”; screenshot product.png.
    - Add to cart → open checkout modal; fill AU address; click “Refresh rates”; select first option; report label/price; screenshot checkout-shipping.png.
@@ -43,13 +50,25 @@ Instructions for the assistant:
 5) Admin visuals (optional): sticky headers/zebra on Products/Variants/Inventory; Inventory CSV export; screenshots.
 
 Constraints:
-- Do not store or echo credentials. Use existing session or ask the user to provide/log in during the run.
-- Keep changes scoped to QA (no code edits unless requested).
-- If AusPost is not configured, confirm Stripe static rates appear (configured:false in `/api/shipping/quote`).
+- Security/credentials: never echo secrets; rely on existing session or prompt user to log in. Do not persist credentials in code or logs.
+- Branch discipline: use the `dev` branch only; no PRs; never push to `main` unless explicitly instructed.
+- Scope: keep changes to QA/seeding only (preview‑safe); do not alter production RLS beyond `products_select_active`.
+- Logging: for each step, capture console errors and any 4xx/5xx network responses; include in the summary.
+- Shipping: if AusPost is not configured, confirm Stripe static rates appear (configured:false in `/api/shipping/quote`).
+- Product 404/500: re‑run No‑DO Seed and ensure `products_select_active` exists and the product row has `active = true`.
+ - If product URL returns 500, confirm `products_select_active` policy exists and the product row has `active = true` (see `docs/SUPABASE-SEED.md`).
 
 Deliverables:
-- Short pass/fail summary with any screenshot links/attachments.
-- Note any regressions or flaky selectors for follow‑up.
+- Pass/fail summary (home, vinyl, robots/sitemap, product Add to Cart, shipping label/amount, Stripe redirect).
+- Screenshot paths (suffix with a timestamp to avoid overwrite when possible).
+- Notable console/network errors and any flaky selectors.
+
+Artifacts:
+- Screenshots from local smoke land in `docs/qa-screenshots/` (append timestamps where possible).
+- Latest session notes: `docs/SESSION-2025-09-14.md` (seed steps, RLS, and current state).
+
+Fallbacks
+- If MCP is unavailable: `BASE_URL=https://dev--obsidianriterecords.netlify.app npm run test:puppeteer`
+- If seeded product still fails after retry: check RLS policies and product.active; re‑seed and retry.
 
 ---
-

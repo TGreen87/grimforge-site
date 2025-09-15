@@ -1,6 +1,6 @@
 # Next Steps (Dev Branch)
 
-Last modified: 2025-09-12
+Last modified: 2025-09-14
 
 This doc tracks the immediate backlog now that production auth is live. All work happens on `dev`; main stays protected until we say “go live”.
 
@@ -62,6 +62,14 @@ Next:
 Next:
 - Confirm service list (Domestic: Parcel Post/Express; key international zones) and labels; keep customer-paying model.
 - Add weight/dimension defaults on Stock Units to improve quotes (sensible defaults used meanwhile).
+
+## Supabase — Seed & RLS
+
+- Add `variants`/`inventory` if missing: use `docs/SUPABASE-SEED.md` → Bootstrap (matches FK types to `products.id`).
+- Add `slug` column to `products` if missing.
+- Use `No‑DO Seed` to grant admin and upsert test product/variant/inventory (format = 'vinyl').
+- Ensure RLS policy `products_select_active` exists so public product pages do not 500.
+- Session notes: `docs/SESSION-2025-09-14.md`.
 
 ## Mobile UX Polish — Planned
 - Header/menu spacing on small screens; drawer widths; card grid/paddings; break long words. [in progress]
@@ -126,3 +134,9 @@ Pending (manual verification on dev deploy):
 - Admin flows feel coherent on branch (Cards/Board/views/toolbar); Commands (Cmd/Ctrl+K) open Kbar.
 - Checkout modal successfully shows shipping options; selection persists until payment.
 - Client error logs received with correlation IDs.
+ - Product `/products/test-vinyl-dark-rituals` is reachable (200) and shows Add to Cart (after seed).
+
+## Immediate Next Steps
+- Run local smoke against dev (or Browser MCP prompts) and capture: `product.png`, `checkout-shipping.png`, `stripe.png`.
+- Verify shipping label/price for the first option (Stripe static when AusPost not configured).
+- If stable, proceed with admin Save UX polish (surface mutation errors) and complete Products Cards filters.

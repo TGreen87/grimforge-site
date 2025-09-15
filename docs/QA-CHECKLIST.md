@@ -24,6 +24,8 @@ Use this checklist to verify the dev Branch Deploy before promoting to main.
 - “Add to Cart” works; “Buy Now” redirects to Stripe Checkout.
 - JSON‑LD script present in page source.
 - Legacy `/product/{id}` redirects to slug route.
+- If no products exist or admin Save fails, seed via `docs/SUPABASE-SEED.md` (Supabase MCP/Studio) and retry with slug `test-vinyl-dark-rituals`.
+- If the product route returns 500, ensure RLS policy `products_select_active` exists and the product row has `active = true`.
 
 ## Cart & Checkout (Shipping)
 - Cart drawer opens; items reflect title/variant/qty; totals correct.
@@ -82,6 +84,7 @@ Tip: Use a temporary QA admin account (email/password) for branch testing, or lo
 
 ## Puppeteer MCP (prompts)
 - See `docs/MCP-PUPPETEER.md` for ready‑to‑run prompts covering homepage → catalog → product → checkout and admin visuals.
+ - Screenshots from local smoke runs are saved to `docs/qa-screenshots/`.
 
 ## Go‑Live Checklist
 - Dev branch deploy passes all checks above.

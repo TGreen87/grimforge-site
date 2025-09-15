@@ -1,6 +1,6 @@
 # Codex CLI Agents Guide (OpenAI‑Aligned)
 
-Last modified: 2025-09-12
+Last modified: 2025-09-14
 
 This repo follows Codex CLI conventions for a small team: plan first, minimal blast radius, single working branch, and explicit go‑live approval.
 
@@ -85,6 +85,37 @@ Notes:
 See also:
 - MCP config details: `docs/MCP-CONFIG.md`
 - Puppeteer smoke prompts: `docs/MCP-PUPPETEER.md`
+ - Seed + RLS quickstart: `docs/SUPABASE-SEED.md`
+
+## QA Flow Quickstart (Branch Deploy)
+
+- Base URL: dev Branch Deploy (see Netlify). Screenshots land in `docs/qa-screenshots/`.
+- If the catalog is empty or admin Save fails, run `docs/SUPABASE-SEED.md` → “No‑DO Seed”.
+- Product under test: `/products/test-vinyl-dark-rituals`.
+- If product returns 500, ensure policy `products_select_active` exists and the row has `active = true`.
+
+## Supabase Usage & Memory
+
+- Data model (minimum needed by the app):
+  - `products` with `slug` text and `active` boolean; `format` must be lowercase `'vinyl'` (DB check).
+  - `variants` (Stock Units) related to `products.id`; `inventory` keyed by `variant_id` with `on_hand/allocated/available`.
+- RLS policies required for previews:
+  - `products`: public SELECT policy for active rows (`products_select_active`: `USING (active = true)`).
+  - `variants`, `inventory`: public SELECT; authenticated write acceptable for preview.
+- Seeding & bootstrap:
+  - Use `docs/SUPABASE-SEED.md`.
+    - Detect schema; if `variants/inventory` missing, run “Bootstrap missing tables” (matches FK types to `products.id`).
+    - Add `slug` if missing.
+    - Run “No‑DO Seed” (sequential statements) — grants admin and upserts product + stock unit + inventory, avoids DO blocks.
+- Admin roles:
+  - `user_roles` table is authoritative for app auth; older migrations may reference `admin_users`. The seed updates both when present.
+
+## Branch Deploy Smoke (Local)
+
+- `BASE_URL=… npm run test:puppeteer`
+  - Validates `/`, `#vinyl`, `/robots.txt`, `/sitemap.xml`.
+  - Opens `/products/test-vinyl-dark-rituals`, adds to cart, opens checkout, fetches shipping, and best‑effort Stripe redirect.
+  - Outputs screenshots to `docs/qa-screenshots/`.
 
 ## QA Checklist
 
@@ -170,6 +201,7 @@ This guide encodes how we use Codex CLI here: plan first, one working branch, ex
 - Observability: rate limit + dedupe on `/api/client-logs`, correlation ID cookie (`orr_cid`) included with reports, and a React ErrorBoundary wraps the app.
 - Observability: middleware now propagates correlation IDs via `x-correlation-id` header and sets `orr_cid` cookie when absent.
 - Shipping (customer pays): AusPost quote service + API wired; checkout accepts selected shipping rate and charges the customer via Stripe Checkout. Falls back to static Stripe rates when AusPost env is absent. See `docs/SHIPPING-AUSPOST.md`.
+- Supabase bootstrap: added `docs/SUPABASE-SEED.md` with “No‑DO Seed” and a bootstrap that creates `variants`/`inventory` matching `products.id` type; added RLS policy guidance. Session notes in `docs/SESSION-2025-09-14.md`.
 - Admin UI overhaul: modern shell (header/sider), table toolbar (density + column presets), alternate views (Products Cards; Orders Board with drag-and-drop; Inventory/Customers/Articles Cards), header search wired to Kbar, and Kbar actions for create/jump.
 - Empty states: warm EmptyStates added across Products, Stock Units, Inventory, Orders, Customers, and Articles.
 - Products Cards: added Format and Artist dropdown filters.

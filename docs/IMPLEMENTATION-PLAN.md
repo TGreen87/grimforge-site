@@ -1,6 +1,6 @@
 # Implementation Plan (Dev Branch)
 
-Last modified: 2025-09-12
+Last modified: 2025-09-14
 
 This document captures the end-to-end plan to finish the storefront and admin for Obsidian Rite Records. It aligns with the solo workflow on the `dev` branch and Netlify Branch Deploys.
 
@@ -21,6 +21,20 @@ This document captures the end-to-end plan to finish the storefront and admin fo
 
 Acceptance:
 - Branch deploy builds successfully under Node 22; `/status` shows env presence; `/admin/login` loads and allows login in preview.
+
+### Phase 0.1 — Supabase Bootstrap & Seed (Preview)
+- Add missing tables for app minimum:
+  - `variants` (Stock Units) referencing `products.id` (type‑matched to existing id type)
+  - `inventory` keyed by `variant_id` with `on_hand/allocated/available`
+- Add `slug` column to `products` (with index) if missing.
+- RLS policies for previews:
+  - `products`: public SELECT for active rows (policy name `products_select_active`, `USING (active = true)`).
+  - `variants`, `inventory`: public SELECT; authenticated write acceptable in preview.
+- Seed a test product with stock via `docs/SUPABASE-SEED.md` → “No‑DO Seed”.
+
+Acceptance:
+- `/products/test-vinyl-dark-rituals` returns 200 and shows Add to Cart.
+- Sanity checks confirm variant SKU `SHADOWMOON-DARK-RITUALS-STD` and inventory on_hand ≥ 10.
 
 ### Phase 1 — Product Detail MVP
 - Data: fetch product by `slug` from Supabase (variants + inventory where present). [implemented]

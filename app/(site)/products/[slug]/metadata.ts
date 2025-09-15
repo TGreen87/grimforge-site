@@ -61,19 +61,28 @@ export async function getProduct(slug: string) {
     // if the fallback lookup succeeded.
     if (!finalProduct) return null
     
-    // Get variants if they exist
-    const { data: variants } = await supabase
-      .from('variants')
-      .select(`
-        *,
-        inventory (*)
-      `)
-      .eq('product_id', finalProduct.id)
-    
-    return {
-      ...finalProduct,
-      variants: variants || []
+    // Get variants if they exist — be defensive and normalize inventory shape
+    let variants: any[] = []
+    try {
+      const { data } = await supabase
+        .from('variants')
+        .select(`
+          *,
+          inventory (* )
+        `)
+        .eq('product_id', finalProduct.id)
+      variants = Array.isArray(data) ? data : []
+    } catch {
+      variants = []
     }
+
+    // Normalize inventory: some PostgREST joins return an array
+    const normalized = variants.map((v: any) => ({
+      ...v,
+      inventory: Array.isArray(v?.inventory) ? (v.inventory[0] || null) : (v?.inventory ?? null),
+    }))
+
+    return { ...finalProduct, variants: normalized }
   } catch (error) {
     // During build time or if Supabase is not available, return mock data
     console.warn('Supabase not available during build, returning mock product data')
