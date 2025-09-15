@@ -11,8 +11,8 @@ export function createClient() {
   const cookieStore = cookies() as any
 
   return createServerClient<Database>(
-    process.env.SUPABASE_URL_STAGING || process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_ANON_KEY_1 || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    process.env.SUPABASE_URL_STAGING || process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL!,
+    process.env.SUPABASE_ANON_KEY_1 || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY!,
     {
       cookies: {
         get(name: string) {
@@ -44,8 +44,8 @@ export function createClient() {
  */
 export function createServiceClient() {
   return createServerClient<Database>(
-    process.env.SUPABASE_URL_STAGING || process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_1 || process.env.SUPABASE_SERVICE_ROLE_KEY!,
+    process.env.SUPABASE_URL_STAGING || process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_1 || process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_ROLE!,
     {
       cookies: {
         get() { return null },
