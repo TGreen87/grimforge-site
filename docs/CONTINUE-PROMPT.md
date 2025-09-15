@@ -15,6 +15,11 @@ Context:
 - Admin visuals: modern shell, sticky headers, density toggle, Cards/Board views, Kbar actions
 - EmptyStates + CSV export: Products/Inventory enabled
 
+Current status (dev branch):
+- Supabase data verified via MCP: product `test-vinyl-dark-rituals` active; variant SKU present; inventory available=10; RLS `products_select_active` present.
+- Product detail route hardened (normalized `inventory` join; try/catch in metadata/page). Still seeing 500 on branch deploy — likely runtime/env, not DB.
+- Checkout API returns 500 “Failed to create order” on branch deploy — likely missing `STRIPE_SECRET_KEY` at runtime. Server Supabase client now falls back to `SUPABASE_URL/ANON/SERVICE_ROLE` envs.
+
 Goals:
 1) Smoke‑check public pages with screenshots and error capture.
 2) Prepare data via seed (preferred) or admin create; ensure RLS allows public product read.
@@ -27,6 +32,10 @@ PW: Codex1@3
 
 Instructions for the assistant:
 1) Confirm MCP tools are available. If not, ask to restart with MCP.
+2) Confirm env prerequisites on the branch deploy (via Netlify UI; do not echo values):
+   - Required: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY` (or `SUPABASE_SERVICE_ROLE`), `STRIPE_SECRET_KEY`.
+   - Recommended: `NEXT_PUBLIC_SITE_URL` (set to Branch URL), `SITE_URL_STAGING` (same URL).
+   - Optional: `AUSPOST_API_KEY`, `AUSPOST_ORIGIN_POSTCODE` (if live AusPost quoting desired).
 Preflight
 1) `/status`:
    - Open `/status`; extract Node version, NEXT_PUBLIC_SITE_URL, Supabase presence flags.
@@ -47,6 +56,7 @@ Preflight
    - Open `/products/test-vinyl-dark-rituals`; verify “Add to Cart”; screenshot product.png.
    - Add to cart → open checkout modal; fill AU address; click “Refresh rates”; select first option; report label/price; screenshot checkout-shipping.png.
    - Click Continue → Place order; verify `checkout.stripe.com`; screenshot stripe.png.
+   - If `/api/checkout` returns 500, verify `STRIPE_SECRET_KEY` is present and the service role env exists; redeploy dev and retry.
 5) Admin visuals (optional): sticky headers/zebra on Products/Variants/Inventory; Inventory CSV export; screenshots.
 
 Constraints:
@@ -56,7 +66,7 @@ Constraints:
 - Logging: for each step, capture console errors and any 4xx/5xx network responses; include in the summary.
 - Shipping: if AusPost is not configured, confirm Stripe static rates appear (configured:false in `/api/shipping/quote`).
 - Product 404/500: re‑run No‑DO Seed and ensure `products_select_active` exists and the product row has `active = true`.
- - If product URL returns 500, confirm `products_select_active` policy exists and the product row has `active = true` (see `docs/SUPABASE-SEED.md`).
+ - If product URL returns 500 even with data present, treat as SSR/runtime; proceed after envs are verified and the branch redeploys.
 
 Deliverables:
 - Pass/fail summary (home, vinyl, robots/sitemap, product Add to Cart, shipping label/amount, Stripe redirect).
@@ -70,5 +80,8 @@ Artifacts:
 Fallbacks
 - If MCP is unavailable: `BASE_URL=https://dev--obsidianriterecords.netlify.app npm run test:puppeteer`
 - If seeded product still fails after retry: check RLS policies and product.active; re‑seed and retry.
+
+Restart notes
+- These notes reflect the latest state on `dev`. If restarting the chat, follow “Current status”, confirm envs, then run the Preflight and Product + checkout steps. Save screenshots under `docs/qa-screenshots/`.
 
 ---

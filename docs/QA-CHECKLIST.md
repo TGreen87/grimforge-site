@@ -8,6 +8,7 @@ Use this checklist to verify the dev Branch Deploy before promoting to main.
 - Open `https://dev--obsidianriterecords.netlify.app` → 200 OK.
 - No console errors on load; static assets under `/_next/static/` resolve.
 - `orr_cid` cookie present after first navigation.
+- Environment (Netlify UI; do not echo values): `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY` (or `SUPABASE_SERVICE_ROLE`), `STRIPE_SECRET_KEY`. Recommended: `NEXT_PUBLIC_SITE_URL` (branch URL). Optional: `AUSPOST_API_KEY`, `AUSPOST_ORIGIN_POSTCODE`.
 
 ## Home
 - Header/menu responsive; no horizontal overflow on mobile.
@@ -25,7 +26,7 @@ Use this checklist to verify the dev Branch Deploy before promoting to main.
 - JSON‑LD script present in page source.
 - Legacy `/product/{id}` redirects to slug route.
 - If no products exist or admin Save fails, seed via `docs/SUPABASE-SEED.md` (Supabase MCP/Studio) and retry with slug `test-vinyl-dark-rituals`.
-- If the product route returns 500, ensure RLS policy `products_select_active` exists and the product row has `active = true`.
+- If the product route returns 500 with data present, verify envs above and redeploy dev (SSR/runtime).
 
 ## Cart & Checkout (Shipping)
 - Cart drawer opens; items reflect title/variant/qty; totals correct.
@@ -33,6 +34,7 @@ Use this checklist to verify the dev Branch Deploy before promoting to main.
 - Without AusPost env: Stripe static options appear; select one and totals update.
 - With AusPost env: Domestic (Parcel Post/Express) and Intl (Standard/Express) appear; sorted by price; selection updates totals.
 - “Continue” → “Place order” opens Stripe Checkout; selected shipping label/amount visible on Stripe.
+- If `/api/checkout` returns 500, confirm `STRIPE_SECRET_KEY` exists; redeploy dev and retry.
 - Multi‑item: 2+ items included in session; shipping option still applied.
 
 ## SEO & Sitemaps

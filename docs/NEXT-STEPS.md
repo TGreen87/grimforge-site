@@ -1,6 +1,6 @@
 # Next Steps (Dev Branch)
 
-Last modified: 2025-09-14
+Last modified: 2025-09-15
 
 This doc tracks the immediate backlog now that production auth is live. All work happens on `dev`; main stays protected until we say “go live”.
 
@@ -13,10 +13,10 @@ This doc tracks the immediate backlog now that production auth is live. All work
 - Dev and main deployed; homepage served with `no-store`. If any stale persists, consider a Netlify `_headers` rule for `/` with `Cache-Control: no-store`.
 
 ## Recently Shipped to Production
-- Product detail with variant selector + JSON‑LD; footer anchors with tab sync; cart/auth fixes; admin stock receive via RPC; client error logging with correlation IDs; skull icon removed; expanded Stripe shipping countries.
+- Product detail with variant selector + JSON‑LD (AUD currency); footer anchors with tab sync; cart/auth fixes; admin stock receive via RPC; client error logging with correlation IDs; skull icon removed; expanded Stripe shipping countries.
 
 ## Product Detail — Progress
-- Implemented `/products/[slug]` page wired to Supabase (server route) with SEO metadata + Product JSON‑LD.
+- Implemented `/products/[slug]` page wired to Supabase (server route) with SEO metadata + Product JSON‑LD. Route hardened to normalize `inventory` join and guard with try/catch.
 - Added variant selector (client) updating price/availability; Buy Now uses selected variant.
 - Kept legacy `/product/[id]` route to redirect to slug.
 - Catalog cards now link directly to `/products/{slug}` (fallback to id route if slug missing).
@@ -58,6 +58,7 @@ Next:
 - Implemented AusPost quotes and checkout integration; customers pay shipping.
 - `POST /api/shipping/quote` returns AusPost rates when configured; falls back to static Stripe options otherwise.
 - `POST /api/checkout` accepts `shipping_rate_data` or `{ shipping: ... }` and uses that for Stripe Checkout shipping.
+ - Ensure `STRIPE_SECRET_KEY` exists on branch deploy for `/api/checkout` to create sessions.
 
 Next:
 - Confirm service list (Domestic: Parcel Post/Express; key international zones) and labels; keep customer-paying model.
@@ -68,7 +69,7 @@ Next:
 - Add `variants`/`inventory` if missing: use `docs/SUPABASE-SEED.md` → Bootstrap (matches FK types to `products.id`).
 - Add `slug` column to `products` if missing.
 - Use `No‑DO Seed` to grant admin and upsert test product/variant/inventory (format = 'vinyl').
-- Ensure RLS policy `products_select_active` exists so public product pages do not 500.
+- Ensure RLS policy `products_select_active` exists so public product pages do not 500. Server Supabase client now falls back to `SUPABASE_*` envs at runtime.
 - Session notes: `docs/SESSION-2025-09-14.md`.
 
 ## Mobile UX Polish — Planned
@@ -137,6 +138,7 @@ Pending (manual verification on dev deploy):
  - Product `/products/test-vinyl-dark-rituals` is reachable (200) and shows Add to Cart (after seed).
 
 ## Immediate Next Steps
-- Run local smoke against dev (or Browser MCP prompts) and capture: `product.png`, `checkout-shipping.png`, `stripe.png`.
+- Set/confirm branch envs: `STRIPE_SECRET_KEY`, `SUPABASE_SERVICE_ROLE_KEY`(or `SUPABASE_SERVICE_ROLE`), `NEXT_PUBLIC_SITE_URL` (branch URL). Redeploy dev.
+- Run smoke against dev and capture: `product.png`, `checkout-shipping.png`, `stripe.png`.
 - Verify shipping label/price for the first option (Stripe static when AusPost not configured).
-- If stable, proceed with admin Save UX polish (surface mutation errors) and complete Products Cards filters.
+- If stable, proceed with admin Save UX polish and complete Products Cards filters.
