@@ -57,9 +57,9 @@ export async function getProduct(slug: string) {
       finalProduct = productByTitle
     }
     
-    if (error || !finalProduct) {
-      return null
-    }
+    // If both lookups failed, treat as not found. Do not gate on the first query's error
+    // if the fallback lookup succeeded.
+    if (!finalProduct) return null
     
     // Get variants if they exist
     const { data: variants } = await supabase

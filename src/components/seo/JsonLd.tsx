@@ -33,7 +33,7 @@ export function ProductJsonLd({
     offers: price ? {
       '@type': 'Offer',
       price: price.toString(),
-      priceCurrency: 'USD',
+      priceCurrency: 'AUD',
       availability: availability 
         ? 'https://schema.org/InStock' 
         : 'https://schema.org/OutOfStock',

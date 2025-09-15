@@ -1,27 +1,27 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { NextRequest } from 'next/server';
 
-// Mock Stripe
+// Mock Stripe via our library wrapper
 const mockStripeCreate = vi.fn().mockResolvedValue({
   id: 'cs_test_123',
   url: 'https://checkout.stripe.com/test',
   expires_at: Math.floor(Date.now() / 1000) + 1800,
 });
 
-vi.mock('stripe', () => {
-  return {
-    default: vi.fn().mockImplementation(() => ({
-      checkout: {
-        sessions: {
-          create: mockStripeCreate,
-        },
+vi.mock('@/lib/stripe', () => ({
+  getStripe: vi.fn(() => ({
+    checkout: {
+      sessions: {
+        create: mockStripeCreate,
       },
-      webhooks: {
-        constructEvent: vi.fn(),
-      },
-    })),
-  };
-});
+    },
+  })),
+  STRIPE_CONFIG: {
+    currency: 'aud',
+    shippingOptions: [],
+    allowedCountries: ['AU'],
+  },
+}));
 
 // Mock Supabase
 const mockSupabaseClient = {
@@ -31,28 +31,8 @@ const mockSupabaseClient = {
   update: vi.fn().mockReturnThis(),
   delete: vi.fn().mockReturnThis(),
   eq: vi.fn().mockReturnThis(),
-  single: vi.fn().mockResolvedValue({
-    data: {
-      id: 'test-variant-id',
-      price: 45.00,
-      name: 'Test Variant',
-      product: {
-        id: 'test-product-id',
-        title: 'Test Product',
-        artist: 'Test Artist',
-        active: true,
-        image: 'https://i.ytimg.com/vi/niiynXOXw30/sddefault.jpg',
-      },
-      inventory: {
-        available: 10,
-      },
-    },
-    error: null,
-  }),
-  rpc: vi.fn().mockResolvedValue({
-    data: true,
-    error: null,
-  }),
+  single: vi.fn(),
+  rpc: vi.fn().mockResolvedValue({ data: true, error: null }),
 };
 
 vi.mock('@/lib/supabase/server', () => ({
@@ -76,43 +56,37 @@ describe('Checkout API', () => {
     // Set up the Supabase client mock
     vi.mocked(createServiceClient).mockReturnValue(mockSupabaseClient);
     
-    // Reset default mock behavior
-    mockSupabaseClient.single.mockResolvedValue({
-      data: {
-        id: 'test-variant-id',
-        price: 45.00,
-        name: 'Test Variant',
-        product: {
-          id: 'test-product-id',
-          title: 'Test Product',
-          artist: 'Test Artist',
-          active: true,
-          image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/9a/Consumer_Reports_-_product_testing_-_electric_light_longevity_and_brightness_testing.tif/lossless-page1-1200px-Consumer_Reports_-_product_testing_-_electric_light_longevity_and_brightness_testing.tif.png',
+    // Default sequence: first `.single()` returns variant; second returns order insert result
+    mockSupabaseClient.single
+      .mockResolvedValueOnce({
+        data: {
+          id: 'test-variant-id',
+          price: 45.0,
+          name: 'Test Variant',
+          product: {
+            id: 'test-product-id',
+            title: 'Test Product',
+            artist: 'Test Artist',
+            active: true,
+            image: 'https://example.com/image.jpg',
+          },
+          inventory: { available: 10 },
         },
-        inventory: {
-          available: 10,
+        error: null,
+      })
+      .mockResolvedValueOnce({
+        data: {
+          id: 'test-order-id',
+          order_number: 'ORR-123456',
+          status: 'pending',
+          payment_status: 'pending',
+          subtotal: 45.0,
+          total: 45.0,
+          currency: 'aud',
+          metadata: { created_via: 'api' },
         },
-      },
-      error: null,
-    });
-    
-    mockSupabaseClient.insert.mockResolvedValue({
-      data: {
-        id: 'test-order-id',
-        order_number: 'ORR-123456',
-        status: 'pending',
-        payment_status: 'pending',
-        subtotal: 45.00,
-        total: 45.00,
-        currency: 'aud',
-        metadata: {
-          variant_id: 'test-variant-id',
-          quantity: 1,
-          created_via: 'api',
-        },
-      },
-      error: null,
-    });
+        error: null,
+      });
   });
 
   describe('validateCheckoutRequest', () => {
@@ -341,10 +315,19 @@ describe('Checkout API', () => {
     });
     
     it('should handle order creation failure', async () => {
-      mockSupabaseClient.insert.mockResolvedValueOnce({
-        data: null,
-        error: { message: 'Database error' },
-      });
+      // First single() returns variant; second simulates order insert failure
+      mockSupabaseClient.single
+        .mockResolvedValueOnce({
+          data: {
+            id: 'test-variant-id',
+            price: 45.0,
+            name: 'Test Variant',
+            product: { id: 'test-product-id', title: 'Test Product', artist: 'Test Artist', active: true },
+            inventory: { available: 10 },
+          },
+          error: null,
+        })
+        .mockResolvedValueOnce({ data: null, error: { message: 'Database error' } });
       
       const request = new NextRequest('http://localhost:3000/api/checkout', {
         method: 'POST',
