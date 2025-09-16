@@ -84,9 +84,8 @@ Tip: Use a temporary QA admin account (email/password) for branch testing, or lo
 ## Observability
 - Trigger a harmless client error; `/api/client-logs` accepts report; correlation id included.
 
-## Puppeteer MCP (prompts)
-- See `docs/MCP-PUPPETEER.md` for ready‑to‑run prompts covering homepage → catalog → product → checkout and admin visuals.
- - Screenshots from local smoke runs are saved to `docs/qa-screenshots/`.
+## Local Smoke (Puppeteer)
+- `BASE_URL=https://dev--obsidianriterecords.netlify.app npm run test:puppeteer` runs a quick homepage → vinyl anchor → product (if present) → checkout attempt and admin visuals; screenshots land in `docs/qa-screenshots/`.
 
 ## Go‑Live Checklist
 - Dev branch deploy passes all checks above.
