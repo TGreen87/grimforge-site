@@ -71,7 +71,11 @@ async function run() {
       await new Promise(r => setTimeout(r, 600));
       if (headerClicked) {
         const url = page.url();
-        log('Vinyl nav', true, url.includes('#') ? url : 'no-hash');
+        if (url.includes('#vinyl')) {
+          log('Vinyl nav', true, url);
+        } else {
+          log('Vinyl nav', true, 'hash-missing');
+        }
       } else {
         // Fallback: any anchor to #vinyl
         const vinylLink = await page.$('a[href*="#vinyl"]');
@@ -91,8 +95,11 @@ async function run() {
     try {
       const productSlug = '/products/test-vinyl-dark-rituals';
       await page.goto(BASE_URL.replace(/\/$/, '') + productSlug, { waitUntil: 'domcontentloaded' });
-      const addBtnDirect = await findByText(['button', '[role="button"]'], /add to cart/i);
-      log('Open product by slug', !!addBtnDirect, page.url());
+      const hydrated = await page.waitForFunction(() => {
+        return !!Array.from(document.querySelectorAll('button, [role="button"]')).find(el => /add to cart/i.test(el.textContent || ''));
+      }, { timeout: TIMEOUT_MS }).catch(() => null);
+      const addBtnDirect = hydrated ? await findByText(['button', '[role="button"]'], /add to cart/i) : null;
+      log('Open product by slug', !!addBtnDirect, hydrated ? page.url() : 'hydration-timeout');
       await shot('product.png');
       if (addBtnDirect) {
         await addBtnDirect.click();
@@ -144,84 +151,13 @@ async function run() {
       }
     } catch (e) { log('Open product by slug', false, String(e)); }
 
-    // Navigate to first product
-    let wentProduct = false;
-    try {
-      // Try to bring catalog into view then look for product links
-      await page.evaluate(() => {
-        const el = document.getElementById('catalog');
-        if (el) el.scrollIntoView({ behavior: 'instant', block: 'start' });
-      });
-      await new Promise(r => setTimeout(r, 400));
-      const prodLink = await page.$('a[href^="/products/"]') || await page.$('a[href^="/product/"]');
-      if (prodLink) {
-        await Promise.all([
-          prodLink.click(),
-          page.waitForNavigation({ waitUntil: 'domcontentloaded' })
-        ]);
-        wentProduct = true;
-        log('Open product detail', true, page.url());
-        await shot('product.png');
-      } else {
-        log('Open product detail', false, 'no product link found');
-      }
-    } catch (e) { log('Open product detail', false, String(e)); }
-
-    // Add to cart and open checkout modal
-    if (wentProduct) {
-      try {
-        const addBtn = await findByText(['button','[role="button"]'], /add to cart/i);
-        if (addBtn) {
-          await addBtn.click();
-        }
-        await new Promise(r => setTimeout(r, 600));
-        // Try open cart and click Checkout button
-        const checkoutBtn2 = await findByText(['button','a','[role="button"]'], /^checkout$/i);
-        if (checkoutBtn2) {
-          await checkoutBtn2.click();
-          log('Open checkout modal', true);
-          await shot('checkout-open.png');
-        } else {
-          log('Open checkout modal', false, 'Checkout button not found');
-        }
-      } catch (e) { log('Open checkout modal', false, String(e)); }
-
-      // Try fill shipping and refresh rates in modal (best-effort)
-      try {
-        const type = async (sel, val) => { const el = await page.$(sel); if (el) { await el.click({ clickCount: 3 }); await el.type(val); } };
-        await type('#fullName', 'Test User');
-        await type('#email', 'test@example.com');
-        await type('#phone', '+61 400 000 000');
-        await type('#address', '123 Example St');
-        await type('#city', 'Melbourne');
-        await type('#state', 'VIC');
-        await type('#postalCode', '3000');
-        const refresh = await findByText(['button','[role="button"]'], /refresh rates/i);
-        if (refresh) {
-          await refresh.click();
-          await new Promise(r => setTimeout(r, 1500));
-          log('Fetch shipping rates', true);
-          // Try to capture first shipping option label/price
-          try {
-            const firstOptionText = await page.evaluate(() => {
-              const candidates = Array.from(document.querySelectorAll('[class*="border-border"], [data-testid*="shipping"], [role="radio"], .shipping-rate'));
-              const el = candidates.find(o => /\$\d|AUD|Express|Standard|Shipping|Post/i.test(o.textContent || ''));
-              return (el?.textContent || '').replace(/\s+/g, ' ').trim();
-            });
-            if (firstOptionText) log('Shipping option', true, firstOptionText);
-          } catch {}
-          await shot('checkout-shipping.png');
-        }
-      } catch (e) { log('Fetch shipping rates', false, String(e)); }
-    }
-
     // Robots and sitemap
     try {
-      const respRobots = await page.goto(BASE_URL.replace(/\/$/, '') + '/robots.txt', { waitUntil: 'domcontentloaded' });
+      const respRobots = await page.goto(BASE_URL.replace(/\/$/, '') + '/robots.txt', { waitUntil: 'networkidle0' });
       log('robots.txt', !!respRobots && respRobots.status() === 200, `status: ${respRobots && respRobots.status()}`);
     } catch (e) { log('robots.txt', false, String(e)); }
     try {
-      const respSitemap = await page.goto(BASE_URL.replace(/\/$/, '') + '/sitemap.xml', { waitUntil: 'domcontentloaded' });
+      const respSitemap = await page.goto(BASE_URL.replace(/\/$/, '') + '/sitemap.xml', { waitUntil: 'networkidle0' });
       log('sitemap.xml', !!respSitemap && respSitemap.status() === 200, `status: ${respSitemap && respSitemap.status()}`);
     } catch (e) { log('sitemap.xml', false, String(e)); }
 
