@@ -1,3 +1,24 @@
+approval_policy = "never"
+sandbox_mode    = "danger-full-access"
+model = "gpt-5-codex"
+model_reasoning_effort = "high"
+[sandbox_workspace_write]
+network_access = true
+
+model_reasoning_summary = "detailed"                # "auto" | "concise" | "detailed" | "none"
+model_verbosity = "high"                      # GPT‑5 family only; "low" | "medium" | "high"
+
+
+[mcp_servers]
+[mcp_servers.supabase]
+command = "npx"
+args = ["-y", "@supabase/mcp-server-supabase@latest", "--features=account,docs,database,debugging,development,functions,storage,branching"]
+env = { "SUPABASE_ACCESS_TOKEN" = "sbp_193088b15cfe4756a3f3777235422f78bd2f7ca0" }
+startup_timeout_ms = 20_000
+
+
+
+
 project_id = "shbalyvvquvtvnkrsxtx"
 
 [functions.generate-tags]

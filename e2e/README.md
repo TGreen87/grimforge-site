@@ -2,50 +2,22 @@
 
 ## Overview
 
-This directory contains comprehensive end-to-end tests for the Grimforge Site Next.js application, with a focus on the critical Stripe checkout flow and inventory management.
+This directory houses Playwright-based end-to-end tests plus supporting fixtures/utilities. The suite is intentionally lightweight today—only the public smoke flow and happy-path checkout are actively maintained. Other specs in `e2e/tests/` remain scaffolds and require additional work before they can be trusted in CI.
+
+> ⚠️ **Current status:** Run `npm run test:puppeteer` for quick branch health, or `npx playwright test e2e/tests/smoke.spec.ts` / `.../checkout.spec.ts` for deeper coverage. The `cart.spec.ts`, `products.spec.ts`, and `admin.spec.ts` files are placeholders; expect failures unless you invest in the supporting test data + auth wiring first.
 
 ## Test Coverage
 
-### 1. Checkout Flow (`tests/checkout.spec.ts`)
-- Complete Stripe checkout with test card (4242424242424242)
-- Order status verification (pending → paid)
-- Inventory decrement verification
-- Failed checkout scenarios (insufficient inventory, inactive products)
-- Multiple quantity checkout
-- Abandoned checkout handling
-- Stripe webhook integration
+### Maintained specs
+- **Smoke (`tests/smoke.spec.ts`)** — homepage hash navigation, `/status`, product detail existence.
+- **Checkout (`tests/checkout.spec.ts`)** — happy-path Stripe Checkout plus basic guard-rail scenarios (insufficient inventory, inactive products), assuming the seed from `docs/SUPABASE-SEED.md` has run and Stripe/AusPost env vars are available.
 
-### 2. Product Browsing (`tests/products.spec.ts`)
-- Product catalog browsing
-- Product search functionality
-- Category filtering
-- Product detail views
-- Image galleries
-- Product recommendations
-- Reviews section
-- Sorting options
-- Pagination/infinite scroll
+### Planned / incomplete specs
+- `tests/products.spec.ts`
+- `tests/cart.spec.ts`
+- `tests/admin.spec.ts`
 
-### 3. Cart Management (`tests/cart.spec.ts`)
-- Add products to cart
-- Update quantities
-- Remove items
-- Cart persistence
-- Subtotal/total calculations
-- Discount codes
-- Cart preview
-- Variant selection
-- Clear cart
-
-### 4. Admin Access (`tests/admin.spec.ts`)
-- Authentication requirements
-- Login/logout flow
-- Product management (CRUD)
-- Inventory management
-- Order viewing
-- Customer management
-- Audit log access
-- Session timeout handling
+These test files outline desired coverage (search, filters, CRUD, etc.) but are not wired into CI. Treat them as TODOs when expanding the suite.
 
 ## Setup
 
@@ -79,8 +51,8 @@ NEXT_PUBLIC_SITE_URL=http://localhost:3000
 
 ### Local Development
 ```bash
-# Run all tests
-npm run test:e2e
+# Run the maintained smoke spec
+npx playwright test e2e/tests/smoke.spec.ts
 
 # Run tests with UI
 npm run test:e2e:ui
@@ -91,20 +63,18 @@ npm run test:e2e:headed
 # Debug tests
 npm run test:e2e:debug
 
-# Run specific test file
-npx playwright test tests/checkout.spec.ts
+# Run checkout flow (requires seeded data + Stripe env)
+npx playwright test e2e/tests/checkout.spec.ts
 
 # Run specific test
 npx playwright test -g "complete checkout with Stripe test mode"
+
+# Legacy script: runs every spec (will fail until placeholders are finished)
+npm run test:e2e
 ```
 
 ### CI Environment
-Tests run automatically on:
-- Push to main/develop branches
-- Pull requests to main
-- Manual workflow dispatch
-
-GitHub Actions workflow: `.github/workflows/e2e-tests.yml`
+The Playwright workflow (`.github/workflows/e2e-tests.yml`) is available but currently disabled by default. Enable it only after stabilising the placeholder specs or restrict it to `smoke.spec.ts` / `checkout.spec.ts` to avoid noisy failures.
 
 ## Test Data
 
@@ -120,11 +90,7 @@ GitHub Actions workflow: `.github/workflows/e2e-tests.yml`
 - Address: Sydney, NSW, Australia
 
 ### Test Products
-The test suite automatically creates test products:
-- Test Vinyl - Dark Rituals ($45)
-- Test CD - Ancient Spells ($25)
-- Out of Stock Item (for error testing)
-- Inactive Product (for validation testing)
+`fixtures/test-data.ts` can upsert helper products/variants/inventory when `setupTestData()` runs. It uses the service role key—be sure you are targeting a disposable database or a dedicated testing schema.
 
 ## Test Structure
 
@@ -186,10 +152,9 @@ npm run test:e2e:report
    - Check Supabase RLS policies
    - Verify service role key is configured
 
-3. **Admin Tests Failing**
-   - Ensure test admin user exists
-   - Check authentication cookies
-   - Verify admin role in Supabase
+3. **Admin / cart / products specs**
+   - These files are scaffolds; expect missing selectors until the UI is fully wired.
+   - Fill out TODOs and seed data before re-enabling them.
 
 ## CI/CD Integration
 

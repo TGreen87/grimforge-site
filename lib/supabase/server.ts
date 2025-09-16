@@ -1,35 +1,50 @@
 import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { cookies } from 'next/headers'
-import type { Database } from '@/integrations/supabase/types'
 
 /**
  * Create a Supabase client for server-side operations
  * This client automatically handles cookie-based auth
  */
-export function createClient() {
-  // Cast to any to accommodate envs where cookies() may be typed as Promise
-  const cookieStore = cookies() as any
+function resolveCookieStore() {
+  try {
+    return cookies()
+  } catch (error) {
+    // During build-time or static generation, cookies() can throw. Fall back to a no-op shim.
+    return {
+      get: () => undefined,
+      set: () => undefined,
+      delete: () => undefined,
+    }
+  }
+}
 
-  return createServerClient<Database>(
+export function createClient() {
+  const cookieStore = resolveCookieStore() as any
+
+  return createServerClient(
     process.env.SUPABASE_URL_STAGING || process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL!,
     process.env.SUPABASE_ANON_KEY_1 || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY!,
     {
       cookies: {
         get(name: string) {
-          return cookieStore.get(name)?.value
+          return cookieStore.get?.(name)?.value
         },
         set(name: string, value: string, options: CookieOptions) {
           try {
-            cookieStore.set({ name, value, ...options })
+            cookieStore.set?.({ name, value, ...options })
           } catch (error) {
-            // Handle cookie setting errors in Server Components
+            // Suppress cookie side effects for server components / SSG.
           }
         },
         remove(name: string, options: CookieOptions) {
           try {
-            cookieStore.set({ name, value: '', ...options })
+            if (cookieStore.delete) {
+              cookieStore.delete(name, options)
+            } else {
+              cookieStore.set?.({ name, value: '', ...options })
+            }
           } catch (error) {
-            // Handle cookie removal errors in Server Components
+            // Ignore failures; we only need best-effort cleanup.
           }
         },
       },
@@ -43,7 +58,7 @@ export function createClient() {
  * This bypasses RLS policies - use with extreme caution
  */
 export function createServiceClient() {
-  return createServerClient<Database>(
+  return createServerClient(
     process.env.SUPABASE_URL_STAGING || process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL!,
     process.env.SUPABASE_SERVICE_ROLE_1 || process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_ROLE!,
     {

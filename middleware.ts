@@ -10,9 +10,12 @@ export async function middleware(request: NextRequest) {
   const response = NextResponse.next()
   const pathname = request.nextUrl.pathname
 
+  let supabaseUser: { id: string } | null = null
+  let supabaseClient: ReturnType<typeof createServerClient> | null = null
+
   // 1) Refresh session if present (per Supabase SSR guidance)
   try {
-    const supabase = createServerClient(
+    supabaseClient = createServerClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
       {
@@ -27,8 +30,12 @@ export async function middleware(request: NextRequest) {
         },
       }
     )
-    await supabase.auth.getUser()
-  } catch {}
+    const { data } = await supabaseClient.auth.getUser()
+    supabaseUser = data?.user ? { id: data.user.id } : null
+  } catch {
+    supabaseClient = null
+    supabaseUser = null
+  }
 
   // 2) Admin gate (production only). Always allow previews/branch deploys.
   // Prefer hostname check for Netlify branch/preview (env vars may be missing at runtime)
@@ -46,6 +53,39 @@ export async function middleware(request: NextRequest) {
       const url = request.nextUrl.clone()
       url.pathname = '/admin/login'
       url.search = ''
+      return NextResponse.redirect(url)
+    }
+
+    if (!supabaseClient || !supabaseUser) {
+      const url = request.nextUrl.clone()
+      url.pathname = '/admin/login'
+      url.search = ''
+      url.searchParams.set('redirectTo', pathname)
+      return NextResponse.redirect(url)
+    }
+
+    try {
+      const { data: roleRows, error } = await supabaseClient
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', supabaseUser.id)
+        .limit(1)
+
+      const rows = Array.isArray(roleRows) ? roleRows : []
+      const hasAdminRole = !error && rows.some((row: { role?: string | null }) => (row.role ?? '').toLowerCase() === 'admin')
+      if (!hasAdminRole) {
+        const url = request.nextUrl.clone()
+        url.pathname = '/admin/login'
+        url.search = ''
+        url.searchParams.set('reason', 'forbidden')
+        url.searchParams.set('redirectTo', pathname)
+        return NextResponse.redirect(url)
+      }
+    } catch {
+      const url = request.nextUrl.clone()
+      url.pathname = '/admin/login'
+      url.search = ''
+      url.searchParams.set('redirectTo', pathname)
       return NextResponse.redirect(url)
     }
   }
