@@ -41,6 +41,7 @@ Use this checklist to verify the dev Branch Deploy before promoting to main.
 - `/robots.txt` returns 200 and includes sitemap reference.
 - `/sitemap.xml` returns 200; lists only active products and published articles; URLs resolve.
 - Page titles are correct; canonical links present on product/article pages.
+- Legal footer links resolve (Shipping, Returns, Size Guide, Care, Contact, Privacy, Terms).
 
 ## Admin — Login & Shell
 - `/admin/login` renders and allows login on preview (relaxed gating).
@@ -83,6 +84,7 @@ Tip: Use a temporary QA admin account (email/password) for branch testing, or lo
 
 ## Observability
 - Trigger a harmless client error; `/api/client-logs` accepts report; correlation id included.
+- `/status` shows Supabase env presence and site URL.
 
 ## Local Smoke (Puppeteer)
 - `BASE_URL=https://dev--obsidianriterecords.netlify.app npm run test:puppeteer` runs a quick homepage → vinyl anchor → product (if present) → checkout attempt and admin visuals; screenshots land in `docs/qa-screenshots/`.
