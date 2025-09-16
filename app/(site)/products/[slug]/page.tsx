@@ -4,9 +4,7 @@ import { generateProductMetadata } from '@/lib/seo/metadata'
 import { ProductJsonLd } from '@/components/seo/JsonLd'
 import { getProduct } from './metadata'
 import Image from 'next/image'
-import nextDynamic from 'next/dynamic'
-
-const VariantClientBlock = nextDynamic(() => import('./variant-client-block'), { ssr: false })
+import VariantClientBlock from './variant-client-block'
 
 interface Inventory {
   available?: number
