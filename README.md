@@ -35,13 +35,20 @@ npm start
 
 ## Environment Variables
 
-Copy `.env.example` to `.env.local` and configure:
+For full details see `docs/ENV-QUICKSTART.md`.
 
+Minimum required to run (runtime):
 - `NEXT_PUBLIC_SUPABASE_URL`
 - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-- `SUPABASE_SERVICE_ROLE_KEY`
+- `SUPABASE_SERVICE_ROLE_KEY` (or `SUPABASE_SERVICE_ROLE`)
 - `STRIPE_SECRET_KEY`
-- `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`
+
+Recommended for Branch Deploys:
+- `NEXT_PUBLIC_SITE_URL` and `SITE_URL_STAGING` set to your Branch URL
+
+Optional:
+- `AUSPOST_API_KEY`, `AUSPOST_ORIGIN_POSTCODE` (live quotes)
+- `STRIPE_WEBHOOK_SECRET` (webhook route)
 
 ## Deployment
 
