@@ -1,232 +1,51 @@
-# Codex CLI Agents Guide (OpenAI‑Aligned)
+# Codex Agent Playbook — grimforge-site
 
-Last modified: 2025-09-14
+_Last updated: 2025-09-16_
 
-This repo follows Codex CLI conventions for a small team: plan first, minimal blast radius, single working branch, and explicit go‑live approval.
+## Project Snapshot
+- Stack: Next.js 15 App Router, TypeScript, Tailwind, Refine/AntD admin, Stripe, Supabase.
+- Working branch: `dev` (single branch workflow). Production deploy happens only after the owner says “Go live on main”.
+- Branch deploy URL: https://dev--obsidianriterecords.netlify.app.
+- Primary docs: `docs/IMPLEMENTATION-PLAN.md`, `docs/NEXT-STEPS.md`, `docs/QA-CHECKLIST.md`, `docs/SUPABASE-SEED.md`.
 
-## Defaults & Tone
+## Operating Rules
+- Always plan first (`update_plan`) when work spans multiple steps; exactly one step may be `in_progress`.
+- Push directly to `dev`. Never open PRs. Promote to `main` only with explicit “Go live on main”.
+- Branch deploy is the QA surface. After every meaningful push, verify the Netlify deploy.
+- Keep secrets out of the repo. Runtime env vars live in Netlify / local `.env.local` (see `docs/ENV-QUICKSTART.md`).
 
-- Concise, direct, friendly; actionable by default.
-- Plan first for non‑trivial work; keep steps small and reversible.
-- Share 1–2 sentence preambles before tool calls (what/why/next).
-- Provide brief progress updates for longer tasks (8–10 words).
+## Environment Checklist
+- Required: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `STRIPE_SECRET_KEY`, `NEXT_PUBLIC_SITE_URL`.
+- Optional: AusPost keys for live shipping quotes, Stripe webhook secret, `NEXT_PUBLIC_ENABLE_ADMIN_BULK`.
+- `/status` endpoint reports presence of Supabase envs and site URL.
 
-## Branching & Deploy
+## Tooling
+- **Shell**: prefer `rg` / `rg --files`, avoid noisy commands. No `sudo` or long-running scripts.
+- **Supabase MCP**: configured via `supabase/config.toml` with access token `sbp_*`. Use MCP SQL for seed/bootstrap (`docs/SUPABASE-SEED.md`).
+- **Puppeteer smoke**: `npm run test:puppeteer`. Verifies homepage, vinyl anchor, seeded product slug, robots/sitemap, admin login. Screenshots in `docs/qa-screenshots/`.
+- **Local validation**: `npm run type-check`, `npm run build`. Use seeded Supabase data when testing `/products/[slug]`.
 
-- Working branch: `dev` (single active working branch).
-- No PRs: push directly to `dev`; do not open PRs.
-- Main is protected: never push to `main` unless the user says “Go live on main”.
-- Netlify Branch Deploy: enable for `dev` (Build & deploy → Branches → Add Branch). Use the branch URL for live testing.
-- Go‑Live protocol:
-  1) Branch deploy is green and verified.
-  2) User explicitly: “Go live on main”.
-  3) Merge/fast‑forward `dev` → `main` and push.
-  4) Monitor; if any issue, revert immediately.
+## Current Dev Highlights
+- Product slug page now renders through a dedicated client block (`app/(site)/products/[slug]/variant-client-block.tsx`).
+- Legal route group added under `app/(site)/legal/*` so footer links resolve (shipping, returns, size-guide, care, contact, privacy, terms).
+- Puppeteer smoke script updated to wait for hydration and network idle requests; screenshots refreshed 2025-09-16.
+- Netlify build clean on `dev`; branch product slug responds 200 with price/CTA.
 
-## Environment & Secrets
+## Active TODOs (see `docs/NEXT-STEPS.md` for detail)
+- Polish catalog cards (skeletons, accessibility) and sitemap slug coverage.
+- Expand puppeteer smoke to cover cart/checkout once seeded data + credentials prepared.
+- Review and refine legal copy for production tone.
+- Continue admin UX polish (bulk actions, accessibility).
 
-- Never hard‑code secrets. Use Netlify Supabase Connector or Dashboard env.
-- Required:
-  - `SUPABASE_URL` (or `NEXT_PUBLIC_SUPABASE_URL`)
-  - `SUPABASE_ANON_KEY` (or `NEXT_PUBLIC_SUPABASE_ANON_KEY`)
-  - `SUPABASE_SERVICE_ROLE_KEY`
-  - `NEXT_PUBLIC_SITE_URL` (production domain or branch URL)
-- Build mapping: `next.config.mjs` maps connector vars to `NEXT_PUBLIC_*` at build time.
-- Degrade gracefully when env is missing (no crashes in previews).
+## When Starting a Session
+1. Skim `docs/NEXT-STEPS.md` for the latest backlog and `docs/SESSION-*.md` for context.
+2. Confirm branch deploy health (homepage + seeded product).
+3. Run `npm run type-check` if changing TypeScript; `npm run build` before shipping.
+4. Use the goal checklist below to resume ongoing QA work.
 
-## Admin Auth Policy
+### Goal Checklist (reuse in new chats)
+1. Seed/check `test-vinyl-dark-rituals` via Supabase if absent (see `docs/SUPABASE-SEED.md`).
+2. Run `npm run test:puppeteer`; collect pass/fail notes and screenshots.
+3. Confirm `/legal/*` routes render expected copy.
+4. Note remaining work in `docs/NEXT-STEPS.md` before ending the session.
 
-- Branch deploys: relaxed client checks with timeouts; server middleware bypass allowed.
-- Production (`main`): stricter gating may be enabled.
-- Admin account: `arg@obsidianriterecords.com` with a known password in Supabase.
-
-## Planning Tool (update_plan)
-
-- Use for multi‑step tasks or where sequencing matters.
-- Keep steps 5–7 words; exactly one `in_progress` step.
-- Skip plan for trivial one‑off edits.
-
-## Preamble Messages
-
-- Before running tools, send 1–2 sentences describing the immediate action.
-- Group related actions under one preamble.
-
-## Shell Usage
-
-- Prefer `rg` for search; `rg --files` for listing.
-- Read files in chunks ≤ 250 lines.
-- Output is truncated at ~10KB/256 lines; tailor queries.
-- Avoid running long/loud commands needlessly.
-
-## Deploy & Caching Notes (Branch Deploys)
-
-- Branch Deploys can occasionally serve stale SSR HTML if CDN caches a previous payload.
-- Mitigations (already implemented):
-  - `next.config.mjs` sets `Cache-Control: no-store` headers for `/` (homepage HTML) and long‑cache immutable for static assets.
-  - `app/(site)/page.tsx` exports `dynamic = 'force-dynamic'` to ensure fresh HTML.
-- If stale HTML persists: clear cache and redeploy the branch. As a fallback, add a Netlify `_headers` entry for `/` with `Cache-Control: no-store`.
-
-## Admin UX Additions
-
-- Users & Roles: `/admin/users` to grant/remove admin by email. Server API: `/api/admin/users/roles` (GET/POST/DELETE).
-- OAuth customer provisioning: after Google sign‑in, a `customers` row is upserted server‑side (email/name).
-- Terminology: “Variants” are now “Stock Units” in the UI (purchasable items with own SKU/price/stock).
-- URL (link): replace the word “slug” in admin labels with “URL (link)” and helper text; it’s the URL path (e.g., `/products/your-url`).
-
-## MCP / Playwright
-
-- If Playwright MCP is available, we can add a smoke suite that navigates the homepage, enters Catalog, opens a product, adds to cart, opens checkout, and verifies the redirect (without completing payment). Another set covers admin login (preview), create/publish an article, and check `/articles` list/detail.
-- To enable: provide MCP endpoint and confirm CLI command to run (e.g., `npm run test:e2e`). We will keep specs small and idempotent.
-
-Notes:
-- MCP tools are registered by the host at session start. If you just changed `.mcp.json` or `~/.codex/config.toml`, open a new chat/session to load tools.
-- Prefer repo‑local `.mcp.json` for per‑project BASE_URL; keep secrets out of the repo.
-
-See also:
-- MCP config details: `docs/MCP-CONFIG.md`
-- Puppeteer smoke prompts: `docs/MCP-PUPPETEER.md`
- - Seed + RLS quickstart: `docs/SUPABASE-SEED.md`
-
-## QA Flow Quickstart (Branch Deploy)
-
-- Base URL: dev Branch Deploy (see Netlify). Screenshots land in `docs/qa-screenshots/`.
-- If the catalog is empty or admin Save fails, run `docs/SUPABASE-SEED.md` → “No‑DO Seed”.
-- Product under test: `/products/test-vinyl-dark-rituals`.
-- If product returns 500, ensure policy `products_select_active` exists and the row has `active = true`.
-
-## Supabase Usage & Memory
-
-- Data model (minimum needed by the app):
-  - `products` with `slug` text and `active` boolean; `format` must be lowercase `'vinyl'` (DB check).
-  - `variants` (Stock Units) related to `products.id`; `inventory` keyed by `variant_id` with `on_hand/allocated/available`.
-- RLS policies required for previews:
-  - `products`: public SELECT policy for active rows (`products_select_active`: `USING (active = true)`).
-  - `variants`, `inventory`: public SELECT; authenticated write acceptable for preview.
-- Seeding & bootstrap:
-  - Use `docs/SUPABASE-SEED.md`.
-    - Detect schema; if `variants/inventory` missing, run “Bootstrap missing tables” (matches FK types to `products.id`).
-    - Add `slug` if missing.
-    - Run “No‑DO Seed” (sequential statements) — grants admin and upserts product + stock unit + inventory, avoids DO blocks.
-- Admin roles:
-  - `user_roles` table is authoritative for app auth; older migrations may reference `admin_users`. The seed updates both when present.
-
-## Branch Deploy Smoke (Local)
-
-- `BASE_URL=… npm run test:puppeteer`
-  - Validates `/`, `#vinyl`, `/robots.txt`, `/sitemap.xml`.
-  - Opens `/products/test-vinyl-dark-rituals`, adds to cart, opens checkout, fetches shipping, and best‑effort Stripe redirect.
-  - Outputs screenshots to `docs/qa-screenshots/`.
-
-## QA Checklist
-
-- Use `docs/QA-CHECKLIST.md` when verifying branch deploys. It covers homepage, catalog/product, checkout (shipping), SEO endpoints, admin shell/views/forms, accessibility, observability, and go‑live items.
-
-## Security Notes (Configs & Secrets)
-- Never commit real API keys or auth credentials. If a sensitive config was copied into the repo during troubleshooting, remove it and add a `.gitignore` entry.
-- Prefer example configs (`*.example.*`) and local environment files (`.env.local`, `~/.codex/config.toml`).
-
-## Puppeteer Smoke (Branch URL)
-
-- Quick local smoke: `npm run test:puppeteer` (uses `BASE_URL` env; defaults to dev branch deploy).
-- Validates homepage loads and footer “Vinyl Records” anchor; product/checkout steps run when data exists.
-
-## Kbar (Command Palette)
-
-- Admin header search opens Kbar (Cmd/Ctrl+K). Actions include create product/article/stock unit and jumps to boards/cards. Keyboard hints: `n p`, `n a`, `o b`, `p c`, etc.
-
-## Patching Files (apply_patch)
-
-- Always use `apply_patch` with the minimal diff.
-- Don’t re‑read files immediately after writing.
-- Do not add license headers unless asked.
-- Keep changes scoped; follow existing style.
-
-Patch envelope example:
-
-```
-*** Begin Patch
-*** Update File: path/to/file.ext
-@@
-- old
-+ new
-*** End Patch
-```
-
-## File References in Messages
-
-- Use clickable paths with optional line/column (1‑based):
-  - `src/app.ts`
-  - `src/app.ts:42`
-  - `src/app.ts#L42C7`
-- Don’t include ranges or external URIs.
-
-## Testing & Validation
-
-- Local: `npm run type-check`, `npm run build`. Run tests when related to the change.
-- Don’t fix unrelated failing tests; note them if encountered.
-- For non‑interactive runs, validate proactively; otherwise be efficient.
-
-## Commit Messages
-
-- Conventional style: `feat: …`, `fix: …`, `chore: …`, `docs: …`.
-- Keep subjects short; add detail lines as needed.
-
-## Rollback Procedure (Production)
-
-1) `git revert <bad-commit-sha>` on `main`.
-2) `git push origin main`.
-3) Verify Netlify redeploy.
-
-## Incident Response
-
-- If the live site breaks: revert first, then fix forward on the working branch.
-- Communicate clearly what changed and what’s next.
-
----
-
-This guide encodes how we use Codex CLI here: plan first, one working branch, explicit go‑live, minimal blast radius.
-
-## Recent Changes (dev)
-
-- Fixed failing Netlify build: corrected misplaced `'use client'` directives; ensured `@/content/copy` resolves via `tsconfig.json` alias.
-- Centralized public copy in `src/content/copy.ts` and wired components.
-- Product detail MVP: `/products/[slug]` now fetches from Supabase and includes SEO metadata; added `BuyNowButton` posting to `/api/checkout`.
-- Legacy compatibility: `/product/[id]` redirects to `/products/[slug]`.
-- Catalog cards: link directly to slug routes (fallback to legacy id if slug absent).
-- Footer navigation: converted to hash links (`/#catalog`, `/#vinyl`, etc.) for reliable scrolling on homepage.
-- Product variant selector: client selector added to product page, updates price/availability and Buy Now.
-- Admin products: added Slug field with `Generate` helper derived from Title.
-- SEO: Product JSON‑LD added to product pages; Articles now have metadata + Article JSON‑LD (mocked data).
-- Observability: added `/api/client-logs` endpoint and mounted a client error logger in `app/providers.tsx`.
-- Observability: rate limit + dedupe on `/api/client-logs`, correlation ID cookie (`orr_cid`) included with reports, and a React ErrorBoundary wraps the app.
-- Observability: middleware now propagates correlation IDs via `x-correlation-id` header and sets `orr_cid` cookie when absent.
-- Shipping (customer pays): AusPost quote service + API wired; checkout accepts selected shipping rate and charges the customer via Stripe Checkout. Falls back to static Stripe rates when AusPost env is absent. See `docs/SHIPPING-AUSPOST.md`.
-- Supabase bootstrap: added `docs/SUPABASE-SEED.md` with “No‑DO Seed” and a bootstrap that creates `variants`/`inventory` matching `products.id` type; added RLS policy guidance. Session notes in `docs/SESSION-2025-09-14.md`.
-- Admin UI overhaul: modern shell (header/sider), table toolbar (density + column presets), alternate views (Products Cards; Orders Board with drag-and-drop; Inventory/Customers/Articles Cards), header search wired to Kbar, and Kbar actions for create/jump.
-- Empty states: warm EmptyStates added across Products, Stock Units, Inventory, Orders, Customers, and Articles.
-- Products Cards: added Format and Artist dropdown filters.
-
-Decisions (current)
-- Shipping: customer pays; AusPost enabled when env present, Stripe static fallback otherwise.
-- Allowed countries: broad default set (AU, NZ, US, GB, CA, EU subset); refine later if needed.
-- Sitemap: include only active products and published articles (already implemented).
-- Articles: further polish deferred until after Sprint 1.
-- Kbar: present as the command palette (Cmd/Ctrl+K) for admin; no change needed.
-- CSV: export enabled (Products, Inventory); import (price/active) slated for Sprint 2.
-- Icons: use lucide-react now (tasteful, minimal); custom set optional later.
-- Observability: client error logs enabled with correlation IDs.
-- Admin theme: dark-only by default.
-
-## Deployment Status
-
-- 2025-09-10: Promoted `dev` → `main` via fast‑forward merge. Production HEAD: `63fb47a`.
-- Highlights now live: Articles scaffold (admin list/create/edit/show + public list/detail), mobile polish (no horizontal scroll, header/menu tweaks, responsive cart drawer), catalog skeletons, product detail Add to Cart, multi‑item checkout API, shipping validation in modal, admin wording updates (URL link + Stock Unit terminology).
-- Ongoing work on `dev`: mobile polish, Articles markdown styling, admin clarity across forms, upcoming admin visual overhaul.
-
-## Open TODOs
-
-- Product variants: add selector on the product page; enable Buy Now per variant.
-- Update ProductCard click target to prefer Link wrapping when feasible (accessibility) and keep button actions keyboard-friendly.
-- Sitemap: include product slugs when available; verify with Supabase data.
-- Admin polish: bulk tools (price/active) toggled by `NEXT_PUBLIC_ENABLE_ADMIN_BULK`.
-- Observability: lightweight client error logging endpoint; wire ErrorBoundary.
