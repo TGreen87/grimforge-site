@@ -138,7 +138,7 @@ Pending (manual verification on dev deploy):
  - Product `/products/test-vinyl-dark-rituals` is reachable (200) and shows Add to Cart (after seed).
 
 ## Immediate Next Steps
-- Set/confirm branch envs: `STRIPE_SECRET_KEY`, `SUPABASE_SERVICE_ROLE_KEY`(or `SUPABASE_SERVICE_ROLE`), `NEXT_PUBLIC_SITE_URL` (branch URL). Redeploy dev.
-- Run smoke against dev and capture: `product.png`, `checkout-shipping.png`, `stripe.png`.
-- Verify shipping label/price for the first option (Stripe static when AusPost not configured).
-- If stable, proceed with admin Save UX polish and complete Products Cards filters.
+- Confirm branch envs (`STRIPE_SECRET_KEY`, `SUPABASE_SERVICE_ROLE_KEY`/`SUPABASE_SERVICE_ROLE`, `NEXT_PUBLIC_SITE_URL`) and redeploy if they change.
+- Manually step through `/products/test-vinyl-dark-rituals` after deploy to ensure hydration renders image + CTA (seed data now works).
+- Review `/legal/*` placeholder copy and adjust language/links as needed.
+- Extend puppeteer smoke to re-enable catalog navigation and cart flow once data is ready; capture checkout screenshots thereafter.

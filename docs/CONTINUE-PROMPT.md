@@ -16,9 +16,9 @@ Use this prompt when you need to spin up a fresh Codex chat with MCP tools (Supa
 - Admin visuals: modern shell, density toggle, Cards/Board views, Kbar actions, warm EmptyStates, Products/Inventory CSV export.
 
 **Goals**
-1. Run MCP Puppeteer smoke against the dev branch deploy.
-2. Create/verify the seeded product via admin, then walk an end-to-end checkout with selectable shipping.
-3. Capture brief pass/fail notes + screenshots; flag regressions for follow-up.
+1. Run MCP Puppeteer smoke against the dev branch deploy (homepage → vinyl anchor → seeded product slug → robots/sitemap → admin login).
+2. Seed/verify the `test-vinyl-dark-rituals` product if it is missing before smoke; confirm slug renders with price/CTA and legal footer links resolve.
+3. Capture pass/fail notes + screenshots; flag regressions or missing copy for follow-up.
 
 **Assistant Instructions**
 1. Confirm MCP tools (Puppeteer / Supabase) are available. If not, request a restart with MCP enabled.
@@ -37,11 +37,10 @@ Use this prompt when you need to spin up a fresh Codex chat with MCP tools (Supa
      - Stock `10`
      - Active toggle on
    - Save; screenshot `admin-product-created.png`.
-4. Product + checkout:
-   - Open `/products/test-vinyl-dark-rituals`; confirm “Add to Cart”; screenshot `product.png`.
-   - Add to cart → open checkout modal; fill AU address; click “Refresh rates”; select first option; report label/price; screenshot `checkout-shipping.png`.
-   - Continue → Place order; confirm redirect to `checkout.stripe.com`; screenshot `stripe.png`.
-5. Optional admin visuals: capture sticky header/zebra on Products/Variants/Inventory, CSV export confirmation, etc.
+4. Product slug:
+   - Open `/products/test-vinyl-dark-rituals`; ensure hydration completes (price + CTA visible); screenshot `product.png`.
+5. Optional follow-ups when data/env allow: run end-to-end checkout smoke, capture shipping modal (`checkout-shipping.png`) and Stripe redirect (`stripe.png`).
+6. Optional admin visuals: capture sticky header/zebra on Products/Variants/Inventory, CSV export confirmation, etc.
 
 **Constraints**
 - Never capture or echo credentials. Ask the user to log in or provide temporary creds if needed.
