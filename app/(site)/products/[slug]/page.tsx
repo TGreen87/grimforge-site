@@ -3,10 +3,10 @@ import { notFound } from 'next/navigation'
 import { generateProductMetadata } from '@/lib/seo/metadata'
 import { ProductJsonLd } from '@/components/seo/JsonLd'
 import { getProduct } from './metadata'
-import BuyNowButton from '@/components/BuyNowButton'
-import { Suspense } from 'react'
-import VariantSelector from './variant-selector'
 import Image from 'next/image'
+import nextDynamic from 'next/dynamic'
+
+const VariantClientBlock = nextDynamic(() => import('./variant-client-block'), { ssr: false })
 
 interface Inventory {
   available?: number
@@ -109,9 +109,6 @@ export default async function ProductPage({ params }: ProductPageProps) {
               )}
 
               {/* Variant selection and price/availability */}
-              <Suspense fallback={null}>
-                {/* placeholder to avoid hydration mismatch */}
-              </Suspense>
               <VariantClientBlock
                 variants={(product.variants || []) as any}
                 initialPrice={Number(initialPrice ?? 0)}
@@ -130,48 +127,4 @@ export default async function ProductPage({ params }: ProductPageProps) {
   } catch (e) {
     return notFound()
   }
-}
-
-// Client wrapper colocated for simplicity
-function VariantClientBlock({ variants, initialPrice, productMeta }: { variants: any[]; initialPrice: number; productMeta: { title: string; artist: string; image: string; format?: string } }) {
-  'use client'
-  const [selected, setSelected] = (require('react') as typeof import('react')).useState<any>(variants[0] || null)
-  const price = (selected?.price ?? initialPrice) as number
-  const available = (selected?.inventory?.available ?? 0) as number
-  const canBuy = !!selected && available > 0
-
-  const React = require('react') as typeof import('react')
-  const e = React.createElement
-  const { useCart } = require('@/src/contexts/CartContext') as typeof import('@/src/contexts/CartContext')
-  const { addItem } = useCart()
-
-  return e(React.Fragment, null,
-    e('div', { className: 'mb-6 space-y-4' },
-      e(VariantSelector as any, { variants, onChange: setSelected, initialVariantId: variants[0]?.id }),
-      e('div', null,
-        e('p', { className: 'text-2xl font-bold text-accent' }, `$${Number(price ?? 0).toFixed(2)} AUD`),
-        e('p', { className: `text-sm ${available > 0 ? 'text-green-500' : 'text-muted-foreground'}` }, available > 0 ? `In stock (${available} available)` : 'Out of stock')
-      )
-    ),
-    e('div', { className: 'flex items-center gap-3 mt-2' },
-      e(BuyNowButton as any, { variantId: selected?.id, quantity: 1 }),
-      e('button', {
-        className: 'px-4 py-2 border border-frost text-frost rounded hover:bg-frost hover:text-background',
-        disabled: !canBuy,
-        onClick: () => {
-          if (!selected) return
-          ;(addItem as any)({
-            id: selected.id,
-            title: productMeta.title || 'Item',
-            artist: productMeta.artist || '',
-            format: selected?.format || productMeta.format || 'vinyl',
-            price: Number(price || 0),
-            image: productMeta.image,
-            variantId: selected.id,
-          })
-        }
-      }, 'Add to Cart'),
-      !canBuy && e('span', { className: 'text-sm text-muted-foreground' }, 'Select variant unavailable')
-    )
-  )
 }
