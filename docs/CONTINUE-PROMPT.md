@@ -6,9 +6,9 @@ Use this prompt when you need to spin up a fresh Codex chat with MCP tools (Supa
 
 **Context**
 - Repo: `grimforge-site` (Next.js 15 App Router storefront + Refine/AntD admin shell).
-- Working branch: `dev` (single active branch; see `docs/AGENTS.md`).
+- Working branch: `dev` (single active branch; see `AGENTS.md`).
 - Branch deploy: https://dev--obsidianriterecords.netlify.app (update if the Netlify URL changes).
-- Planning docs: `docs/AGENTS.md`, `docs/IMPLEMENTATION-PLAN.md`, `docs/NEXT-STEPS.md`.
+- Planning docs: `AGENTS.md`, `docs/IMPLEMENTATION-PLAN.md`, `docs/NEXT-STEPS.md`.
 - QA guide: `docs/QA-CHECKLIST.md`.
 - MCP setup: `docs/MCP-CONFIG.md`; Puppeteer hints: `docs/MCP-PUPPETEER.md`.
 - Seed/Bootstrap reference: `docs/SUPABASE-SEED.md` (No-DO seed, admin bootstrap, policy checks).
