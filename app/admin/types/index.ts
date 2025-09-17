@@ -67,6 +67,7 @@ export interface Order {
   id: string;
   customer_id?: string | null;
   status: 'pending' | 'paid' | 'processing' | 'shipped' | 'delivered' | 'cancelled' | 'refunded';
+  payment_status?: string | null;
   total: number;
   subtotal?: number;
   tax?: number;
@@ -77,6 +78,7 @@ export interface Order {
   shipping_address?: Address;
   billing_address?: Address;
   notes?: string | null;
+  metadata?: Record<string, unknown> | null;
   created_at: string;
   updated_at: string;
   customer?: Customer;

@@ -68,6 +68,16 @@ export default function OrderList() {
   const [dragId, setDragId] = React.useState<string | null>(null)
   const [overStatus, setOverStatus] = React.useState<string | null>(null)
   const [ariaMsg, setAriaMsg] = React.useState<string>("")
+  const [paymentFilter, setPaymentFilter] = React.useState<'all' | 'pending' | 'paid' | 'failed'>('all')
+
+  const orders = React.useMemo(() => (tableProps.dataSource as Order[] | undefined) ?? [], [tableProps.dataSource])
+  const filteredOrders = React.useMemo(() => {
+    if (paymentFilter === 'all') return orders
+    if (paymentFilter === 'failed') {
+      return orders.filter((order) => order.payment_status && !['paid', 'pending'].includes(order.payment_status))
+    }
+    return orders.filter((order) => order.payment_status === paymentFilter)
+  }, [orders, paymentFilter])
 
   const onDropChangeStatus = (status: string, e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
@@ -96,12 +106,25 @@ export default function OrderList() {
         .kanban-column { transition: border-color 120ms ease, background-color 120ms ease; border: 1px solid var(--border, #1f2937); }
         .kanban-column.drop-target { border-color: #8B0000; background-color: rgba(139,0,0,0.08); }
       `}</style>
-      <List headerButtons={<AdminTableToolbar title="Orders" size={size} onSizeChange={setSize} onRefresh={() => tableQueryResult.refetch()} searchPlaceholder="Search orders" rightSlot={<AdminViewToggle resource='orders' value={view} onChange={setView} allowBoard />} />}>
+      <List headerButtons={<AdminTableToolbar title="Orders" size={size} onSizeChange={setSize} onRefresh={() => tableQueryResult.refetch()} searchPlaceholder="Search orders" rightSlot={<div className="flex items-center gap-3">
+        <Select
+          value={paymentFilter}
+          onChange={(value) => setPaymentFilter(value)}
+          style={{ minWidth: 160 }}
+          size="small"
+        >
+          <Select.Option value="all">All payments</Select.Option>
+          <Select.Option value="paid">Paid</Select.Option>
+          <Select.Option value="pending">Pending</Select.Option>
+          <Select.Option value="failed">Failed / Other</Select.Option>
+        </Select>
+        <AdminViewToggle resource='orders' value={view} onChange={setView} allowBoard />
+      </div>} />}>
       {view === 'table' ? (
-      (((tableProps.dataSource as any[]) || []).length === 0) ? (
+      (filteredOrders.length === 0) ? (
         <EmptyState title="No orders yet" helper="When customers buy, orders appear here." />
       ) : (
-      <Table {...tableProps} rowKey="id" size={size} sticky rowClassName={(_, index) => (index % 2 === 1 ? 'admin-row-zebra' : '')}>
+      <Table {...tableProps} dataSource={filteredOrders} rowKey="id" size={size} sticky rowClassName={(_, index) => (index % 2 === 1 ? 'admin-row-zebra' : '')}>
         <Table.Column
           dataIndex="id"
           title="Order ID"
@@ -174,13 +197,34 @@ export default function OrderList() {
                   View
                 </Button>
               </Link>
+              {(() => {
+                const url = record.metadata && typeof record.metadata === 'object'
+                  ? (record.metadata as Record<string, unknown>).stripe_session_url
+                  : null
+                if (typeof url === 'string' && url) {
+                  return (
+                    <Button size="small" href={url} target="_blank" rel="noreferrer">
+                      Stripe
+                    </Button>
+                  )
+                }
+                if (record.stripe_session_id) {
+                  const dashboardUrl = `https://dashboard.stripe.com/payments/${record.stripe_payment_intent_id || record.stripe_session_id}`
+                  return (
+                    <Button size="small" href={dashboardUrl} target="_blank" rel="noreferrer">
+                      Stripe
+                    </Button>
+                  )
+                }
+                return null
+              })()}
             </Space>
           )}
         />
       </Table>
       )
       ) : (
-        ((tableProps.dataSource as any[]) || []).length === 0 ? (
+        filteredOrders.length === 0 ? (
           <EmptyState title="No orders yet" helper="When customers buy, orders appear here." />
         ) : (
         <div className="flex gap-4 overflow-auto" style={{ paddingBottom: 8 }}>
@@ -197,7 +241,7 @@ export default function OrderList() {
             >
               <div className="text-sm mb-2 font-semibold capitalize">{status}</div>
               <div className="space-y-2 max-h-[70vh] overflow-auto pr-1">
-                {((tableProps.dataSource as Order[] | undefined) || []).filter(o => o.status === status).map((o) => (
+                {filteredOrders.filter(o => o.status === status).map((o) => (
                   <div key={o.id}
                     className={`kanban-card p-3 rounded border border-border bg-[#0e0e0e] ${dragId===o.id ? 'dragging' : ''}`}
                     draggable

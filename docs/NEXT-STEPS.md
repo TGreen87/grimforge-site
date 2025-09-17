@@ -147,7 +147,7 @@ Pending (manual verification on dev deploy):
 The following tasks track the broader “customers + orders + dashboard” initiative and related clean-up. Work through top-to-bottom; everything is scoped for the dev branch.
 
 1. **Stripe checkout parity**
-   - [ ] Re-run `/api/checkout` on dev after deployment and log the exact Stripe error (Stripe dashboard → Developers → Logs). Update the API handler with clearer error handling once confirmed.
+   - [x] Re-run `/api/checkout` on dev after deployment and log the exact Stripe error (Stripe dashboard → Developers → Logs). Update the API handler with clearer error handling once confirmed. *(Success 2025-09-17: session `cs_live_a1LlsOXf9iakoACtZ1exIanmoDu3qB7pizLC3Pz6qCyc6LP6YBJ0xXwpct` returned 200; API now surfaces `detail` on failure.)*
    - [ ] Add Stripe publishable key (`NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`) when available; thread it into the cart modal so the email field can pre-populate.
    - [ ] Create a doc snippet in `docs/ENV-QUICKSTART.md` that explains how to rotate Stripe keys safely (already partially done—add screenshots once available).
 
@@ -155,7 +155,7 @@ The following tasks track the broader “customers + orders + dashboard” initi
    - [x] Create `customers`, `orders`, and `order_items` tables with RLS + service-role policies.
    - [x] Extend checkout API to upsert customers and attach metadata to orders.
    - [ ] Backfill existing orders (if any) into the new tables once production data exists (script TBD).
-   - [ ] Build `/admin/orders` enhancements to surface payment status filters and link to Stripe (future iteration).
+   - [x] Build `/admin/orders` enhancements to surface payment status filters and link to Stripe.
 
 3. **Admin dashboard**
    - [x] Add `/admin/dashboard` with KPI cards, recent orders, low-stock alerts, and quick actions.
