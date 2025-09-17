@@ -1,405 +1,123 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { headers } from 'next/headers'
-import { getStripe } from '@/lib/stripe'
 import { createServiceClient } from '@/lib/supabase/server'
-import { writeAuditLog, createPaymentAuditLog } from '@/lib/audit-logger'
-import Stripe from 'stripe'
+import { getStripe } from '@/lib/stripe'
+import type Stripe from 'stripe'
 
-// Disable body parsing for webhook route
-export const runtime = 'nodejs'
+export const dynamic = 'force-dynamic'
 
-export async function POST(req: NextRequest) {
-  const body = await req.text()
-  const headersList = await headers()
-  const signature = headersList.get('stripe-signature')
+async function updateOrderStatus(
+  orderId: string,
+  values: Record<string, unknown>,
+  metadataPatch?: Record<string, unknown>
+) {
+  const supabase = createServiceClient()
 
-  if (!signature) {
-    return NextResponse.json(
-      { error: 'Missing stripe-signature header' },
-      { status: 400 }
-    )
+  let mergedMetadata: Record<string, unknown> | undefined
+  if (metadataPatch) {
+    const { data } = await supabase
+      .from('orders')
+      .select('metadata')
+      .eq('id', orderId)
+      .maybeSingle()
+    const current = (data?.metadata && typeof data.metadata === 'object' && !Array.isArray(data.metadata))
+      ? (data.metadata as Record<string, unknown>)
+      : {}
+    mergedMetadata = { ...current, ...metadataPatch }
   }
 
-  const stripe = getStripe()
+  await supabase.from('orders').update({
+    ...values,
+    ...(metadataPatch ? { metadata: mergedMetadata } : {}),
+    updated_at: new Date().toISOString(),
+  }).eq('id', orderId)
+}
+
+export async function POST(req: NextRequest) {
+  const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET
+  if (!endpointSecret) {
+    return NextResponse.json({ error: 'STRIPE_WEBHOOK_SECRET not configured' }, { status: 400 })
+  }
+
+  const signature = req.headers.get('stripe-signature')
+  if (!signature) {
+    return NextResponse.json({ error: 'Missing stripe-signature header' }, { status: 400 })
+  }
+
+  const payload = await req.text()
   let event: Stripe.Event
 
   try {
-    // Verify webhook signature
-    event = stripe.webhooks.constructEvent(
-      body,
-      signature,
-      process.env.STRIPE_WEBHOOK_SECRET_1 || process.env.STRIPE_WEBHOOK_SECRET || ''
-    )
+    const stripe = getStripe()
+    event = stripe.webhooks.constructEvent(payload, signature, endpointSecret)
   } catch (err) {
-    console.error('Webhook signature verification failed:', err)
-    
-    await writeAuditLog(
-      createPaymentAuditLog({
-        eventType: 'webhook.signature_verification_failed',
-        error: err instanceof Error ? err.message : 'Signature verification failed',
-        metadata: {
-          signature: signature.substring(0, 20) + '...',
-        },
-      })
-    )
-
-    return NextResponse.json(
-      { error: 'Webhook signature verification failed' },
-      { status: 400 }
-    )
+    const message = err instanceof Error ? err.message : 'Unable to verify Stripe signature'
+    console.error('Stripe webhook signature verification failed', message)
+    return NextResponse.json({ error: message }, { status: 400 })
   }
-
-  // Initialize Supabase service client
-  const supabase = createServiceClient()
-
-  // Log all webhook events
-  await writeAuditLog(
-    createPaymentAuditLog({
-      eventType: 'webhook.received',
-      stripeEventId: event.id,
-      stripeEventType: event.type,
-      metadata: {
-        livemode: event.livemode,
-        created: event.created,
-        api_version: event.api_version,
-      },
-    })
-  )
 
   try {
     switch (event.type) {
       case 'checkout.session.completed': {
         const session = event.data.object as Stripe.Checkout.Session
-        
-        // Extract metadata
         const orderId = session.metadata?.order_id
-        const variantId = session.metadata?.variant_id
-        const quantity = parseInt(session.metadata?.quantity || '0')
-
-        if (!orderId) {
-          console.error('No order_id in session metadata')
-          await writeAuditLog(
-            createPaymentAuditLog({
-              eventType: 'webhook.missing_order_id',
-              stripeEventId: event.id,
-              stripeSessionId: session.id,
-              error: 'Missing order_id in session metadata',
-            })
-          )
-          return NextResponse.json({ received: true })
-        }
-
-        // Retrieve full session details with line items
-        const fullSession = (await stripe.checkout.sessions.retrieve(session.id, {
-          expand: ['line_items', 'payment_intent', 'customer', 'total_details'],
-        })) as Stripe.Checkout.Session
-
-        // Calculate tax amount from Stripe
-        const taxAmount = fullSession.total_details?.amount_tax || 0
-        const shippingAmount = fullSession.total_details?.amount_shipping || 0
-        const totalAmount = fullSession.amount_total || 0
-
-        // 1. Mark order as paid
-        const { data: order, error: orderError } = await supabase
-          .from('orders')
-          .update({
-            status: 'paid',
-            payment_status: 'paid',
-            email: fullSession.customer_email || session.customer_email || '',
-            stripe_payment_intent_id: (typeof fullSession.payment_intent === 'string'
-              ? fullSession.payment_intent
-              : fullSession.payment_intent?.id) || (session.payment_intent as string | undefined),
-            tax: taxAmount / 100, // Convert from cents to dollars
-            shipping: shippingAmount / 100,
-            total: totalAmount / 100,
-            metadata: {
-              stripe_session_id: session.id,
-              stripe_customer_id: (typeof fullSession.customer === 'string' ? fullSession.customer : fullSession.customer?.id) || null,
-              stripe_payment_status: session.payment_status,
-              stripe_payment_method_types: session.payment_method_types,
-              shipping_address: fullSession.customer_details?.address || null,
-              customer_details: fullSession.customer_details,
-              completed_at: new Date().toISOString(),
-            } as any,
-            updated_at: new Date().toISOString(),
-          })
-          .eq('id', orderId)
-          .select()
-          .single()
-
-        if (orderError || !order) {
-          console.error('Failed to update order:', orderError)
-          await writeAuditLog(
-            createPaymentAuditLog({
-              eventType: 'webhook.order_update_failed',
-              stripeEventId: event.id,
-              orderId,
-              error: orderError?.message || 'Failed to update order',
-            })
-          )
-          // Don't return error - continue processing
-        }
-
-        // 2. Create or update customer record
-        if (fullSession.customer_email) {
-          const { data: existingCustomer } = await supabase
-            .from('customers')
-            .select('id')
-            .eq('email', fullSession.customer_email)
-            .single()
-
-          let customerId = existingCustomer?.id
-
-          if (!customerId) {
-            const { data: newCustomer } = await supabase
-              .from('customers')
-              .insert({
-                email: fullSession.customer_email,
-                name: fullSession.customer_details?.name || null,
-                phone: fullSession.customer_details?.phone || null,
-              })
-              .select()
-              .single()
-
-            customerId = newCustomer?.id
-          }
-
-          // Update order with customer ID
-          if (customerId) {
-            await supabase
-              .from('orders')
-              .update({ customer_id: customerId })
-              .eq('id', orderId)
-          }
-
-          // Save shipping address if provided
-          if (fullSession.customer_details?.address && customerId) {
-            const shipping = fullSession.customer_details.address
-            await supabase
-              .from('addresses')
-              .insert({
-                customer_id: customerId,
-                line1: (shipping.line1 as string) || '',
-                line2: (shipping.line2 as string | null) || null,
-                city: (shipping.city as string) || '',
-                state: (shipping.state as string) || '',
-                postal_code: (shipping.postal_code as string) || '',
-                country: (shipping.country as string) || 'AU',
-                is_default: true,
-              })
-          }
-        }
-
-        // 3. Allocate serials if configured (placeholder for future implementation)
-        // This would involve checking if the product requires serial allocation
-        // and generating/assigning serial numbers from a pool
-
-        // 4. Decrement inventory atomically
-        if (variantId && quantity > 0) {
-          // Call the decrement_inventory database function
-          const { data: inventoryResult, error: inventoryError } = await supabase
-            .rpc('decrement_inventory', {
-              p_variant_id: variantId,
-              p_quantity: quantity,
-              p_order_id: orderId,
-            })
-
-          if (inventoryError || !inventoryResult) {
-            console.error('Failed to decrement inventory:', inventoryError)
-            await writeAuditLog(
-              createPaymentAuditLog({
-                eventType: 'webhook.inventory_decrement_failed',
-                stripeEventId: event.id,
-                orderId,
-                error: inventoryError?.message || 'Failed to decrement inventory',
-                metadata: {
-                  variant_id: variantId,
-                  quantity,
-                },
-              })
-            )
-          } else {
-            await writeAuditLog(
-              createPaymentAuditLog({
-                eventType: 'webhook.inventory_decremented',
-                stripeEventId: event.id,
-                orderId,
-                metadata: {
-                  variant_id: variantId,
-                  quantity,
-                  success: inventoryResult,
-                },
-              })
-            )
-          }
-        }
-
-        // 5. Write to audit log
-        await writeAuditLog(
-          createPaymentAuditLog({
-            eventType: 'payment.completed',
-            stripeEventId: event.id,
-            stripeEventType: event.type,
+        if (orderId) {
+          await updateOrderStatus(
             orderId,
-            customerId: (order?.customer_id ?? undefined) as string | undefined,
-            customerEmail: fullSession.customer_email || '',
-            amount: totalAmount / 100,
-            currency: ((session.currency ?? 'AUD') as unknown) as string,
-            taxAmount: taxAmount / 100,
-            paymentStatus: 'completed',
-            stripeSessionId: session.id,
-            stripePaymentIntentId: (typeof fullSession.payment_intent === 'string'
-              ? fullSession.payment_intent
-              : fullSession.payment_intent?.id) || (session.payment_intent as string | undefined),
-            metadata: {
-              variant_id: variantId,
-              quantity,
-              shipping_amount: shippingAmount / 100,
-              payment_method_types: session.payment_method_types,
+            {
+              payment_status: 'paid',
+              status: 'processing',
+              stripe_payment_intent_id: typeof session.payment_intent === 'string' ? session.payment_intent : null,
             },
-          })
-        )
-
+            {
+              ...(session.metadata || {}),
+              stripe_checkout_session_id: session.id,
+              stripe_customer_id: session.customer || undefined,
+            }
+          )
+        }
         break
       }
-
       case 'payment_intent.payment_failed': {
-        const paymentIntent = event.data.object as Stripe.PaymentIntent
-        
-        // Extract order ID from metadata
-        const orderId = paymentIntent.metadata?.order_id
-
+        const intent = event.data.object as Stripe.PaymentIntent
+        const orderId = intent.metadata?.order_id
         if (orderId) {
-          // Update order status
-          const { error: updateError } = await supabase
-            .from('orders')
-            .update({
+          await updateOrderStatus(
+            orderId,
+            {
               payment_status: 'failed',
-              metadata: {
-                payment_failure_reason: paymentIntent.last_payment_error?.message,
-                payment_failure_code: paymentIntent.last_payment_error?.code,
-                failed_at: new Date().toISOString(),
-              },
-              updated_at: new Date().toISOString(),
-            })
-            .eq('id', orderId)
-
-          if (updateError) {
-            console.error('Failed to update order for payment failure:', updateError)
-          }
-        }
-
-        // Write to audit log
-        await writeAuditLog(
-          createPaymentAuditLog({
-            eventType: 'payment.failed',
-            stripeEventId: event.id,
-            stripeEventType: event.type,
-            orderId,
-            amount: paymentIntent.amount / 100,
-            currency: paymentIntent.currency as string,
-            paymentStatus: 'failed',
-            stripePaymentIntentId: paymentIntent.id,
-            error: paymentIntent.last_payment_error?.message,
-            metadata: {
-              failure_code: paymentIntent.last_payment_error?.code,
-              failure_type: paymentIntent.last_payment_error?.type,
+              status: 'pending',
             },
-          })
-        )
-
+            {
+              ...(intent.metadata || {}),
+              last_payment_error: intent.last_payment_error?.message,
+            }
+          )
+        }
         break
       }
-
-      case 'checkout.session.expired': {
-        const session = event.data.object as Stripe.Checkout.Session
-        const orderId = session.metadata?.order_id
-
-        if (orderId) {
-          // Update order status to cancelled
-          await supabase
-            .from('orders')
-            .update({
-              status: 'cancelled',
-              payment_status: 'cancelled',
-              metadata: {
-                cancelled_reason: 'checkout_expired',
-                expired_at: new Date().toISOString(),
-              },
-              updated_at: new Date().toISOString(),
-            })
-            .eq('id', orderId)
-        }
-
-        await writeAuditLog(
-          createPaymentAuditLog({
-            eventType: 'checkout.expired',
-            stripeEventId: event.id,
-            stripeEventType: event.type,
-            orderId,
-            stripeSessionId: session.id,
-            metadata: {
-              expires_at: session.expires_at,
-            },
-          })
-        )
-
-        break
-      }
-
       case 'payment_intent.succeeded': {
-        const paymentIntent = event.data.object as Stripe.PaymentIntent
-        
-        // Log successful payment intent
-        await writeAuditLog(
-          createPaymentAuditLog({
-            eventType: 'payment_intent.succeeded',
-            stripeEventId: event.id,
-            stripeEventType: event.type,
-            stripePaymentIntentId: paymentIntent.id,
-            amount: paymentIntent.amount / 100,
-            currency: paymentIntent.currency,
-            metadata: {
-              order_id: paymentIntent.metadata?.order_id,
+        const intent = event.data.object as Stripe.PaymentIntent
+        const orderId = intent.metadata?.order_id
+        if (orderId) {
+          await updateOrderStatus(
+            orderId,
+            {
+              payment_status: 'paid',
+              status: 'processing',
+              stripe_payment_intent_id: intent.id,
             },
-          })
-        )
-
+            intent.metadata || undefined
+          )
+        }
         break
       }
-
       default:
-        // Log unhandled event types
-        await writeAuditLog(
-          createPaymentAuditLog({
-            eventType: 'webhook.unhandled_event',
-            stripeEventId: event.id,
-            stripeEventType: event.type,
-            metadata: {
-              data: event.data.object,
-            },
-          })
-        )
+        break
     }
-
-    return NextResponse.json({ received: true })
-  } catch (error) {
-    console.error('Webhook processing error:', error)
-    
-    await writeAuditLog(
-      createPaymentAuditLog({
-        eventType: 'webhook.processing_error',
-        stripeEventId: event.id,
-        stripeEventType: event.type,
-        error: error instanceof Error ? error.message : 'Unknown error',
-        metadata: {
-          stack: error instanceof Error ? error.stack : undefined,
-        },
-      })
-    )
-
-    // Return success to prevent Stripe from retrying
-    // Errors are logged and can be reprocessed manually if needed
-    return NextResponse.json({ received: true })
+  } catch (err) {
+    console.error('Error handling Stripe webhook', err)
+    return NextResponse.json({ error: 'Webhook handler failed' }, { status: 500 })
   }
+
+  return NextResponse.json({ received: true })
 }

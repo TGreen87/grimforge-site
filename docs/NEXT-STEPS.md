@@ -180,4 +180,4 @@ The following tasks track the broader “customers + orders + dashboard” initi
 7. **Future enhancements backlog**
    - [x] Implement customer history view (orders + notes) under `/admin/customers` pulling from the new tables.
    - [ ] Add AusPost variables once provided and confirm the checkout modal can select live rates.
-   - [ ] Wire Stripe webhooks to update `orders.status` / `payment_status` automatically.
+   - [x] Wire Stripe webhooks to update `orders.status` / `payment_status` automatically. *(Route `/api/stripe/webhook` updates orders on checkout session + intent events.)*
