@@ -164,7 +164,7 @@ The following tasks track the broader “customers + orders + dashboard” initi
 
 4. **Asset hygiene**
    - [x] Add `icon-192.png`, `icon-512.png`, `og-image.jpg`; update manifests to reference them.
-   - [ ] After deployment, re-run `npx linkinator` to confirm Netlify serves the new assets (expected to pass once the commit is live).
+   - [x] After deployment, re-run `npx linkinator` to confirm Netlify serves the new assets (2025-09-17 scan across dev domain + primary URL returned 200).
    - [ ] Replace temporary black OG image with branded artwork.
 
 5. **Documentation**
