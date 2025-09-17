@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
+import { Switch } from "@/components/ui/switch";
 import { useCart } from "@/contexts/CartContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
@@ -26,6 +27,7 @@ const CheckoutModal = ({ children }: CheckoutModalProps) => {
   const { items, getTotalPrice, clearCart } = useCart();
   const { user, isAuthenticated } = useAuth();
   const { toast } = useToast();
+  const stripePublishableKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY ?? "";
 
   const [shippingData, setShippingData] = useState({
     fullName: user?.name || "",
@@ -66,6 +68,7 @@ const CheckoutModal = ({ children }: CheckoutModalProps) => {
   const [shipConfigured, setShipConfigured] = useState<boolean>(false)
   const [shipOptions, setShipOptions] = useState<AnyOption[]>([])
   const [selectedShip, setSelectedShip] = useState<AnyOption | null>(null)
+  const [marketingOptIn, setMarketingOptIn] = useState(false)
 
   const getCountryCode = (label: string) => {
     switch (label) {
@@ -165,14 +168,41 @@ const CheckoutModal = ({ children }: CheckoutModalProps) => {
         }
       }
 
+      const trimmedName = shippingData.fullName.trim()
+      const [firstName, ...restName] = trimmedName ? trimmedName.split(' ') : ['']
+      const lastName = restName.join(' ') || null
+      const shippingAddressPayload = {
+        line1: shippingData.address,
+        city: shippingData.city,
+        state: shippingData.state,
+        postal_code: shippingData.postalCode,
+        country: getCountryCode(shippingData.country),
+      }
+
+      const checkoutPayload = {
+        items: payloadItems,
+        email: shippingData.email,
+        customer: {
+          email: shippingData.email,
+          first_name: firstName || null,
+          last_name: lastName,
+          phone: shippingData.phone || null,
+          shipping_address: shippingAddressPayload,
+          marketing_opt_in: marketingOptIn,
+        },
+        shipping_address: shippingAddressPayload,
+        ...shippingPayload,
+      }
+
       const res = await fetch('/api/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ items: payloadItems, ...shippingPayload }),
+        body: JSON.stringify(checkoutPayload),
       })
       if (!res.ok) throw new Error('Checkout failed')
       const data = await res.json()
       if (data.checkoutUrl) {
+        clearCart()
         window.location.href = data.checkoutUrl as string
         return
       }
@@ -227,6 +257,13 @@ const CheckoutModal = ({ children }: CheckoutModalProps) => {
             placeholder="+61 xxx xxx xxx"
             required
           />
+        </div>
+
+        <div className="flex items-center gap-2 pt-2">
+          <Switch id="marketing-opt-in" checked={marketingOptIn} onCheckedChange={setMarketingOptIn} />
+          <Label htmlFor="marketing-opt-in" className="text-xs text-muted-foreground cursor-pointer">
+            Email me about new releases and restocks.
+          </Label>
         </div>
         
         <div className="space-y-2">
@@ -351,6 +388,13 @@ const CheckoutModal = ({ children }: CheckoutModalProps) => {
         <CreditCard className="h-5 w-5 text-accent" />
         <h3 className="gothic-heading text-lg text-bone">Payment</h3>
       </div>
+
+      {!stripePublishableKey && (
+        <p className="text-xs text-muted-foreground">
+          Add <code>NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY</code> to enable Apple Pay, Google Pay, and prefilled Stripe checkout fields.
+          Card entry happens securely on Stripe after you click “Complete order”.
+        </p>
+      )}
 
       <div className="grid grid-cols-1 gap-4">
         <div className="space-y-2">
