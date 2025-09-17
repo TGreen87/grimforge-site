@@ -13,6 +13,7 @@ _Last updated: 2025-09-16_
 - Push directly to `dev`. Never open PRs. Promote to `main` only with explicit “Go live on main”.
 - Branch deploy is the QA surface. After every meaningful push, verify the Netlify deploy.
 - Keep secrets out of the repo. Runtime env vars live in Netlify / local `.env.local` (see `docs/ENV-QUICKSTART.md`).
+- Default to automation: if the backlog already calls out work, execute the next safe step instead of asking the owner for direction.
 
 ## Environment Checklist
 - Required: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `STRIPE_SECRET_KEY`, `NEXT_PUBLIC_SITE_URL`.
@@ -48,4 +49,3 @@ _Last updated: 2025-09-16_
 2. Run `npm run test:puppeteer`; collect pass/fail notes and screenshots.
 3. Confirm `/legal/*` routes render expected copy.
 4. Note remaining work in `docs/NEXT-STEPS.md` before ending the session.
-
