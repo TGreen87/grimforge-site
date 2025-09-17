@@ -18,6 +18,15 @@ This guide explains the key concepts in the admin and the typical flows.
    - Creates Inventory (if you entered initial stock).
 4) The item appears on the public Catalog and can be bought.
 
+## Dashboard Overview
+- Visiting `/admin` now lands on the Dashboard. It surfaces:
+  - KPI cards for total revenue (paid orders), count of paid orders, orders awaiting action, and low-stock variants (≤5 available).
+  - Recent orders list with quick status snapshots and links into Orders.
+  - Low stock list with direct links to edit Stock Units.
+  - A “Next steps” checklist tailored to the owner.
+- Quick actions (Add product, View orders, Receive stock) are pinned to the header for fast access.
+- Tables remain available via the navigation, but the dashboard is the preferred entry point for non-technical operators.
+
 ## Full Control (Products / Stock Units / Inventory)
 - Use when you need multiple Stock Units (e.g., different pressings, bundles):
   1) Products → Create: set core details and URL link.

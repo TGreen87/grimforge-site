@@ -195,6 +195,33 @@ on conflict (variant_id) do update
   set on_hand = excluded.on_hand,
       allocated = excluded.allocated,
       updated_at = now();
+
+-- 4.3 Seed demo customer and order (optional)
+with customer_upsert as (
+  insert into public.customers (email, first_name, last_name, phone, notes, marketing_opt_in)
+  values ('demo.customer@obsidianriterecords.com', 'Demo', 'Customer', '+61 400 000 000', 'Seeded for QA dashboard', true)
+  on conflict (email) do update set
+    first_name = excluded.first_name,
+    last_name = excluded.last_name,
+    phone = excluded.phone,
+    notes = excluded.notes,
+    marketing_opt_in = excluded.marketing_opt_in,
+    updated_at = now()
+  returning id
+)
+insert into public.orders (order_number, customer_id, email, status, payment_status, subtotal, total, currency, metadata)
+select
+  concat('SEED-', to_char(now(), 'DDMMYYHH24MI')),
+  id,
+  'demo.customer@obsidianriterecords.com',
+  'fulfilled',
+  'paid',
+  45.99,
+  45.99,
+  'AUD',
+  jsonb_build_object('created_via', 'seed')
+from customer_upsert
+on conflict do nothing;
 ```
 
 ## 5. Verification Checklist

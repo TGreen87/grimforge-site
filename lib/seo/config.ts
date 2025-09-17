@@ -23,8 +23,8 @@ export const seoConfig = {
   
   // Social Media
   social: {
-    instagram: 'https://www.instagram.com/obsidianriterecords',
-    facebook: 'https://www.facebook.com/obsidianriterecords',
+    instagram: 'https://www.instagram.com/obsidianriterecords/',
+    facebook: 'https://www.facebook.com/scruffylikestoast',
     twitter: '@obsidianrite',
     youtube: '',
     bandcamp: ''

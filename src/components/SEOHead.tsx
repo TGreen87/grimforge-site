@@ -15,10 +15,12 @@ const SEOHead = ({
   description = "Independent label and store for underground black metal. Discover artists, releases, and limited runs.",
   keywords = "black metal, death metal, gothic, vinyl records, underground music, dark music, metal albums, rare releases, Obsidian Rite Records",
   image = "/og-image.jpg",
-  url = "https://obsidianriterecords.com",
+  url = '',
   type = "website",
   structuredData
 }: SEOHeadProps) => {
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || process.env.SITE_URL_STAGING || url;
+  const canonicalUrl = url || siteUrl;
   const fullTitle = title.includes("Obsidian Rite Records") ? title : `${title} | Obsidian Rite Records`;
   
   const defaultStructuredData = {
@@ -26,11 +28,11 @@ const SEOHead = ({
     "@type": "MusicStore",
     "name": "Obsidian Rite Records",
     "description": description,
-    "url": url,
-    "logo": `${url}/logo.png`,
+    "url": siteUrl,
+    "logo": `${siteUrl}/logo.png`,
     "sameAs": [
-      "https://facebook.com/obsidianriterecords",
-      "https://www.instagram.com/obsidianriterecords?igsh=MTgxNDZwbG5hY2VtOQ%3D%3D&utm_source=qr"
+      "https://www.facebook.com/scruffylikestoast",
+      "https://www.instagram.com/obsidianriterecords/"
     ],
     "address": {
       "@type": "PostalAddress",
@@ -49,14 +51,14 @@ const SEOHead = ({
       <meta name="keywords" content={keywords} />
       <meta name="robots" content="index, follow" />
       <meta name="author" content="Obsidian Rite Records" />
-      <link rel="canonical" href={url} />
+      <link rel="canonical" href={canonicalUrl} />
 
       {/* Open Graph Meta Tags */}
       <meta property="og:title" content={fullTitle} />
       <meta property="og:description" content={description} />
       <meta property="og:type" content={type} />
-      <meta property="og:url" content={url} />
-      <meta property="og:image" content={image} />
+      <meta property="og:url" content={canonicalUrl} />
+      <meta property="og:image" content={image.startsWith('http') ? image : `${siteUrl}${image}`} />
       <meta property="og:image:width" content="1200" />
       <meta property="og:image:height" content="630" />
       <meta property="og:site_name" content="Obsidian Rite Records" />

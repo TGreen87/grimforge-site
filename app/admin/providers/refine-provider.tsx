@@ -24,6 +24,14 @@ import { dataProvider } from "./data-provider";
 
 const resources = [
   {
+    name: "dashboard",
+    list: "/admin/dashboard",
+    meta: {
+      label: "Dashboard",
+      icon: <DashboardOutlined />,
+    },
+  },
+  {
     name: "products",
     list: "/admin/products",
     create: "/admin/products/create",

@@ -1,7 +1,6 @@
 import { redirect } from 'next/navigation'
 
 export default function AdminIndexPage() {
-  // Default landing for /admin → products
-  redirect('/admin/products')
+  // Default landing for /admin → dashboard
+  redirect('/admin/dashboard')
 }
-

@@ -15,8 +15,8 @@ export function OrganizationJsonLd({
   url = process.env.NEXT_PUBLIC_SITE_URL || process.env.SITE_URL_STAGING,
   logo = `${url}/logo.png`,
   sameAs = [
-    'https://www.instagram.com/obsidianriterecords',
-    'https://www.facebook.com/obsidianriterecords'
+    'https://www.instagram.com/obsidianriterecords/',
+    'https://www.facebook.com/scruffylikestoast'
   ]
 }: OrganizationJsonLdProps = {}) {
   const schema: WithContext<Organization> = {

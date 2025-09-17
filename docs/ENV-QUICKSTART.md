@@ -1,6 +1,6 @@
 # Environment Quickstart (Branch Deploys + Local)
 
-Last modified: 2025-09-15
+Last modified: 2025-09-17
 
 This guide lists the environment variables required to run the site on Netlify Branch Deploys (dev) and locally. Never commit secrets.
 
@@ -35,7 +35,11 @@ Key references
    - `NEXT_PUBLIC_SITE_URL` is set to the Branch URL (recommended)
    - Supabase URL/ANON/SERVICE flags show “yes”
 2) Shipping API (optional): `POST /api/shipping/quote` returns either AusPost options (configured:true) or Stripe static fallback (configured:false).
-3) Checkout API: `POST /api/checkout` returns 200 with `{ checkoutUrl }` when `STRIPE_SECRET_KEY` and service role are present; otherwise it returns 500.
+3) Checkout API: `POST /api/checkout` returns 200 with `{ checkoutUrl }` when `STRIPE_SECRET_KEY` and service role are present; otherwise it returns 500. For dev, add the provided temporary key to Netlify (`STRIPE_SECRET_KEY=sk_live_...YYv`) and remove it after testing.
+
+### Supabase account sanity check
+- The shared admin/customer login `codex@greenaiautomation.ai` exists in `auth.users` with id `3355eb56-1519-4a64-9bc1-a1d0bd21bc19` and carries the `admin` role in `public.user_roles`.
+- There is currently no dedicated `customers` table; storefront logins rely on Supabase Auth only. If a separate customer profile table is added later, seed it alongside the auth user.
 
 ## Troubleshooting Map
 - Product slug `/products/{slug}` 500 with data present:
@@ -52,4 +56,3 @@ Key references
   BASE_URL=https://dev--obsidianriterecords.netlify.app npm run test:puppeteer
   ```
   Saves screenshots to `docs/qa-screenshots/`.
-

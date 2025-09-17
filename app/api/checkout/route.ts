@@ -12,6 +12,19 @@ export async function POST(req: NextRequest) {
     const quantity: number | undefined = body?.quantity
     const items: Array<{ variant_id: string; quantity: number }> | undefined = Array.isArray(body?.items) ? body.items : undefined
 
+    const customerInput = (body?.customer && typeof body.customer === 'object') ? body.customer as Record<string, unknown> : {}
+    const rawEmail = typeof body?.email === 'string' && body.email.trim().length > 0
+      ? body.email
+      : typeof customerInput?.email === 'string' && (customerInput.email as string).trim().length > 0
+      ? (customerInput.email as string)
+      : undefined
+
+    if (!rawEmail) {
+      return NextResponse.json({ error: 'Customer email is required' }, { status: 400 })
+    }
+
+    const customerEmail = rawEmail.trim().toLowerCase()
+
     // Validate input
     if (!variant_id || !quantity || quantity < 1) {
       return NextResponse.json(
@@ -22,6 +35,61 @@ export async function POST(req: NextRequest) {
 
     // Initialize Supabase service client (bypasses RLS)
     const supabase = createServiceClient()
+
+    // Upsert customer profile
+    const customerProfile = {
+      first_name: typeof customerInput?.first_name === 'string' ? (customerInput.first_name as string) : null,
+      last_name: typeof customerInput?.last_name === 'string' ? (customerInput.last_name as string) : null,
+      phone: typeof customerInput?.phone === 'string' ? (customerInput.phone as string) : null,
+      shipping_address: typeof customerInput?.shipping_address === 'object' && customerInput.shipping_address !== null
+        ? customerInput.shipping_address
+        : (typeof body?.shipping_address === 'object' ? body.shipping_address : null),
+      billing_address: typeof customerInput?.billing_address === 'object' && customerInput.billing_address !== null
+        ? customerInput.billing_address
+        : null,
+      marketing_opt_in: typeof customerInput?.marketing_opt_in === 'boolean' ? customerInput.marketing_opt_in : false,
+      notes: typeof customerInput?.notes === 'string' ? (customerInput.notes as string) : null,
+    }
+
+    const { data: existingCustomer } = await supabase
+      .from('customers')
+      .select('id')
+      .eq('email', customerEmail)
+      .maybeSingle()
+
+    let customerId: string | null = existingCustomer?.id ?? null
+
+    if (customerId) {
+      await supabase
+        .from('customers')
+        .update({
+          ...customerProfile,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', customerId)
+    } else {
+      const { data: insertedCustomer, error: insertCustomerError } = await supabase
+        .from('customers')
+        .insert({
+          email: customerEmail,
+          ...customerProfile,
+        })
+        .select('id')
+        .single()
+
+      if (insertCustomerError) {
+        await writeAuditLog(
+          createPaymentAuditLog({
+            eventType: 'checkout.customer_upsert_failed',
+            error: insertCustomerError.message,
+            metadata: { email: customerEmail },
+          })
+        )
+        return NextResponse.json({ error: 'Failed to create customer profile' }, { status: 500 })
+      }
+
+      customerId = insertedCustomer?.id ?? null
+    }
 
     // Helper to fetch a single variant with product+inventory
     const fetchVariant = async (vid: string) => {
@@ -92,21 +160,31 @@ export async function POST(req: NextRequest) {
     const subtotal = orderItems.reduce((s, it) => s + (it.v.price * it.qty), 0)
     const total = subtotal // Tax and shipping will be calculated by Stripe
 
+    const orderMetadataBase: Record<string, unknown> = {
+      items: orderItems.map((it) => ({ variant_id: it.v.id, quantity: it.qty })),
+      created_via: 'api',
+      customer: {
+        email: customerEmail,
+        first_name: customerProfile.first_name,
+        last_name: customerProfile.last_name,
+        phone: customerProfile.phone,
+      },
+      shipping: typeof customerProfile.shipping_address === 'object' ? customerProfile.shipping_address : undefined,
+    }
+
     const { data: order, error: orderError } = await supabase
       .from('orders')
       .insert({
         id: uuidv4(),
         order_number: orderNumber,
-        email: '', // Will be filled by Stripe
+        email: customerEmail,
+        customer_id: customerId,
         status: 'pending',
         payment_status: 'pending',
         subtotal,
         total,
         currency: STRIPE_CONFIG.currency,
-        metadata: {
-          items: orderItems.map((it) => ({ variant_id: it.v.id, quantity: it.qty })),
-          created_via: 'api',
-        },
+        metadata: orderMetadataBase,
       })
       .select()
       .single()
@@ -215,7 +293,6 @@ export async function POST(req: NextRequest) {
           allowed_countries: STRIPE_CONFIG.allowedCountries,
         },
         shipping_options: shippingOptions,
-        customer_email: undefined, // Let Stripe collect this
         billing_address_collection: 'required',
         phone_number_collection: {
           enabled: true,
@@ -226,6 +303,7 @@ export async function POST(req: NextRequest) {
           order_id: order.id,
           items: JSON.stringify(orderItems.map(it => ({ variant_id: it.v.id, quantity: it.qty }))),
         },
+        customer_email: customerEmail,
         payment_intent_data: {
           metadata: {
             order_id: order.id,
@@ -245,6 +323,7 @@ export async function POST(req: NextRequest) {
       .from('orders')
       .update({
         stripe_session_id: session.id,
+        stripe_payment_intent_id: typeof session.payment_intent === 'string' ? session.payment_intent : null,
         metadata: {
           ...((order as any).metadata && typeof (order as any).metadata === 'object' && !Array.isArray((order as any).metadata)
             ? ((order as any).metadata as Record<string, unknown>)
