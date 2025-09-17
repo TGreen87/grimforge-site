@@ -1,4 +1,5 @@
 import { createServiceClient } from '@/lib/supabase/server'
+import { getStripe } from '@/lib/stripe'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
@@ -114,10 +115,54 @@ async function fetchLowStock(): Promise<InventoryRecord[]> {
   })
 }
 
+interface StripePayoutSummary {
+  available: number
+  pending: number
+  currency: string
+  nextPayout?: Date | null
+  error?: string | null
+}
+
+async function fetchStripePayoutSummary(): Promise<StripePayoutSummary | null> {
+  const secretConfigured = process.env.STRIPE_SECRET_KEY_1 || process.env.STRIPE_SECRET_KEY
+  if (!secretConfigured) return null
+
+  try {
+    const stripe = getStripe()
+    const [balance, payouts] = await Promise.all([
+      stripe.balance.retrieve(),
+      stripe.payouts.list({ limit: 1 }),
+    ])
+
+    const availableAmount = balance.available.reduce((sum, entry) => sum + (entry.amount || 0), 0)
+    const pendingAmount = balance.pending.reduce((sum, entry) => sum + (entry.amount || 0), 0)
+    const currency = (balance.available[0]?.currency || balance.pending[0]?.currency || 'aud').toUpperCase()
+    const next = payouts.data?.[0]?.arrival_date ? new Date(payouts.data[0].arrival_date * 1000) : null
+
+    return {
+      available: availableAmount / 100,
+      pending: pendingAmount / 100,
+      currency,
+      nextPayout: next,
+    }
+  } catch (error) {
+    console.error('Stripe balance lookup failed', error)
+    const message = error instanceof Error ? error.message : 'Unable to fetch Stripe payouts'
+    return {
+      available: 0,
+      pending: 0,
+      currency: 'AUD',
+      nextPayout: null,
+      error: message,
+    }
+  }
+}
+
 export default async function AdminDashboardPage() {
-  const [summary, lowStock] = await Promise.all([
+  const [summary, lowStock, stripePayout] = await Promise.all([
     fetchOrderSummary(),
     fetchLowStock(),
+    fetchStripePayoutSummary(),
   ])
 
   return (
@@ -168,13 +213,47 @@ export default async function AdminDashboardPage() {
             <p className="text-xs text-muted-foreground">Orders not yet paid</p>
           </CardContent>
         </Card>
+      <Card>
+        <CardHeader>
+          <CardTitle>Low stock alerts</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-3xl font-semibold">{lowStock.length}</p>
+          <p className="text-xs text-muted-foreground">Variants with ≤ 5 units available</p>
+        </CardContent>
+      </Card>
+      </section>
+
+      <section className="grid gap-4 md:grid-cols-2">
         <Card>
           <CardHeader>
-            <CardTitle>Low stock alerts</CardTitle>
+            <CardTitle>Stripe payouts</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-3xl font-semibold">{lowStock.length}</p>
-            <p className="text-xs text-muted-foreground">Variants with ≤ 5 units available</p>
+            {stripePayout === null ? (
+              <p className="text-sm text-muted-foreground">
+                Connect your Stripe publishable key and secret key to see payout information.
+              </p>
+            ) : stripePayout.error ? (
+              <p className="text-sm text-destructive">{stripePayout.error}</p>
+            ) : (
+              <div className="space-y-2 text-sm">
+                <div className="flex items-baseline gap-2">
+                  <span className="text-xs text-muted-foreground">Available</span>
+                  <span className="text-2xl font-semibold">{stripePayout.currency} {stripePayout.available.toFixed(2)}</span>
+                </div>
+                <div className="flex items-baseline gap-2">
+                  <span className="text-xs text-muted-foreground">Pending</span>
+                  <span className="text-base">{stripePayout.currency} {stripePayout.pending.toFixed(2)}</span>
+                </div>
+                <div className="text-xs text-muted-foreground">
+                  Next payout: {stripePayout.nextPayout ? format(stripePayout.nextPayout, 'dd MMM yyyy') : 'None scheduled'}
+                </div>
+                <div className="text-xs text-muted-foreground">
+                  Manage payouts in Stripe → <a className="underline" href="https://dashboard.stripe.com/payouts" target="_blank" rel="noreferrer">dashboard</a>
+                </div>
+              </div>
+            )}
           </CardContent>
         </Card>
       </section>

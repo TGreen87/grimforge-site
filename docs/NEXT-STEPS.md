@@ -160,7 +160,7 @@ The following tasks track the broader “customers + orders + dashboard” initi
 3. **Admin dashboard**
    - [x] Add `/admin/dashboard` with KPI cards, recent orders, low-stock alerts, and quick actions.
    - [x] Redirect `/admin` to the dashboard and register it inside Refine resources/navigation.
-   - [ ] Layer Stripe payout status widget once webhooks or Stripe balance endpoints are connected.
+   - [x] Layer Stripe payout status widget once webhooks or Stripe balance endpoints are connected. *(Dashboard now reads Stripe balance/payouts when keys are configured.)*
 
 4. **Asset hygiene**
    - [x] Add `icon-192.png`, `icon-512.png`, `og-image.jpg`; update manifests to reference them.
