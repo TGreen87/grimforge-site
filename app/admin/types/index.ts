@@ -152,6 +152,7 @@ export interface AdminUser {
 
 // Form types for create/edit operations
 export interface ProductFormValues {
+  slug?: string;
   title: string;
   artist: string;
   description?: string;
