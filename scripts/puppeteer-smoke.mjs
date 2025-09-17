@@ -198,6 +198,15 @@ async function run() {
         await new Promise(r => setTimeout(r, 1500));
         log('Admin login submit', true);
 
+        try {
+          await page.goto(BASE_URL.replace(/\/$/, '') + '/admin/dashboard', { waitUntil: 'domcontentloaded' });
+          await page.waitForSelector('h1.blackletter', { timeout: TIMEOUT_MS }).catch(()=>{});
+          log('Admin dashboard renders', true);
+          await shot('admin-dashboard.png');
+        } catch (dashError) {
+          log('Admin dashboard renders', false, String(dashError));
+        }
+
         // Create product (idempotent if slug exists)
         const slug = 'test-vinyl-dark-rituals';
         await page.goto(BASE_URL.replace(/\/$/, '') + '/admin/products/create', { waitUntil: 'domcontentloaded' });

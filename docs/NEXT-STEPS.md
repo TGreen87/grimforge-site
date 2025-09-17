@@ -149,7 +149,7 @@ The following tasks track the broader “customers + orders + dashboard” initi
 1. **Stripe checkout parity**
    - [x] Re-run `/api/checkout` on dev after deployment and log the exact Stripe error (Stripe dashboard → Developers → Logs). Update the API handler with clearer error handling once confirmed. *(Success 2025-09-17: session `cs_live_a1LlsOXf9iakoACtZ1exIanmoDu3qB7pizLC3Pz6qCyc6LP6YBJ0xXwpct` returned 200; API now surfaces `detail` on failure.)*
    - [ ] Add Stripe publishable key (`NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`) when available; thread it into the cart modal so the email field can pre-populate.
-   - [ ] Create a doc snippet in `docs/ENV-QUICKSTART.md` that explains how to rotate Stripe keys safely (already partially done—add screenshots once available).
+   - [x] Create a doc snippet in `docs/ENV-QUICKSTART.md` that explains how to rotate Stripe keys safely (already partially done—add screenshots once available).
 
 2. **Customers & orders**
    - [x] Create `customers`, `orders`, and `order_items` tables with RLS + service-role policies.

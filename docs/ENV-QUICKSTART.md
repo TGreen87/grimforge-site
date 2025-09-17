@@ -14,6 +14,7 @@ Key references
 - `NEXT_PUBLIC_SUPABASE_ANON_KEY` — Public anon key
 - `SUPABASE_SERVICE_ROLE_KEY` (or `SUPABASE_SERVICE_ROLE`) — Server-side operations (e.g., `/api/checkout`)
 - `STRIPE_SECRET_KEY` — Enables Stripe Checkout session creation
+- `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` — (Optional until wallet support enabled) Publishable key used by the cart modal; rotate alongside the secret.
 
 ## Recommended
 - `NEXT_PUBLIC_SITE_URL` — Set to the Branch Deploy URL for dev (e.g., `https://dev--obsidianriterecords.netlify.app`)
@@ -36,6 +37,13 @@ Key references
    - Supabase URL/ANON/SERVICE flags show “yes”
 2) Shipping API (optional): `POST /api/shipping/quote` returns either AusPost options (configured:true) or Stripe static fallback (configured:false).
 3) Checkout API: `POST /api/checkout` returns 200 with `{ checkoutUrl }` when `STRIPE_SECRET_KEY` and service role are present; otherwise it returns 500. For dev, add the provided temporary key to Netlify (`STRIPE_SECRET_KEY=sk_live_...YYv`) and remove it after testing.
+
+### Stripe key rotation
+1. Create a new secret + publishable key pair from the Stripe dashboard (Developers → API keys).
+2. Update Netlify env (`STRIPE_SECRET_KEY`, `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`) and redeploy `dev`.
+3. Update local `.env.local` and run `npm run type-check` to ensure the build still succeeds.
+4. Re-run `/api/checkout` (see checklist) and capture the Stripe session ID in `docs/NEXT-STEPS.md` for traceability.
+5. Once confirmed, revoke the old secret key in Stripe.
 
 ### Supabase account sanity check
 - The shared admin/customer login `codex@greenaiautomation.ai` exists in `auth.users` with id `3355eb56-1519-4a64-9bc1-a1d0bd21bc19` and carries the `admin` role in `public.user_roles`.
