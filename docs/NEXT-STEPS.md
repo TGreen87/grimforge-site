@@ -174,10 +174,10 @@ The following tasks track the broader “customers + orders + dashboard” initi
    - [ ] Capture “owner-ready” walkthrough screenshots for the dashboard and attach to `docs/ADMIN-VISUALS-RFC.md`.
 
 6. **QA & automation**
-   - [ ] Update Puppeteer smoke to exercise the dashboard quick actions (navigate to `/admin/dashboard`, confirm cards render, take screenshot `admin-dashboard.png`).
+   - [x] Update Puppeteer smoke to exercise the dashboard quick actions (navigate to `/admin/dashboard`, confirm cards render, take screenshot `admin-dashboard.png`).
    - [ ] Extend smoke checkout to assert Stripe session creation once the API succeeds and capture Stripe landing page.
 
 7. **Future enhancements backlog**
-   - [ ] Implement customer history view (orders + notes) under `/admin/customers` pulling from the new tables.
+   - [x] Implement customer history view (orders + notes) under `/admin/customers` pulling from the new tables.
    - [ ] Add AusPost variables once provided and confirm the checkout modal can select live rates.
    - [ ] Wire Stripe webhooks to update `orders.status` / `payment_status` automatically.
