@@ -45,6 +45,10 @@ Purpose: Improve daily admin usability and clarity with consistent theme tokens,
 - In-table toggles: Active on/off; quick price edit; quick stock adjust (Receive dialog).
 - Receive dialog: show SKU, explain “Available (calculated)”.
 
+## Dashboard Snapshot
+- `/admin/dashboard` now opens with KPI cards, Stripe payout summary (when keys configured), recent orders, and low-stock alerts. Reference screenshot: `docs/qa-screenshots/admin-dashboard.png`.
+- Quick actions (Add product, View orders, Receive stock) sit in the header; ensure future visual updates keep these primary actions above the fold.
+
 ## Acceptance Criteria
 - Products, Stock Units, Inventory, Orders adopt tokens and density.
 - Visual hierarchy improved; zebra rows available on long tables.
@@ -58,4 +62,3 @@ Purpose: Improve daily admin usability and clarity with consistent theme tokens,
 
 ## Rollback
 - All changes are theme/config and scoped UI props; easy to revert by removing tokens or per-page options.
-

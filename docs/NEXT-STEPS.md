@@ -171,7 +171,7 @@ The following tasks track the broader “customers + orders + dashboard” initi
    - [x] Update `docs/ENV-QUICKSTART.md` with Stripe + customer notes.
    - [x] Expand `docs/SUPABASE-SEED.md` with the demo customer/order seed.
    - [x] Refresh `docs/ADMIN-WORKFLOWS.md` to cover the new dashboard experience.
-   - [ ] Capture “owner-ready” walkthrough screenshots for the dashboard and attach to `docs/ADMIN-VISUALS-RFC.md`.
+   - [x] Capture “owner-ready” walkthrough screenshots for the dashboard and attach to `docs/ADMIN-VISUALS-RFC.md`.
 
 6. **QA & automation**
    - [x] Update Puppeteer smoke to exercise the dashboard quick actions (navigate to `/admin/dashboard`, confirm cards render, take screenshot `admin-dashboard.png`).
