@@ -95,3 +95,4 @@ This guide explains the key concepts in the admin and the typical flows.
 ## CSV Export
 - Products: toolbar → Export CSV (products.csv) honoring visible rows.
 - Inventory: toolbar → Export CSV (inventory.csv).
+- Checkout captures customer profiles (shipping address, marketing opt-in); review them in `/admin/customers` alongside total spend and notes.
