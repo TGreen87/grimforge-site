@@ -158,6 +158,45 @@ Status:
 - Acceptance:
   - Mobile pages have no overflow; tap targets are accessible; layout feels consistent across sections.
 
+### Phase 12 — Admin Dashboard Enhancements 2.0
+- Goals: keep the owner focused on fulfilment, trends, and automation.
+- Tasks:
+  - Revenue goal tracking card with configurable targets.
+  - Order timeline view with audit log integration (status + payment + notes).
+  - Bulk order actions (mark shipped/cancelled) with packing slip generator (AusPost labels when keys available).
+  - Slack/email webhook notifications for high-value orders and failed payouts.
+  - Announcement history/log with version restore.
+- Acceptance:
+  - Dashboard surfaces actionable alerts (awaiting fulfilment, stock, payouts) with owner-configurable thresholds.
+  - Order timeline shows chronological audit entries; bulk actions update rows and audit logs.
+  - Packing slip PDF renders for single/bulk orders.
+  - Notification hooks documented with toggle in admin settings.
+
+### Phase 13 — Storefront Visual Refresh (see `docs/SITE-VISUALS-RFC.md`)
+- Goals: deliver immersive, performant storefront experience aligned with black-metal brand.
+- Tasks:
+  - Motion-ready hero/campaign system w/ Supabase-backed presets.
+  - Catalog quick actions (Add to cart, wishlist) + filter chip bar.
+  - Lightbox gallery + sticky buy module + social proof blocks on product detail.
+  - Storytelling sections (label timeline, testimonials, newsletter footer).
+  - Checkout sheet UX with wallet buttons and shipping timeline.
+- Acceptance:
+  - Owner can configure hero + campaign blocks via admin without code.
+  - Catalog/product flows pass aXe accessibility checks and maintain Core Web Vitals.
+  - Checkout shows wallet options (once publishable key present) and reduces steps vs. current modal.
+
+### Phase 14 — Third-Party Integrations & Automation
+- Goals: leverage trusted libraries/services to accelerate UX polish without reinventing the wheel.
+- Tasks:
+  - Integrate `framer-motion` for motion primitives; standardize animation tokens.
+  - Adopt `auto-animate` or similar for lightweight list transitions.
+  - Evaluate headless CMS or Supabase storage tooling for owner-friendly media management.
+  - Hook into Slack/email for ops alerts; prepare analytics pipeline (Plausible or Vercel Analytics).
+- Acceptance:
+  - Motion and animation utilities shared across admin + site components with reduced code duplication.
+  - Third-party services documented (env vars, rollback) in `docs/ENV-QUICKSTART.md` + relevant RFCs.
+  - Ops alerts tested via staging events; analytics dashboards configured.
+
 ## Rollback
 - Netlify: reset Node to previous major if a runtime regression appears; rebuild branch.
 - App: feature toggles for bulk tools; revert specific commits on `dev` to stabilize.

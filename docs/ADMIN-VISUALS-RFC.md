@@ -49,6 +49,13 @@ Purpose: Improve daily admin usability and clarity with consistent theme tokens,
 - `/admin/dashboard` now opens with KPI cards, Stripe payout summary (when keys configured), recent orders, and low-stock alerts. Reference screenshot: `docs/qa-screenshots/admin-dashboard.png`.
 - Quick actions (Add product, View orders, Receive stock) sit in the header; ensure future visual updates keep these primary actions above the fold.
 
+### Upcoming Dashboard Enhancements
+- Revenue goal card with editable targets + 7/30 day comparison.
+- Alert tiles configurable by owner (awaiting fulfilment threshold, low stock threshold).
+- Announcement history drawer with version restore.
+- Timeline widget previewing recent audit events.
+- Slack/email alert toggles surfaced in header quick actions (pending secrets).
+
 ## Acceptance Criteria
 - Products, Stock Units, Inventory, Orders adopt tokens and density.
 - Visual hierarchy improved; zebra rows available on long tables.

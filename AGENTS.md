@@ -1,12 +1,12 @@
 # Codex Agent Playbook — grimforge-site
 
-_Last updated: 2025-09-16_
+_Last updated: 2025-09-18_
 
 ## Project Snapshot
 - Stack: Next.js 15 App Router, TypeScript, Tailwind, Refine/AntD admin, Stripe, Supabase.
 - Working branch: `dev` (single branch workflow). Production deploy happens only after the owner says “Go live on main”.
 - Branch deploy URL: https://dev--obsidianriterecords.netlify.app.
-- Primary docs: `docs/IMPLEMENTATION-PLAN.md`, `docs/NEXT-STEPS.md`, `docs/QA-CHECKLIST.md`, `docs/SUPABASE-SEED.md`.
+- Primary docs: `docs/IMPLEMENTATION-PLAN.md`, `docs/NEXT-STEPS.md`, `docs/SITE-VISUALS-RFC.md`, `docs/ADMIN-VISUALS-RFC.md`, `docs/QA-CHECKLIST.md`, `docs/SUPABASE-SEED.md`.
 
 ## Operating Rules
 - Always plan first (`update_plan`) when work spans multiple steps; exactly one step may be `in_progress`.
@@ -27,16 +27,16 @@ _Last updated: 2025-09-16_
 - **Local validation**: `npm run type-check`, `npm run build`. Use seeded Supabase data when testing `/products/[slug]`.
 
 ## Current Dev Highlights
-- Product slug page now renders through a dedicated client block (`app/(site)/products/[slug]/variant-client-block.tsx`).
-- Legal route group added under `app/(site)/legal/*` so footer links resolve (shipping, returns, size-guide, care, contact, privacy, terms).
-- Puppeteer smoke script updated to wait for hydration and network idle requests; screenshots refreshed 2025-09-16.
-- Netlify build clean on `dev`; branch product slug responds 200 with price/CTA.
+- Admin dashboard upgraded with KPI cards, revenue/low-stock charts, needs fulfilment panel, announcement editor, and CSV exports.
+- Customers/orders schema now persists checkout data; Stripe webhook handler syncs payment status.
+- Supabase functions `orders_revenue_series` and `inventory_low_stock_trend` power dashboard analytics.
+- Smoke automation (`npm run test:puppeteer`) covers public routes + admin login; screenshots stored in `docs/qa-screenshots/`.
 
 ## Active TODOs (see `docs/NEXT-STEPS.md` for detail)
-- Polish catalog cards (skeletons, accessibility) and sitemap slug coverage.
-- Expand puppeteer smoke to cover cart/checkout once seeded data + credentials prepared.
-- Review and refine legal copy for production tone.
-- Continue admin UX polish (bulk actions, accessibility).
+- Dashboard 2.0: order timeline, bulk actions + packing slips, alert thresholds, announcement history, Slack/email hooks.
+- Storefront visual refresh: motion-ready hero, catalog quick actions, product lightbox + sticky purchase module, storytelling blocks.
+- Third-party integrations: framer-motion, auto-animate, Slack webhooks, image hosting decision.
+- Automation & QA: extend puppeteer for dashboard workflows, add Vitest coverage for analytics RPCs, schedule Lighthouse/aXe runs once visual refresh lands.
 
 ## When Starting a Session
 1. Skim `docs/NEXT-STEPS.md` for the latest backlog and `docs/SESSION-*.md` for context.
