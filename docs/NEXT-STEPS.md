@@ -14,7 +14,7 @@ This backlog captures the active workstreams after the dashboard revamp. Everyth
 1. **Admin Dashboard 2.0 groundwork**
    - [x] Design order timeline data shape (extend `audit_logs`, add service calls for events).
    - [x] Add bulk order status mutation endpoint + packing slip generator scaffold.
-   - [ ] Add bulk cancel/refund flows with audit logs and optional customer notifications.
+   - [x] Add bulk cancel/refund flows with audit logs and optional customer notifications (email notification stub pending).
    - [x] Instrument configurable alert thresholds (awaiting fulfilment, low stock) in Supabase + expose on dashboard.
 2. **Storefront visual scaffolding**
    - [x] Introduce motion utilities (`framer-motion`) and shared animation tokens.

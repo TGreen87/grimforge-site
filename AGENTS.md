@@ -14,6 +14,7 @@ _Last updated: 2025-09-18_
 - Branch deploy is the QA surface. After every meaningful push, verify the Netlify deploy.
 - Keep secrets out of the repo. Runtime env vars live in Netlify / local `.env.local` (see `docs/ENV-QUICKSTART.md`).
 - Default to automation: if the backlog already calls out work, execute the next safe step instead of asking the owner for direction.
+- Stay heads-down until a slice is complete: do not pause for handoff unless blocked or ready to report significant progress.
 
 ## Environment Checklist
 - Required: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `STRIPE_SECRET_KEY`, `NEXT_PUBLIC_SITE_URL`.
@@ -31,6 +32,8 @@ _Last updated: 2025-09-18_
 - Customers/orders schema now persists checkout data; Stripe webhook handler syncs payment status.
 - Supabase functions `orders_revenue_series` and `inventory_low_stock_trend` power dashboard analytics.
 - Smoke automation (`npm run test:puppeteer`) covers public routes + admin login; screenshots stored in `docs/qa-screenshots/`.
+- Bulk cancel/refund tooling and PDF packing slips live; admin settings control alert thresholds + Slack webhook.
+- Campaign-driven hero available behind `NEXT_PUBLIC_FEATURE_HERO_CAMPAIGN` flag (legacy hero as fallback).
 
 ## Active TODOs (see `docs/NEXT-STEPS.md` for detail)
 - Dashboard 2.0: order timeline, bulk actions + packing slips, alert thresholds, announcement history, Slack/email hooks.
