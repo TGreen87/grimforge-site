@@ -16,6 +16,7 @@ Purpose: Track the roadmap for elevating the public storefront (non-admin) exper
 - Motion-ready hero with audio waveform/particle background (prefers-reduced-motion safe).
 - Dual CTA stack (Listen / Buy) with mobile thumb-friendly layout.
 - Configurable hero presets stored in Supabase (`campaigns` table) with owner controls in admin.
+- ✅ Supabase `campaigns` table + admin CRUD shipped (feature flag `NEXT_PUBLIC_FEATURE_HERO_CAMPAIGN`).
 - Optional spotlight carousel for new releases (Embla carousel + framer-motion transitions).
 
 ### 2. Catalog Browsing
@@ -79,4 +80,3 @@ Purpose: Track the roadmap for elevating the public storefront (non-admin) exper
 ## Tracking
 - Detailed tasks maintained in `docs/NEXT-STEPS.md` (Immediate) and `docs/IMPLEMENTATION-PLAN.md` (Phased).
 - QA proof captured in `docs/qa-screenshots/` and future session logs.
-

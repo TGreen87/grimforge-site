@@ -1,6 +1,6 @@
 // Server component wrapper to allow route segment options
 
-import HeroSection from '@/components/HeroSection'
+import CampaignHero from '@/components/CampaignHero'
 import ProductCatalog from '@/components/ProductCatalog'
 import PreOrderSection from '@/components/PreOrderSection'
 import GrimoireSection from '@/components/GrimoireSection'
@@ -12,7 +12,8 @@ export const revalidate = 0
 export default function HomePage() {
   return (
     <>
-      <HeroSection />
+      {/* Feature-flagged hero; falls back to legacy hero when disabled */}
+      <CampaignHero />
       <ProductCatalog />
       <div className="container mx-auto px-4 py-16">
         <RecommendationEngine />

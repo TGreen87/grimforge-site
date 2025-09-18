@@ -25,6 +25,8 @@ Key references
 - `AUSPOST_API_KEY`, `AUSPOST_ORIGIN_POSTCODE` — Enables live AusPost quotes; otherwise we return Stripe static rates
 - `ADMIN_SETUP_TOKEN` — Needed for `/api/admin/setup` bootstrap endpoint
 - `NEXT_PUBLIC_ENABLE_ADMIN_BULK` — Feature flag for admin bulk tooling
+- `NEXT_PUBLIC_FEATURE_HERO_CAMPAIGN` — Feature flag for the campaign-driven storefront hero (set to `1` to enable)
+- `SLACK_OPS_WEBHOOK` (future) — if populated, Slack notifications for fulfilment alerts can be toggled in admin settings
 
 ## Where to set them
 - Netlify Site settings → Environment variables → add at “All deploy contexts”, so Branch Deploys inherit them.

@@ -77,6 +77,14 @@ interface StripePayoutSummary {
   error?: string | null
 }
 
+interface AdminSettings {
+  dashboard_alerts: {
+    awaiting_fulfilment_threshold: number
+    low_stock_threshold: number
+    enable_dashboard_alerts?: boolean
+  }
+}
+
 function sumPaid(series: RevenuePoint[]) {
   return series.reduce((sum, point) => sum + Number(point.paid_total ?? 0), 0)
 }
@@ -246,6 +254,36 @@ async function fetchAnnouncement(): Promise<AnnouncementRecord | null> {
   }
 }
 
+async function fetchAdminSettings(): Promise<AdminSettings> {
+  const supabase = createServiceClient()
+  const { data } = await supabase
+    .from('admin_settings')
+    .select('key, value')
+    .in('key', ['dashboard_alerts'])
+
+  const defaults = {
+    dashboard_alerts: {
+      awaiting_fulfilment_threshold: 3,
+      low_stock_threshold: 5,
+      enable_dashboard_alerts: true,
+    },
+  }
+
+  if (!data) return defaults
+
+  for (const row of data) {
+    if (row.key === 'dashboard_alerts' && row.value) {
+      defaults.dashboard_alerts = {
+        awaiting_fulfilment_threshold: Number((row.value as any)?.awaiting_fulfilment_threshold ?? 3),
+        low_stock_threshold: Number((row.value as any)?.low_stock_threshold ?? 5),
+        enable_dashboard_alerts: Boolean((row.value as any)?.enable_dashboard_alerts ?? true),
+      }
+    }
+  }
+
+  return defaults
+}
+
 function formatCurrency(amount: number, currency = 'AUD') {
   if (!Number.isFinite(amount)) return '—'
   return new Intl.NumberFormat('en-AU', { style: 'currency', currency }).format(amount)
@@ -274,17 +312,19 @@ const EXPORT_TARGETS: Array<{
 ]
 
 export default async function AdminDashboardPage() {
-  const [summary, lowStock, stripePayout, revenueSeries30, lowStockTrend, announcement] = await Promise.all([
+  const [summary, lowStock, stripePayout, revenueSeries30, lowStockTrend, announcement, adminSettings] = await Promise.all([
     fetchOrderSummary(),
     fetchLowStock(),
     fetchStripePayoutSummary(),
     fetchRevenueSeries(30),
     fetchLowStockTrend(21),
     fetchAnnouncement(),
+    fetchAdminSettings(),
   ])
 
   const revenueStats = computeRevenueChange(revenueSeries30)
   const revenueSeries7 = revenueSeries30.slice(-7)
+  const alertsConfig = adminSettings.dashboard_alerts
 
   return (
     <section className="space-y-8">
@@ -381,6 +421,9 @@ export default async function AdminDashboardPage() {
               awaitingFulfillment={summary.awaitingFulfillment}
               lowStockCount={lowStock.length}
               pendingPaymentCount={summary.pendingOrders}
+              fulfilmentThreshold={alertsConfig.awaiting_fulfilment_threshold}
+              lowStockThreshold={alertsConfig.low_stock_threshold}
+              alertsEnabled={alertsConfig.enable_dashboard_alerts !== false}
             />
           </CardContent>
         </Card>

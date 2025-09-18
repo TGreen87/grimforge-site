@@ -16,7 +16,8 @@ import {
   FileTextOutlined,
   TagsOutlined,
   DashboardOutlined,
-  NotificationOutlined
+  NotificationOutlined,
+  SettingOutlined
 } from "@ant-design/icons";
 import "@refinedev/antd/dist/reset.css";
 
@@ -40,6 +41,14 @@ const resources = [
     meta: {
       label: "Campaigns",
       icon: <NotificationOutlined />,
+    },
+  },
+  {
+    name: "settings",
+    list: "/admin/settings",
+    meta: {
+      label: "Settings",
+      icon: <SettingOutlined />,
     },
   },
   {

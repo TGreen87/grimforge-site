@@ -94,6 +94,13 @@ export default function AdminKbarActions() {
       section: "Navigate",
       perform: () => { try { localStorage.setItem("admin:view:campaigns", "cards"); } catch {}; router.push("/admin/campaigns"); },
     },
+    {
+      id: "admin-settings",
+      name: "Admin Settings",
+      shortcut: ["g", "s"],
+      section: "Navigate",
+      perform: () => router.push('/admin/settings'),
+    },
   ];
 
   useRegisterActions(actions, []);

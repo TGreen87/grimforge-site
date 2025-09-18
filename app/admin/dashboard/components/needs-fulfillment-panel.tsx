@@ -10,9 +10,22 @@ interface Props {
   awaitingFulfillment: number
   lowStockCount: number
   pendingPaymentCount: number
+  fulfilmentThreshold?: number
+  lowStockThreshold?: number
+  alertsEnabled?: boolean
 }
 
-export default function NeedsFulfillmentPanel({ awaitingFulfillment, lowStockCount, pendingPaymentCount }: Props) {
+export default function NeedsFulfillmentPanel({
+  awaitingFulfillment,
+  lowStockCount,
+  pendingPaymentCount,
+  fulfilmentThreshold = 0,
+  lowStockThreshold = 0,
+  alertsEnabled = true,
+}: Props) {
+  const fulfilmentAlert = alertsEnabled && fulfilmentThreshold > 0 && awaitingFulfillment >= fulfilmentThreshold
+  const lowStockAlert = alertsEnabled && lowStockThreshold > 0 && lowStockCount >= lowStockThreshold
+
   const tasks: Array<{
     label: string
     count: number
@@ -24,18 +37,18 @@ export default function NeedsFulfillmentPanel({ awaitingFulfillment, lowStockCou
     {
       label: 'Ship paid orders',
       count: awaitingFulfillment,
-      description: 'Paid orders waiting for pick & pack',
+      description: fulfilmentAlert ? `Above threshold (${fulfilmentThreshold}). Prioritise pack & ship.` : 'Paid orders waiting for pick & pack',
       href: '/admin/orders?filter=paid',
       icon: <PackageCheck className="h-4 w-4" />,
-      tone: 'warning',
+      tone: fulfilmentAlert ? 'danger' : awaitingFulfillment > 0 ? 'warning' : 'default',
     },
     {
       label: 'Re-stock low inventory',
       count: lowStockCount,
-      description: 'Variants at or below the safety threshold',
+      description: lowStockAlert ? `Low stock exceeds threshold (${lowStockThreshold}). Reorder soon.` : 'Variants at or below the safety threshold',
       href: '/admin/inventory?filter=low-stock',
       icon: <Boxes className="h-4 w-4" />,
-      tone: 'danger',
+      tone: lowStockAlert ? 'danger' : lowStockCount > 0 ? 'warning' : 'default',
     },
     {
       label: 'Follow up pending payments',
@@ -43,7 +56,7 @@ export default function NeedsFulfillmentPanel({ awaitingFulfillment, lowStockCou
       description: 'Check on orders stuck before payment',
       href: '/admin/orders?filter=pending-payment',
       icon: <AlertTriangle className="h-4 w-4" />,
-      tone: 'warning',
+      tone: pendingPaymentCount > 0 ? 'warning' : 'default',
     },
   ]
 
@@ -59,7 +72,7 @@ export default function NeedsFulfillmentPanel({ awaitingFulfillment, lowStockCou
             <p className="text-xs text-muted-foreground">{task.description}</p>
           </div>
           <div className="flex items-center gap-2">
-            <div className={`text-lg font-semibold ${task.count > 0 ? 'text-rose-200' : 'text-muted-foreground'}`}>{task.count}</div>
+            <div className={`text-lg font-semibold ${task.tone === 'danger' ? 'text-rose-200' : task.tone === 'warning' ? 'text-amber-200' : 'text-muted-foreground'}`}>{task.count}</div>
             <Button asChild size="sm" variant="secondary" disabled={task.count === 0}>
               <Link href={task.href}>Review</Link>
             </Button>
