@@ -27,6 +27,8 @@ export default function AdminSettingsPage() {
   const [loading, setLoading] = React.useState(false);
   const [initialLoading, setInitialLoading] = React.useState(true);
   const router = useRouter();
+  const enableOpsAlerts = Form.useWatch(['slack', 'enable_ops_alerts'], form)
+  const opsWebhook = Form.useWatch(['slack', 'ops_alert_webhook'], form)
 
   React.useEffect(() => {
     let mounted = true;
@@ -127,6 +129,25 @@ export default function AdminSettingsPage() {
             </Button>
             <Button onClick={() => router.refresh()} disabled={loading}>
               Reset
+            </Button>
+            <Button
+              type="default"
+              disabled={!enableOpsAlerts || !opsWebhook}
+              onClick={() => {
+                message.loading({ content: 'Sending Slack test...', key: 'slack-test' })
+                fetch('/api/admin/settings/alerts/test', { method: 'POST' })
+                  .then(async (res) => {
+                    if (!res.ok) {
+                      throw new Error(await res.text())
+                    }
+                    message.success({ content: 'Slack test alert sent', key: 'slack-test' })
+                  })
+                  .catch((error) => {
+                    message.error({ content: `Slack test failed: ${error instanceof Error ? error.message : 'Unknown error'}`, key: 'slack-test' })
+                  })
+              }}
+            >
+              Send test alert
             </Button>
           </div>
         </Form>

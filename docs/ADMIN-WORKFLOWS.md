@@ -108,6 +108,7 @@ This guide explains the key concepts in the admin and the typical flows.
 - Configure fulfilment and low-stock thresholds surfaced on the dashboard.
 - Toggle dashboard alerting (`enable_dashboard_alerts`).
 - Store Slack webhook (`ops_alert_webhook`) and enable/disable ops alerts (future automation hook).
+- Use “Send test alert” button to verify Slack webhook delivery (disabled when webhook missing/off).
 - Changes persist to Supabase `admin_settings` table; edits are audited via `updated_by/updated_at`.
 
 ## Form Grouping (Admin UI)

@@ -1,8 +1,9 @@
 "use client";
 
 import React from "react";
-import { motion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 import Link from "next/link";
+import { Play, Pause, Volume2, VolumeX } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 
@@ -26,11 +27,61 @@ export function CampaignHeroClient({ campaign }: { campaign: CampaignHeroData })
 
   const primaryHref = campaign.ctaPrimaryHref ?? '/#catalog'
   const secondaryHref = campaign.ctaSecondaryHref ?? '/#catalog'
+  const prefersReducedMotion = useReducedMotion()
+  const [videoPlaying, setVideoPlaying] = React.useState(true)
+  const [audioPlaying, setAudioPlaying] = React.useState(false)
+  const [audioMuted, setAudioMuted] = React.useState(false)
+  const videoRef = React.useRef<HTMLVideoElement | null>(null)
+  const audioRef = React.useRef<HTMLAudioElement | null>(null)
+
+  const toggleVideoPlayback = () => {
+    const video = videoRef.current
+    if (!video) return
+    if (video.paused) {
+      video.play().catch(() => null)
+      setVideoPlaying(true)
+    } else {
+      video.pause()
+      setVideoPlaying(false)
+    }
+  }
+
+  const toggleAudioPlayback = () => {
+    const audio = audioRef.current
+    if (!audio) return
+    if (audio.paused) {
+      audio.play().catch(() => null)
+      setAudioPlaying(true)
+    } else {
+      audio.pause()
+      setAudioPlaying(false)
+    }
+  }
+
+  const toggleAudioMute = () => {
+    const audio = audioRef.current
+    if (!audio) return
+    audio.muted = !audio.muted
+    setAudioMuted(audio.muted)
+  }
+
+  React.useEffect(() => {
+    const audio = audioRef.current
+    if (!audio) return
+    const handleEnded = () => setAudioPlaying(false)
+    audio.addEventListener('ended', handleEnded)
+    audio.muted = true
+    setAudioMuted(true)
+    return () => {
+      audio.removeEventListener('ended', handleEnded)
+    }
+  }, [])
 
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden pt-16">
-      {campaign.backgroundVideoUrl ? (
+      {!prefersReducedMotion && campaign.backgroundVideoUrl ? (
         <video
+          ref={videoRef}
           className="absolute inset-0 h-full w-full object-cover"
           src={campaign.backgroundVideoUrl}
           autoPlay
@@ -75,6 +126,40 @@ export function CampaignHeroClient({ campaign }: { campaign: CampaignHeroData })
           </Button>
         </div>
       </motion.div>
+
+      <div className="absolute top-4 right-4 z-20 flex flex-col gap-2 sm:flex-row">
+        {!prefersReducedMotion && campaign.backgroundVideoUrl ? (
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8 bg-background/40 hover:bg-background/60 text-bone"
+            onClick={toggleVideoPlayback}
+          >
+            {videoPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
+          </Button>
+        ) : null}
+        {campaign.audioPreviewUrl ? (
+          <div className="flex gap-2">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 bg-background/40 hover:bg-background/60 text-bone"
+              onClick={toggleAudioPlayback}
+            >
+              {audioPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 bg-background/40 hover:bg-background/60 text-bone"
+              onClick={toggleAudioMute}
+            >
+              {audioMuted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
+            </Button>
+            <audio ref={audioRef} src={campaign.audioPreviewUrl ?? undefined} preload="none" />
+          </div>
+        ) : null}
+      </div>
     </section>
   )
 }
