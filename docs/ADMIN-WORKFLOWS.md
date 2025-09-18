@@ -100,8 +100,14 @@ This guide explains the key concepts in the admin and the typical flows.
   - Customers and Articles: Table or Cards for quick scanning and actions.
 - Search & Shortcuts:
   - Header search opens the command palette (Kbar). Keyboard: Cmd/Ctrl+K.
-  - Actions: Create Product (n,p), Create Article (n,a), Create Stock Unit (n,s), Orders Board (o,b), Products Cards (p,c), Inventory Cards (i,c), Customers Cards (c,c), Articles Cards (a,c).
+- Actions: Create Product (n,p), Create Article (n,a), Create Stock Unit (n,s), Orders Board (o,b), Products Cards (p,c), Inventory Cards (i,c), Customers Cards (c,c), Articles Cards (a,c).
   - Settings: Admin Settings (g,s) jumps to global alert + Slack configuration.
+
+## Campaigns
+- Path: `/admin/campaigns` (table/cards views).
+- Toggle active state via the switch; start/end dates schedule activation automatically.
+- Use sort order (ascending) to control priority of active campaigns.
+- "Preview" opens the storefront with `?previewCampaign=slug` to review content without activating it.
 
 ## Admin Settings (Alerts & Integrations)
 - Path: `/admin/settings`.

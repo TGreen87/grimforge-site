@@ -23,7 +23,7 @@ This backlog captures the active workstreams after the dashboard revamp. Everyth
    - [x] Wire storefront hero to consume active campaign data (with fallback when none active).
 3. **Third-party integrations**
    - [ ] Evaluate/choose image hosting flow (Supabase Storage vs. Cloudinary) and document requirements.
-   - [ ] Add Slack webhook settings to admin (env + settings table) for future alerts.
+   - [x] Add Slack webhook settings to admin (env + settings table) for alerts.
 
 ## Short-Term Enhancements (Priority B)
 - Dashboard
@@ -32,7 +32,7 @@ This backlog captures the active workstreams after the dashboard revamp. Everyth
   - [ ] Needs fulfilment panel: add quick export + filter links.
 - Orders Workflow
   - [x] Timeline tab on `/admin/orders/show/[id]` combining status/payment/audit events.
-  - [ ] Upgrade packing slip to branded PDF (HTML-to-PDF service) and attach to order emails.
+  - [x] Upgrade packing slip to branded PDF (HTML-to-PDF service) (attachment flow TBD).
   - [ ] AusPost label hook (blocked until credentials).
 - Storefront
   - [ ] Catalog quick actions (Add to cart/Wishlist) with focus states.

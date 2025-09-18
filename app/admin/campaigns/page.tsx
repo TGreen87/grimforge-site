@@ -193,6 +193,9 @@ export default function CampaignList() {
                   <Link href={`/admin/campaigns/edit/${campaign.id}`}>
                     <Button size="small" type="primary">Edit</Button>
                   </Link>
+                  <Link href={`/?previewCampaign=${campaign.slug}`} target="_blank">
+                    <Button size="small" type="default">Preview</Button>
+                  </Link>
                   <Switch
                     checked={campaign.active}
                     onChange={(checked) => handleToggleActive(campaign, checked)}
