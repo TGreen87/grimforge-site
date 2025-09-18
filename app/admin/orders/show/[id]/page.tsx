@@ -188,17 +188,32 @@ export default function OrderShow() {
               <p className="text-sm text-muted-foreground">No events recorded yet.</p>
             ) : (
               <Timeline
-                items={timeline.map((event) => ({
-                  color: event.event_type === 'order.payment_status_changed' ? 'blue' : event.event_type === 'order.status_changed' ? 'green' : 'gray',
-                  children: (
-                    <div className="text-sm">
-                      <div className="font-medium text-bone">{event.title}</div>
-                      <div className="text-xs text-muted-foreground">
-                        {new Date(event.occurred_at).toLocaleString()}
+                items={timeline.map((event) => {
+                  const reason = typeof event.details?.reason === 'string' ? event.details.reason : undefined
+                  const color = event.event_type === 'order.payment_status_changed'
+                    ? 'blue'
+                    : event.event_type === 'order.status_changed'
+                    ? 'green'
+                    : event.event_type === 'order.notes_updated'
+                    ? 'gray'
+                    : 'gray'
+                  return {
+                    color,
+                    children: (
+                      <div className="text-sm space-y-1">
+                        <div className="font-medium text-bone">{event.title}</div>
+                        <div className="text-xs text-muted-foreground">
+                          {new Date(event.occurred_at).toLocaleString()}
+                        </div>
+                        {reason ? (
+                          <div className="text-xs text-muted-foreground/90">
+                            Reason: {reason}
+                          </div>
+                        ) : null}
                       </div>
-                    </div>
-                  ),
-                }))}
+                    ),
+                  }
+                })}
               />
             )}
           </Card>

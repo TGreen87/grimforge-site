@@ -2,8 +2,8 @@
 
 import React from "react";
 import { List, useTable, TextField, NumberField, DateField } from "@refinedev/antd";
-import { Table, Space, Button, Tag, Select, Dropdown } from "antd";
-import type { MenuProps } from "antd";
+import { Table, Space, Button, Tag, Select, Dropdown, Modal, Form, Input } from "antd";
+import type { MenuProps, FormInstance } from "antd";
 import AdminTableToolbar, { TableSize } from "../ui/AdminTableToolbar";
 import AdminViewToggle, { AdminView, getStoredView } from "../ui/AdminViewToggle";
 import { EyeOutlined } from "@ant-design/icons";
@@ -72,6 +72,9 @@ export default function OrderList() {
   const [paymentFilter, setPaymentFilter] = React.useState<'all' | 'pending' | 'paid' | 'failed'>('all')
   const [selectedRowKeys, setSelectedRowKeys] = React.useState<React.Key[]>([])
   const [bulkUpdating, setBulkUpdating] = React.useState(false)
+  const [reasonModalOpen, setReasonModalOpen] = React.useState(false)
+  const [pendingBulkStatus, setPendingBulkStatus] = React.useState<string | null>(null)
+  const [reasonForm] = Form.useForm<{ reason?: string }>()
 
   const bulkMenuItems = React.useMemo<MenuProps['items']>(
     () => [
@@ -110,7 +113,7 @@ export default function OrderList() {
       }
     );
   }
-  const handleBulkStatusChange = async (status: string) => {
+  const performBulkStatusChange = async (status: string, reason?: string) => {
     if (selectedRowKeys.length === 0) return
     setBulkUpdating(true)
     try {
@@ -119,7 +122,7 @@ export default function OrderList() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ ids: selectedRowKeys, status }),
+        body: JSON.stringify({ ids: selectedRowKeys, status, reason }),
       })
 
       if (!res.ok) {
@@ -136,6 +139,17 @@ export default function OrderList() {
     } finally {
       setBulkUpdating(false)
     }
+  }
+
+  const handleBulkMenuClick: MenuProps['onClick'] = ({ key }) => {
+    if (selectedRowKeys.length === 0) return
+    if (key === 'cancelled' || key === 'refunded') {
+      setPendingBulkStatus(key)
+      reasonForm.resetFields()
+      setReasonModalOpen(true)
+      return
+    }
+    performBulkStatusChange(key)
   }
 
   return (
@@ -161,7 +175,7 @@ export default function OrderList() {
         <Dropdown
           menu={{
             items: bulkMenuItems,
-            onClick: ({ key }) => handleBulkStatusChange(key as string),
+            onClick: handleBulkMenuClick,
           }}
           disabled={selectedRowKeys.length === 0}
         >
@@ -326,6 +340,69 @@ export default function OrderList() {
         )
       )}
       </List>
+      <BulkReasonModal
+        open={reasonModalOpen}
+        loading={bulkUpdating}
+        form={reasonForm}
+        status={pendingBulkStatus}
+        onCancel={() => {
+          if (!bulkUpdating) {
+            setReasonModalOpen(false)
+            setPendingBulkStatus(null)
+          }
+        }}
+        onSubmit={(values) => {
+          if (!pendingBulkStatus) return
+          performBulkStatusChange(pendingBulkStatus, values.reason)
+          setReasonModalOpen(false)
+          setPendingBulkStatus(null)
+        }}
+      />
     </>
   );
+}
+
+function BulkReasonModal({
+  open,
+  onCancel,
+  onSubmit,
+  loading,
+  form,
+  status,
+}: {
+  open: boolean
+  onCancel: () => void
+  onSubmit: (values: { reason?: string }) => void
+  loading: boolean
+  form: FormInstance<{ reason?: string }>
+  status: string | null
+}) {
+  const title = status === 'refunded' ? 'Add refund note' : 'Add cancellation note'
+  return (
+    <Modal
+      title={title}
+      open={open}
+      onCancel={onCancel}
+      confirmLoading={loading}
+      okText="Apply"
+      onOk={() => {
+        form
+          .validateFields()
+          .then((values) => {
+            onSubmit(values)
+          })
+          .catch(() => null)
+      }}
+    >
+      <Form form={form} layout="vertical">
+        <Form.Item
+          label="Reason"
+          name="reason"
+          rules={[{ required: true, message: 'Please provide context for this action.' }]}
+        >
+          <Input.TextArea rows={4} placeholder="e.g., Customer requested cancellation." />
+        </Form.Item>
+      </Form>
+    </Modal>
+  )
 }

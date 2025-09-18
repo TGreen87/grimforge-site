@@ -10,6 +10,7 @@ export async function POST(req: NextRequest) {
     ? (payload.ids as unknown[]).filter((id): id is string => typeof id === 'string')
     : []
   const nextStatus: string | undefined = typeof payload?.status === 'string' ? payload.status : undefined
+  const reason: string | undefined = typeof payload?.reason === 'string' ? payload.reason.trim() : undefined
 
   if (ids.length === 0 || !nextStatus || !ALLOWED_STATUSES.has(nextStatus)) {
     return NextResponse.json({ error: 'Invalid request payload' }, { status: 400 })
@@ -80,6 +81,8 @@ export async function POST(req: NextRequest) {
     metadata: {
       via: 'bulk_status_update',
       status: nextStatus,
+      reason: reason || null,
+      ids,
     },
   }))
 
