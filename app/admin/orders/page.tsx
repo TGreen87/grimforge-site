@@ -69,6 +69,8 @@ export default function OrderList() {
   const [overStatus, setOverStatus] = React.useState<string | null>(null)
   const [ariaMsg, setAriaMsg] = React.useState<string>("")
   const [paymentFilter, setPaymentFilter] = React.useState<'all' | 'pending' | 'paid' | 'failed'>('all')
+  const [selectedRowKeys, setSelectedRowKeys] = React.useState<React.Key[]>([])
+  const [bulkUpdating, setBulkUpdating] = React.useState(false)
 
   const orders = React.useMemo(() => (tableProps.dataSource as Order[] | undefined) ?? [], [tableProps.dataSource])
   const filteredOrders = React.useMemo(() => {
@@ -98,6 +100,34 @@ export default function OrderList() {
       }
     );
   }
+  const handleBulkStatusChange = async (status: string) => {
+    if (selectedRowKeys.length === 0) return
+    setBulkUpdating(true)
+    try {
+      const res = await fetch('/api/admin/orders/bulk/status', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ ids: selectedRowKeys, status }),
+      })
+
+      if (!res.ok) {
+        const errorText = await res.text()
+        message.error(`Bulk update failed: ${errorText}`)
+      } else {
+        message.success('Order statuses updated')
+        setSelectedRowKeys([])
+        tableQueryResult.refetch()
+      }
+    } catch (error) {
+      message.error('Bulk update failed')
+      console.error(error)
+    } finally {
+      setBulkUpdating(false)
+    }
+  }
+
   return (
     <>
       <style jsx global>{`
@@ -118,13 +148,27 @@ export default function OrderList() {
           <Select.Option value="pending">Pending</Select.Option>
           <Select.Option value="failed">Failed / Other</Select.Option>
         </Select>
+        <Button disabled={selectedRowKeys.length === 0 || bulkUpdating} loading={bulkUpdating} onClick={() => handleBulkStatusChange('shipped')}>
+          Mark shipped ({selectedRowKeys.length})
+        </Button>
         <AdminViewToggle resource='orders' value={view} onChange={setView} allowBoard />
       </div>} />}>
       {view === 'table' ? (
       (filteredOrders.length === 0) ? (
         <EmptyState title="No orders yet" helper="When customers buy, orders appear here." />
       ) : (
-      <Table {...tableProps} dataSource={filteredOrders} rowKey="id" size={size} sticky rowClassName={(_, index) => (index % 2 === 1 ? 'admin-row-zebra' : '')}>
+      <Table
+        {...tableProps}
+        dataSource={filteredOrders}
+        rowKey="id"
+        size={size}
+        sticky
+        rowClassName={(_, index) => (index % 2 === 1 ? 'admin-row-zebra' : '')}
+        rowSelection={view === 'table' ? {
+          selectedRowKeys,
+          onChange: setSelectedRowKeys,
+        } : undefined}
+      >
         <Table.Column
           dataIndex="id"
           title="Order ID"

@@ -3,7 +3,7 @@
 import React from "react";
 import { Show, TextField, NumberField, DateField } from "@refinedev/antd";
 import { useShow } from "@refinedev/core";
-import { Typography, Space, Tag, Table, Card, Descriptions, Timeline, Spin } from "antd";
+import { Typography, Space, Tag, Table, Card, Descriptions, Timeline, Spin, Button } from "antd";
 import { useParams } from "next/navigation";
 import type { Order, OrderItem } from "../../../types";
 
@@ -66,7 +66,7 @@ export default function OrderShow() {
     <Show isLoading={isLoading}>
       {record && (
         <Space direction="vertical" size="large" style={{ width: "100%" }}>
-          <Card title="Order Information">
+          <Card title="Order Information" extra={<Button type="default" href={`/api/admin/orders/${record.id}/packing-slip`} target="_blank" rel="noreferrer">Packing slip</Button>}>
             <Descriptions column={2}>
               <Descriptions.Item label="Order ID">
                 <TextField value={record.id} />
