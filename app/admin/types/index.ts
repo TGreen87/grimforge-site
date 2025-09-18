@@ -152,6 +152,27 @@ export interface AdminUser {
   updated_at: string;
 }
 
+export interface Campaign {
+  id: string;
+  slug: string;
+  title: string;
+  subtitle?: string | null;
+  description?: string | null;
+  hero_image_url?: string | null;
+  background_video_url?: string | null;
+  cta_primary_label?: string | null;
+  cta_primary_href?: string | null;
+  cta_secondary_label?: string | null;
+  cta_secondary_href?: string | null;
+  audio_preview_url?: string | null;
+  active: boolean;
+  starts_at?: string | null;
+  ends_at?: string | null;
+  sort_order: number;
+  created_at: string;
+  updated_at: string;
+}
+
 // Form types for create/edit operations
 export interface ProductFormValues {
   slug?: string;

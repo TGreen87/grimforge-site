@@ -3,7 +3,8 @@
 import React from "react";
 import { Show, TextField, NumberField, DateField } from "@refinedev/antd";
 import { useShow } from "@refinedev/core";
-import { Typography, Space, Tag, Table, Card, Descriptions } from "antd";
+import { Typography, Space, Tag, Table, Card, Descriptions, Timeline, Spin } from "antd";
+import { useParams } from "next/navigation";
 import type { Order, OrderItem } from "../../../types";
 
 const { Title, Text } = Typography;
@@ -27,6 +28,39 @@ export default function OrderShow() {
   });
   const { data, isLoading } = queryResult;
   const record = data?.data;
+  const params = useParams();
+  const [timeline, setTimeline] = React.useState<Array<{ event_type: string; title: string; occurred_at: string; details: Record<string, unknown> }>>([]);
+  const [timelineLoading, setTimelineLoading] = React.useState(true);
+  const orderId = React.useMemo(() => (Array.isArray(params?.id) ? params.id[0] : params?.id), [params]);
+
+  React.useEffect(() => {
+    let isMounted = true;
+    if (!orderId) return;
+
+    setTimelineLoading(true);
+    fetch(`/api/admin/orders/${orderId}/timeline`)
+      .then(async (res) => {
+        if (!res.ok) {
+          console.error('Failed to load order timeline', await res.text());
+          return { events: [] };
+        }
+        return res.json();
+      })
+      .then((payload) => {
+        if (!isMounted) return;
+        setTimeline(Array.isArray(payload?.events) ? payload.events : []);
+      })
+      .catch((error) => {
+        console.error('Order timeline error', error);
+      })
+      .finally(() => {
+        if (isMounted) setTimelineLoading(false);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [orderId]);
 
   return (
     <Show isLoading={isLoading}>
@@ -143,6 +177,30 @@ export default function OrderShow() {
                 },
               ]}
             />
+          </Card>
+
+          <Card title="Timeline">
+            {timelineLoading ? (
+              <div className="flex justify-center py-6">
+                <Spin />
+              </div>
+            ) : timeline.length === 0 ? (
+              <p className="text-sm text-muted-foreground">No events recorded yet.</p>
+            ) : (
+              <Timeline
+                items={timeline.map((event) => ({
+                  color: event.event_type === 'order.payment_status_changed' ? 'blue' : event.event_type === 'order.status_changed' ? 'green' : 'gray',
+                  children: (
+                    <div className="text-sm">
+                      <div className="font-medium text-bone">{event.title}</div>
+                      <div className="text-xs text-muted-foreground">
+                        {new Date(event.occurred_at).toLocaleString()}
+                      </div>
+                    </div>
+                  ),
+                }))}
+              />
+            )}
           </Card>
 
           {record.notes && (

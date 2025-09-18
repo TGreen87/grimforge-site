@@ -53,7 +53,7 @@ Purpose: Improve daily admin usability and clarity with consistent theme tokens,
 - Revenue goal card with editable targets + 7/30 day comparison.
 - Alert tiles configurable by owner (awaiting fulfilment threshold, low stock threshold).
 - Announcement history drawer with version restore.
-- Timeline widget previewing recent audit events.
+- Timeline widget previewing recent audit events. (In progress: RPC + UI on order detail page now surfaces order timeline.)
 - Slack/email alert toggles surfaced in header quick actions (pending secrets).
 
 ## Acceptance Criteria

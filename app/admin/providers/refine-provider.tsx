@@ -9,13 +9,14 @@ import { usePathname } from "next/navigation";
 import AdminLayout from "../ui/AdminLayout";
 import AdminKbarActions from "../ui/AdminKbarActions";
 import { 
-  ShoppingCartOutlined, 
-  AppstoreOutlined, 
-  InboxOutlined, 
-  TeamOutlined, 
+  ShoppingCartOutlined,
+  AppstoreOutlined,
+  InboxOutlined,
+  TeamOutlined,
   FileTextOutlined,
   TagsOutlined,
-  DashboardOutlined
+  DashboardOutlined,
+  NotificationOutlined
 } from "@ant-design/icons";
 import "@refinedev/antd/dist/reset.css";
 
@@ -29,6 +30,16 @@ const resources = [
     meta: {
       label: "Dashboard",
       icon: <DashboardOutlined />,
+    },
+  },
+  {
+    name: "campaigns",
+    list: "/admin/campaigns",
+    create: "/admin/campaigns/create",
+    edit: "/admin/campaigns/edit/:id",
+    meta: {
+      label: "Campaigns",
+      icon: <NotificationOutlined />,
     },
   },
   {

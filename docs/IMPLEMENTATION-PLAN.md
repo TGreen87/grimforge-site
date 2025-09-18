@@ -184,6 +184,9 @@ Status:
   - Owner can configure hero + campaign blocks via admin without code.
   - Catalog/product flows pass aXe accessibility checks and maintain Core Web Vitals.
   - Checkout shows wallet options (once publishable key present) and reduces steps vs. current modal.
+- Status:
+  - Supabase `campaigns` table + admin CRUD screens in place for hero configuration.
+  - Motion utility library (`framer-motion` + shared presets) scaffolded for upcoming components.
 
 ### Phase 14 — Third-Party Integrations & Automation
 - Goals: leverage trusted libraries/services to accelerate UX polish without reinventing the wheel.

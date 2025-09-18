@@ -25,6 +25,14 @@ export default function AdminKbarActions() {
       perform: () => router.push("/admin/articles/create"),
     },
     {
+      id: "create-campaign",
+      name: "Create Campaign",
+      shortcut: ["n", "c"],
+      keywords: "new campaign hero",
+      section: "Create",
+      perform: () => router.push("/admin/campaigns/create"),
+    },
+    {
       id: "receive-stock",
       name: "Receive Stock",
       shortcut: ["r", "s"],
@@ -78,6 +86,13 @@ export default function AdminKbarActions() {
       shortcut: ["a", "c"],
       section: "Navigate",
       perform: () => { try { localStorage.setItem("admin:view:articles", "cards"); } catch {}; router.push("/admin/articles"); },
+    },
+    {
+      id: "campaigns-cards",
+      name: "Campaigns (Cards)",
+      shortcut: ["c", "p"],
+      section: "Navigate",
+      perform: () => { try { localStorage.setItem("admin:view:campaigns", "cards"); } catch {}; router.push("/admin/campaigns"); },
     },
   ];
 
