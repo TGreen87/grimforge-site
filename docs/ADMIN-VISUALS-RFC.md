@@ -55,6 +55,7 @@ Purpose: Improve daily admin usability and clarity with consistent theme tokens,
 - Announcement history drawer with version restore.
 - Timeline widget previewing recent audit events. (In progress: RPC + UI on order detail page now surfaces order timeline.)
 - Slack/email alert toggles surfaced in header quick actions (pending secrets).
+- Bulk fulfilment actions surfaced in orders toolbar ("Mark shipped" delivered; add cancel/refund, branded packing slip/PDF, AusPost labels).
 
 ## Acceptance Criteria
 - Products, Stock Units, Inventory, Orders adopt tokens and density.

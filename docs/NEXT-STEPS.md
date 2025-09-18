@@ -13,12 +13,14 @@ This backlog captures the active workstreams after the dashboard revamp. Everyth
 ## Immediate Execution Queue (Priority A)
 1. **Admin Dashboard 2.0 groundwork**
    - [x] Design order timeline data shape (extend `audit_logs`, add service calls for events).
-   - [ ] Add bulk order status mutation endpoint + packing slip generator scaffold.
-   - [ ] Instrument configurable alert thresholds (awaiting fulfilment, low stock) in Supabase.
+   - [x] Add bulk order status mutation endpoint + packing slip generator scaffold.
+   - [ ] Add bulk cancel/refund flows with audit logs and optional customer notifications.
+   - [ ] Instrument configurable alert thresholds (awaiting fulfilment, low stock) in Supabase + expose on dashboard.
 2. **Storefront visual scaffolding**
    - [x] Introduce motion utilities (`framer-motion`) and shared animation tokens.
    - [x] Lay down hero campaign config (Supabase table + admin form draft).
    - [ ] Prototype refreshed hero (static + reduced motion fallback) behind feature flag.
+   - [ ] Wire storefront hero to consume active campaign data (with fallback when none active).
 3. **Third-party integrations**
    - [ ] Evaluate/choose image hosting flow (Supabase Storage vs. Cloudinary) and document requirements.
    - [ ] Add Slack webhook settings to admin (env + settings table) for future alerts.
@@ -30,7 +32,7 @@ This backlog captures the active workstreams after the dashboard revamp. Everyth
   - [ ] Needs fulfilment panel: add quick export + filter links.
 - Orders Workflow
   - [x] Timeline tab on `/admin/orders/show/[id]` combining status/payment/audit events.
-  - [ ] Packing slip PDF (start with simple HTML → PDF via serverless export).
+  - [ ] Upgrade packing slip to branded PDF (HTML-to-PDF service) and attach to order emails.
   - [ ] AusPost label hook (blocked until credentials).
 - Storefront
   - [ ] Catalog quick actions (Add to cart/Wishlist) with focus states.

@@ -171,6 +171,10 @@ Status:
   - Order timeline shows chronological audit entries; bulk actions update rows and audit logs.
   - Packing slip PDF renders for single/bulk orders.
   - Notification hooks documented with toggle in admin settings.
+- Status:
+  - Order timeline RPC + admin UI shipped (timeline card on order detail page).
+  - Bulk "Mark shipped" action + packing slip HTML export live; cancel/refund + PDF branding pending.
+  - Alert thresholds, revenue goal card, notification hooks outstanding.
 
 ### Phase 13 — Storefront Visual Refresh (see `docs/SITE-VISUALS-RFC.md`)
 - Goals: deliver immersive, performant storefront experience aligned with black-metal brand.
