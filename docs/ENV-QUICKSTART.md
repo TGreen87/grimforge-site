@@ -48,6 +48,7 @@ Key references
 If you enable the webhook endpoint (`/api/stripe/webhook`):
 - Add the webhook secret from Stripe → Developers → Webhooks → “Reveal secret” and set `STRIPE_WEBHOOK_SECRET` in Netlify and `.env.local`.
 - Subscribe to `checkout.session.completed`, `payment_intent.succeeded`, and `payment_intent.payment_failed` events; the handler updates order status and payment state automatically.
+- Until the publishable key is available, checkout falls back to the hosted Stripe page after shipping details are collected inside the modal. Once you add `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`, update the cart modal to show wallet buttons (see `src/components/CheckoutModal.tsx`).
 
 ### Supabase account sanity check
 - The shared admin/customer login `codex@greenaiautomation.ai` exists in `auth.users` with id `3355eb56-1519-4a64-9bc1-a1d0bd21bc19` and carries the `admin` role in `public.user_roles`.

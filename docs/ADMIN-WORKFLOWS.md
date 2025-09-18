@@ -18,6 +18,30 @@ This guide explains the key concepts in the admin and the typical flows.
    - Creates Inventory (if you entered initial stock).
 4) The item appears on the public Catalog and can be bought.
 
+### Owner checklist: add a new product (step-by-step)
+1. **Prepare assets**
+   - Square cover art JPG/PNG (minimum 1200×1200). Keep filenames lowercase with hyphens (e.g., `dark-rituals-cover.jpg`).
+   - Tracklist/description text in a plain-text or Markdown file.
+   - SKU scheme ready (e.g., `SHADOWMOON-DARK-RITUALS-STD`).
+2. **Upload artwork**
+   - Navigate to `/admin/products/create`.
+   - Under *Media & Metadata*, paste the image URL (e.g., from an external CDN) or use the Upload helper (future enhancement).
+3. **Fill Basics**
+   - Title (`Test Vinyl — Dark Rituals`), Artist, URL (link). Use the “Generate” helper if unsure; keep lowercase words separated by hyphen.
+4. **Format & Pricing**
+   - Select Format (`Vinyl`, `CD`, etc.).
+   - Price (AUD). Toggle Active on when you’re ready for customers to see it.
+5. **Inventory**
+   - Initial stock (optional). You can always receive stock later via Inventory.
+6. **Publishing**
+   - Active toggle ON to show on storefront.
+   - Save.
+7. **Add additional stock units** (limited edition, bundles) via `/admin/variants/create`.
+8. **Receive stock**
+   - `/admin/inventory` → find the variant → Receive → enter quantity and notes.
+9. **Preview**
+   - Open `/products/<slug>` to confirm imagery, pricing, and Add to Cart button.
+
 ## Dashboard Overview
 - Visiting `/admin` now lands on the Dashboard. It surfaces:
   - KPI cards for total revenue (paid orders), count of paid orders, orders awaiting action, and low-stock variants (≤5 available).

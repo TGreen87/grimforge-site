@@ -143,41 +143,39 @@ Pending (manual verification on dev deploy):
 - Review `/legal/*` placeholder copy and adjust language/links as needed.
 - Extend puppeteer smoke to re-enable catalog navigation and cart flow once data is ready; capture checkout screenshots thereafter.
 
-### Expanded execution checklist (2025-09-17)
-The following tasks track the broader “customers + orders + dashboard” initiative and related clean-up. Work through top-to-bottom; everything is scoped for the dev branch.
+### Launch Readiness Roadmap (2025-09-18)
 
-1. **Stripe checkout parity**
-   - [x] Re-run `/api/checkout` on dev after deployment and log the exact Stripe error (Stripe dashboard → Developers → Logs). Update the API handler with clearer error handling once confirmed. *(Success 2025-09-17: session `cs_live_a1LlsOXf9iakoACtZ1exIanmoDu3qB7pizLC3Pz6qCyc6LP6YBJ0xXwpct` returned 200; API now surfaces `detail` on failure.)*
-   - [ ] Add Stripe publishable key (`NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`) when available; thread it into the cart modal so the email field can pre-populate.
-   - [x] Create a doc snippet in `docs/ENV-QUICKSTART.md` that explains how to rotate Stripe keys safely (already partially done—add screenshots once available).
+**Ready to execute now (no new keys required)**
+1. **Content & storefront polish**
+   - Swap in branded `public/og-image.jpg` (currently placeholder).
+   - Final pass on `/legal/*` copy for tone, spelling, and correct links.
+   - Ensure every catalog card has imagery + consistent descriptions.
+2. **Owner enablement**
+   - Record screenshots / loom for “Add new product” workflow (see `docs/ADMIN-WORKFLOWS.md`).
+   - Finalize `docs/ADMIN-VISUALS-RFC.md` with acceptance checklist (what “done” looks like for UI polish).
+   - Draft a one-page “Admin quick start” (consider `docs/OWNER-HANDBOOK.md`).
+3. **QA automation**
+   - Extend Puppeteer checkout flow to log Stripe session creation and save Stripe landing screenshot (blocked on publishable key — mark TODO once key arrives).
+   - Add Vitest/Playwright coverage for `/api/stripe/webhook` (use Stripe CLI fixture).
+4. **Data/backfill**
+   - Create `scripts/backfill-orders.mjs` stub to migrate legacy data when available.
+   - Seed demo orders via `docs/SUPABASE-SEED.md` (optional) for dashboard visuals on staging.
 
-2. **Customers & orders**
-   - [x] Create `customers`, `orders`, and `order_items` tables with RLS + service-role policies.
-   - [x] Extend checkout API to upsert customers and attach metadata to orders.
-   - [ ] Backfill existing orders (if any) into the new tables once production data exists (script TBD).
-   - [x] Build `/admin/orders` enhancements to surface payment status filters and link to Stripe.
+**Blocked until keys arrive**
+1. **Stripe publishable key (`NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`)**
+   - Surface wallet buttons in checkout (Apple/Google Pay).
+   - Prefill customer email in Stripe checkout to reduce friction.
+   - Puppeteer checkout assertion capturing Stripe hosted page.
+2. **AusPost credentials**
+   - Switch `/api/shipping/quote` to live rates; update checkout messaging.
+   - Add AusPost status card on dashboard (optional).
+   - QA: run sample addresses (domestic & NZ) to validate rate response.
 
-3. **Admin dashboard**
-   - [x] Add `/admin/dashboard` with KPI cards, recent orders, low-stock alerts, and quick actions.
-   - [x] Redirect `/admin` to the dashboard and register it inside Refine resources/navigation.
-   - [x] Layer Stripe payout status widget once webhooks or Stripe balance endpoints are connected. *(Dashboard now reads Stripe balance/payouts when keys are configured.)*
-
-4. **Asset hygiene**
-   - [x] Add `icon-192.png`, `icon-512.png`, `og-image.jpg`; update manifests to reference them.
-   - [x] After deployment, re-run `npx linkinator` to confirm Netlify serves the new assets (2025-09-17 scan across dev domain + primary URL returned 200).
-   - [ ] Replace temporary black OG image with branded artwork.
-
-5. **Documentation**
-   - [x] Update `docs/ENV-QUICKSTART.md` with Stripe + customer notes.
-   - [x] Expand `docs/SUPABASE-SEED.md` with the demo customer/order seed.
-   - [x] Refresh `docs/ADMIN-WORKFLOWS.md` to cover the new dashboard experience.
-   - [x] Capture “owner-ready” walkthrough screenshots for the dashboard and attach to `docs/ADMIN-VISUALS-RFC.md`.
-
-6. **QA & automation**
-   - [x] Update Puppeteer smoke to exercise the dashboard quick actions (navigate to `/admin/dashboard`, confirm cards render, take screenshot `admin-dashboard.png`).
-   - [ ] Extend smoke checkout to assert Stripe session creation once the API succeeds and capture Stripe landing page.
-
-7. **Future enhancements backlog**
-   - [x] Implement customer history view (orders + notes) under `/admin/customers` pulling from the new tables.
-   - [ ] Add AusPost variables once provided and confirm the checkout modal can select live rates.
-   - [x] Wire Stripe webhooks to update `orders.status` / `payment_status` automatically. *(Route `/api/stripe/webhook` updates orders on checkout session + intent events.)*
+**Go-live checklist (once keys in hand)**
+1. Add keys (`STRIPE_SECRET_KEY`, `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`, `STRIPE_WEBHOOK_SECRET`, AusPost vars) to Netlify & `.env.local`; redeploy `dev`.
+2. Confirm Stripe webhook delivery succeeds (Stripe dashboard → Events).
+3. Run full smoke:
+   - `npm run test:puppeteer` with admin creds.
+   - Manual checkout of `test-vinyl-dark-rituals` (cancel before payment) ensuring Stripe session shows correct shipping + total.
+4. Update `docs/SESSION-YYYY-MM-DD.md` with final QA notes and Stripe session IDs.
+5. Merge `dev → main`, trigger production deploy, perform last live smoke (`/`, `/products/slug`, `/admin/dashboard`).
