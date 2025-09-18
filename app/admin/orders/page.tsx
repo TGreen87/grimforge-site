@@ -2,7 +2,8 @@
 
 import React from "react";
 import { List, useTable, TextField, NumberField, DateField } from "@refinedev/antd";
-import { Table, Space, Button, Tag, Select } from "antd";
+import { Table, Space, Button, Tag, Select, Dropdown } from "antd";
+import type { MenuProps } from "antd";
 import AdminTableToolbar, { TableSize } from "../ui/AdminTableToolbar";
 import AdminViewToggle, { AdminView, getStoredView } from "../ui/AdminViewToggle";
 import { EyeOutlined } from "@ant-design/icons";
@@ -71,6 +72,15 @@ export default function OrderList() {
   const [paymentFilter, setPaymentFilter] = React.useState<'all' | 'pending' | 'paid' | 'failed'>('all')
   const [selectedRowKeys, setSelectedRowKeys] = React.useState<React.Key[]>([])
   const [bulkUpdating, setBulkUpdating] = React.useState(false)
+
+  const bulkMenuItems = React.useMemo<MenuProps['items']>(
+    () => [
+      { key: 'shipped', label: 'Mark shipped' },
+      { key: 'cancelled', label: 'Mark cancelled' },
+      { key: 'refunded', label: 'Mark refunded' },
+    ],
+    []
+  )
 
   const orders = React.useMemo(() => (tableProps.dataSource as Order[] | undefined) ?? [], [tableProps.dataSource])
   const filteredOrders = React.useMemo(() => {
@@ -148,9 +158,17 @@ export default function OrderList() {
           <Select.Option value="pending">Pending</Select.Option>
           <Select.Option value="failed">Failed / Other</Select.Option>
         </Select>
-        <Button disabled={selectedRowKeys.length === 0 || bulkUpdating} loading={bulkUpdating} onClick={() => handleBulkStatusChange('shipped')}>
-          Mark shipped ({selectedRowKeys.length})
-        </Button>
+        <Dropdown
+          menu={{
+            items: bulkMenuItems,
+            onClick: ({ key }) => handleBulkStatusChange(key as string),
+          }}
+          disabled={selectedRowKeys.length === 0}
+        >
+          <Button loading={bulkUpdating}>
+            Bulk actions ({selectedRowKeys.length})
+          </Button>
+        </Dropdown>
         <AdminViewToggle resource='orders' value={view} onChange={setView} allowBoard />
       </div>} />}>
       {view === 'table' ? (

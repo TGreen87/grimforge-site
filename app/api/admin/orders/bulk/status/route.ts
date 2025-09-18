@@ -50,9 +50,18 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ updated: 0 })
   }
 
+  const updatePayload: Record<string, unknown> = {
+    status: nextStatus,
+    updated_at: new Date().toISOString(),
+  }
+
+  if (nextStatus === 'refunded') {
+    updatePayload.payment_status = 'refunded'
+  }
+
   const { error: updateError } = await service
     .from('orders')
-    .update({ status: nextStatus, updated_at: new Date().toISOString() })
+    .update(updatePayload)
     .in('id', ids)
 
   if (updateError) {
@@ -68,7 +77,10 @@ export async function POST(req: NextRequest) {
       from: order.status,
       to: nextStatus,
     },
-    metadata: {},
+    metadata: {
+      via: 'bulk_status_update',
+      status: nextStatus,
+    },
   }))
 
   const { error: logError } = await service.from('audit_logs').insert(logRows)

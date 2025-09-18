@@ -173,7 +173,7 @@ Status:
   - Notification hooks documented with toggle in admin settings.
 - Status:
   - Order timeline RPC + admin UI shipped (timeline card on order detail page).
-  - Bulk "Mark shipped" action + packing slip HTML export live; cancel/refund + PDF branding pending.
+  - Bulk "Mark shipped/cancel/refund" actions available via toolbar; packing slip HTML export live (PDF branding pending).
   - Alert thresholds, revenue goal card, notification hooks outstanding.
 
 ### Phase 13 — Storefront Visual Refresh (see `docs/SITE-VISUALS-RFC.md`)

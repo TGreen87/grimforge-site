@@ -15,12 +15,12 @@ This backlog captures the active workstreams after the dashboard revamp. Everyth
    - [x] Design order timeline data shape (extend `audit_logs`, add service calls for events).
    - [x] Add bulk order status mutation endpoint + packing slip generator scaffold.
    - [ ] Add bulk cancel/refund flows with audit logs and optional customer notifications.
-   - [ ] Instrument configurable alert thresholds (awaiting fulfilment, low stock) in Supabase + expose on dashboard.
+   - [x] Instrument configurable alert thresholds (awaiting fulfilment, low stock) in Supabase + expose on dashboard.
 2. **Storefront visual scaffolding**
    - [x] Introduce motion utilities (`framer-motion`) and shared animation tokens.
    - [x] Lay down hero campaign config (Supabase table + admin form draft).
-   - [ ] Prototype refreshed hero (static + reduced motion fallback) behind feature flag.
-   - [ ] Wire storefront hero to consume active campaign data (with fallback when none active).
+   - [x] Prototype refreshed hero (static + reduced motion fallback) behind feature flag.
+   - [x] Wire storefront hero to consume active campaign data (with fallback when none active).
 3. **Third-party integrations**
    - [ ] Evaluate/choose image hosting flow (Supabase Storage vs. Cloudinary) and document requirements.
    - [ ] Add Slack webhook settings to admin (env + settings table) for future alerts.
@@ -56,7 +56,7 @@ This backlog captures the active workstreams after the dashboard revamp. Everyth
 - [ ] Lighthouse/aXe baseline for refreshed storefront once hero revamp lands.
 
 ## Documentation & Ops
-- [ ] Update `docs/ENV-QUICKSTART.md` when new env vars (Slack webhook, animation toggles) are introduced.
+- [x] Update `docs/ENV-QUICKSTART.md` when new env vars (Slack webhook, animation toggles) are introduced.
 - [ ] Record work in `docs/SESSION-YYYY-MM-DD.md` per major push.
 - [ ] Refresh `docs/PRODUCTION-LAUNCH-CHECKLIST.md` with storefront QA steps.
 
