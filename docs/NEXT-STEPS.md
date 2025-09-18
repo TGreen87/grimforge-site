@@ -153,12 +153,12 @@ Pending (manual verification on dev deploy):
 2. **Owner enablement**
    - Record screenshots / loom for “Add new product” workflow (see `docs/ADMIN-WORKFLOWS.md`).
    - Finalize `docs/ADMIN-VISUALS-RFC.md` with acceptance checklist (what “done” looks like for UI polish).
-   - Draft a one-page “Admin quick start” (consider `docs/OWNER-HANDBOOK.md`).
+   - ✅ Draft a one-page “Admin quick start” (`docs/OWNER-HANDBOOK.md`).
 3. **QA automation**
    - Extend Puppeteer checkout flow to log Stripe session creation and save Stripe landing screenshot (blocked on publishable key — mark TODO once key arrives).
    - Add Vitest/Playwright coverage for `/api/stripe/webhook` (use Stripe CLI fixture).
 4. **Data/backfill**
-   - Create `scripts/backfill-orders.mjs` stub to migrate legacy data when available.
+   - ✅ Create `scripts/backfill-orders.mjs` stub to migrate legacy data when available.
    - Seed demo orders via `docs/SUPABASE-SEED.md` (optional) for dashboard visuals on staging.
 
 **Blocked until keys arrive**
