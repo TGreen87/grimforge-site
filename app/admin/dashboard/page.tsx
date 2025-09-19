@@ -72,6 +72,13 @@ interface AnnouncementRecord {
   updated_at: string
 }
 
+interface AnnouncementHistoryEntry {
+  id: string
+  message: string
+  created_at: string
+  created_by?: string | null
+}
+
 interface StripePayoutSummary {
   available: number
   pending: number
@@ -261,6 +268,22 @@ async function fetchAnnouncement(): Promise<AnnouncementRecord | null> {
   }
 }
 
+async function fetchAnnouncementHistory(): Promise<AnnouncementHistoryEntry[]> {
+  const supabase = createServiceClient()
+  const { data } = await supabase
+    .from('dashboard_announcement_history')
+    .select('id, message, created_at, created_by')
+    .order('created_at', { ascending: false })
+    .limit(10)
+
+  return (data ?? []).map((entry) => ({
+    id: entry.id,
+    message: entry.message ?? '',
+    created_at: entry.created_at ?? new Date().toISOString(),
+    created_by: entry.created_by,
+  }))
+}
+
 async function fetchAdminSettings(): Promise<AdminSettings> {
   const supabase = createServiceClient()
   const { data } = await supabase
@@ -342,13 +365,14 @@ const EXPORT_TARGETS: Array<{
 ]
 
 export default async function AdminDashboardPage() {
-  const [summary, lowStock, stripePayout, revenueSeries30, lowStockTrend, announcement, adminSettings] = await Promise.all([
+  const [summary, lowStock, stripePayout, revenueSeries30, lowStockTrend, announcement, announcementHistory, adminSettings] = await Promise.all([
     fetchOrderSummary(),
     fetchLowStock(),
     fetchStripePayoutSummary(),
     fetchRevenueSeries(30),
     fetchLowStockTrend(21),
     fetchAnnouncement(),
+    fetchAnnouncementHistory(),
     fetchAdminSettings(),
   ])
 
@@ -388,7 +412,7 @@ export default async function AdminDashboardPage() {
         </div>
       </header>
 
-      <AnnouncementCard announcement={announcement} />
+      <AnnouncementCard announcement={announcement} history={announcementHistory} />
 
       <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <Card>

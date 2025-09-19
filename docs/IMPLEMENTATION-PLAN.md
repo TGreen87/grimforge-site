@@ -167,7 +167,7 @@ Status:
   - Order timeline view with audit log integration (status + payment + notes).
   - Bulk order actions (mark shipped/cancelled) with packing slip generator (AusPost labels when keys available).
   - Slack/email webhook notifications for high-value orders and failed payouts.
-  - Announcement history/log with version restore.
+  - Announcement history/log with version restore. [done]
 - Acceptance:
   - Dashboard surfaces actionable alerts (awaiting fulfilment, stock, payouts) with owner-configurable thresholds.
   - Order timeline shows chronological audit entries; bulk actions update rows and audit logs.

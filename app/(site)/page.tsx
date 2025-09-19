@@ -5,6 +5,7 @@ import ProductCatalog from '@/components/ProductCatalog'
 import PreOrderSection from '@/components/PreOrderSection'
 import GrimoireSection from '@/components/GrimoireSection'
 import RecommendationEngine from '@/components/RecommendationEngine'
+import { StorySections, NewsletterSection } from '@/components/StorySections'
 
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
@@ -20,6 +21,8 @@ export default function HomePage({ searchParams }: { searchParams: Record<string
         <RecommendationEngine />
       </div>
       <PreOrderSection />
+      <StorySections />
+      <NewsletterSection />
       <GrimoireSection />
     </>
   )

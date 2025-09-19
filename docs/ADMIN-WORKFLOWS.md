@@ -52,6 +52,7 @@ This guide explains the key concepts in the admin and the typical flows. Use `do
   - Low stock list with direct links to edit Stock Units.
   - A “Next steps” checklist tailored to the owner.
 - Quick actions (Add product, View orders, Receive stock) are pinned to the header for fast access.
+- Dashboard announcement editor now tracks history; use the “Revert to this copy” action to restore previous messages.
 - Tables remain available via the navigation, but the dashboard is the preferred entry point for non-technical operators.
 
 ## Full Control (Products / Stock Units / Inventory)

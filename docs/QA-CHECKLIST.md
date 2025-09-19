@@ -55,6 +55,7 @@ Use this checklist to verify the dev Branch Deploy before promoting to main. Ref
 ## Admin — Dashboard
 - Revenue goal card displays current progress, allows editing target/period, and persists changes.
 - Needs fulfilment panel reflects awaiting fulfilment, low stock, and pending payment counts with thresholds.
+- Announcement history lists previous messages and “Revert” restores copy without errors.
 
 Tip: Use a temporary QA admin account (email/password) for branch testing, or log in with an existing admin and keep the session open while running MCP.
 

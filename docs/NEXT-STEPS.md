@@ -30,7 +30,7 @@ Consult `AGENTS.md` for contributor expectations and deployment discipline. Use 
 ## Short-Term Enhancements (Priority B)
 - Dashboard
   - [x] Revenue goal card with editable target + trend delta.
-  - [ ] Announcement history log + restore UI.
+  - [x] Announcement history log + restore UI.
   - [ ] Needs fulfilment panel: add quick export + filter links.
 - Orders Workflow
   - [x] Timeline tab on `/admin/orders/show/[id]` combining status/payment/audit events.
@@ -40,7 +40,7 @@ Consult `AGENTS.md` for contributor expectations and deployment discipline. Use 
   - [x] Campaign hero layout variants (classic/split/minimal) with badges, highlights, and reduced-motion handling.
   - [x] Catalog quick actions (Add to cart/Wishlist) with focus states.
   - [x] Product gallery lightbox + sticky buy module.
-  - [ ] Story block (“About the Label”) + testimonials carousel.
+  - [x] Story block (“About the Label”) + testimonials carousel.
   - [ ] Checkout sheet UX + wallet row (blocked on publishable key).
 
 ## Research / Decisions (Priority C)

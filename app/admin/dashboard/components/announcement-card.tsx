@@ -6,8 +6,7 @@ import { toast } from 'sonner'
 
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
-
-import { updateDashboardAnnouncement } from '../actions'
+import { updateDashboardAnnouncement, revertDashboardAnnouncement } from '../actions'
 
 interface AnnouncementRecord {
   id: string
@@ -15,15 +14,24 @@ interface AnnouncementRecord {
   updated_at: string
 }
 
+interface HistoryEntry {
+  id: string
+  message: string
+  created_at: string
+  created_by?: string | null
+}
+
 interface Props {
   announcement: AnnouncementRecord | null
+  history: HistoryEntry[]
 }
 
 const DEFAULT_MESSAGE = 'Welcome back! Review paid orders and publish new releases when you\'re ready.'
 
-export default function AnnouncementCard({ announcement }: Props) {
+export default function AnnouncementCard({ announcement, history }: Props) {
   const [value, setValue] = React.useState(announcement?.message ?? DEFAULT_MESSAGE)
   const [isSaving, startTransition] = React.useTransition()
+  const [isReverting, setIsReverting] = React.useState<string | null>(null)
 
   const lastUpdated = announcement?.updated_at
     ? formatDistanceToNow(new Date(announcement.updated_at), { addSuffix: true })
@@ -39,6 +47,21 @@ export default function AnnouncementCard({ announcement }: Props) {
         toast.error(message)
       }
     })
+  }
+
+  const handleRevert = (entry: HistoryEntry) => {
+    setIsReverting(entry.id)
+    revertDashboardAnnouncement(entry.id)
+      .then(() => {
+        toast.success('Announcement reverted')
+      })
+      .catch((error) => {
+        const message = error instanceof Error ? error.message : 'Failed to revert announcement'
+        toast.error(message)
+      })
+      .finally(() => {
+        setIsReverting(null)
+      })
   }
 
   return (
@@ -84,6 +107,29 @@ export default function AnnouncementCard({ announcement }: Props) {
           </div>
         </div>
       </div>
+      {history.length > 0 ? (
+        <div className="mt-6 space-y-3 rounded-lg border border-border/60 bg-background/40 p-4">
+          <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">Revision history</p>
+          <ul className="space-y-3">
+            {history.map((entry) => (
+              <li key={entry.id} className="rounded border border-border/60 bg-background/60 p-3">
+                <p className="text-sm text-muted-foreground whitespace-pre-wrap">{entry.message}</p>
+                <div className="mt-2 flex flex-col gap-2 text-xs text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
+                  <span>{formatDistanceToNow(new Date(entry.created_at), { addSuffix: true })}</span>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => handleRevert(entry)}
+                    disabled={Boolean(isReverting) && isReverting !== entry.id}
+                  >
+                    {isReverting === entry.id ? 'Reverting…' : 'Revert to this copy'}
+                  </Button>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
     </div>
   )
 }
