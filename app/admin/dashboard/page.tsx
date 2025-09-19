@@ -13,6 +13,7 @@ import LowStockChart from './components/low-stock-chart'
 import NeedsFulfillmentPanel from './components/needs-fulfillment-panel'
 import AnnouncementCard from './components/announcement-card'
 import { AlertWatcher } from './components/alert-watcher'
+import AlertSummaryBanner from './components/alert-summary-banner'
 
 interface OrderRecord {
   id: string
@@ -330,6 +331,11 @@ export default async function AdminDashboardPage() {
   return (
     <section className="space-y-8">
       <AlertWatcher awaitingFulfilment={summary.awaitingFulfillment} lowStock={lowStock.length} />
+      <AlertSummaryBanner
+        awaitingCount={summary.awaitingFulfillment}
+        lowStockCount={lowStock.length}
+        thresholds={alertsConfig}
+      />
       <header className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div>
           <h1 className="blackletter text-4xl text-bone">Dashboard</h1>

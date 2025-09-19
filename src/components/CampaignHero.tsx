@@ -23,7 +23,7 @@ export default async function CampaignHero({ previewSlug }: { previewSlug?: stri
   if (previewSlug) {
     const { data, error } = await supabase
       .from('campaigns')
-      .select('title, subtitle, description, hero_image_url, background_video_url, cta_primary_label, cta_primary_href, cta_secondary_label, cta_secondary_href, audio_preview_url, active, starts_at, ends_at')
+      .select('title, subtitle, description, hero_image_url, background_video_url, cta_primary_label, cta_primary_href, cta_secondary_label, cta_secondary_href, audio_preview_url, active, starts_at, ends_at, revision_note, updated_at')
       .eq('slug', previewSlug)
       .maybeSingle()
 
@@ -35,7 +35,7 @@ export default async function CampaignHero({ previewSlug }: { previewSlug?: stri
   if (!featuredCampaign) {
     const { data, error } = await supabase
       .from('campaigns')
-      .select('title, subtitle, description, hero_image_url, background_video_url, cta_primary_label, cta_primary_href, cta_secondary_label, cta_secondary_href, audio_preview_url, active, starts_at, ends_at')
+      .select('title, subtitle, description, hero_image_url, background_video_url, cta_primary_label, cta_primary_href, cta_secondary_label, cta_secondary_href, audio_preview_url, active, starts_at, ends_at, revision_note, updated_at')
       .order('sort_order', { ascending: true })
 
     if (error) {
