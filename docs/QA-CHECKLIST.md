@@ -15,6 +15,7 @@ Use this checklist to verify the dev Branch Deploy before promoting to main. Ref
 - “Browse catalog” or footer “Vinyl Records” scrolls to Catalog and updates URL to `/#vinyl`.
 - Hero and images load without broken links or layout jitter.
 - When feature flag is on, verify campaign hero layouts (Classic, Split, Minimal): badge renders, reduced-motion falls back, video/audio controls operate.
+- Story section renders timeline + testimonials sourced from Supabase; newsletter CTA copy matches admin settings.
 
 ## Catalog
 - Product cards render (if data available); images not broken.
@@ -56,6 +57,11 @@ Use this checklist to verify the dev Branch Deploy before promoting to main. Ref
 - Revenue goal card displays current progress, allows editing target/period, and persists changes.
 - Needs fulfilment panel reflects awaiting fulfilment, low stock, and pending payment counts with thresholds.
 - Announcement history lists previous messages and “Revert” restores copy without errors.
+
+## Admin — Story Content
+- `/admin/story` loads timeline and testimonials tables.
+- Creating, editing, and deleting story points/testimonials update the storefront on refresh.
+- Newsletter CTA form saves heading/subheading/CTA label successfully.
 
 Tip: Use a temporary QA admin account (email/password) for branch testing, or log in with an existing admin and keep the session open while running MCP.
 

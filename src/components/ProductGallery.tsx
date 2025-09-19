@@ -38,6 +38,7 @@ export function ProductGallery({ title, artist, primaryImage, additionalImages }
             className="group relative flex aspect-square w-full items-center justify-center overflow-hidden rounded-xl border border-border bg-secondary/30"
             onClick={() => setLightboxOpen(true)}
             aria-label={`Open gallery lightbox for ${caption}`}
+            data-story="gallery-main"
           >
             <AnimatePresence mode="wait">
               <motion.div
@@ -64,7 +65,7 @@ export function ProductGallery({ title, artist, primaryImage, additionalImages }
             </div>
           </button>
         </DialogTrigger>
-        <DialogContent className="bg-background/95 sm:max-w-4xl">
+        <DialogContent className="bg-background/95 sm:max-w-4xl" data-story="gallery-lightbox">
           <div className="relative aspect-square w-full overflow-hidden rounded-lg">
             <Image
               src={activeSrc || FALLBACK}
@@ -95,6 +96,7 @@ export function ProductGallery({ title, artist, primaryImage, additionalImages }
               )}
               onClick={() => setActiveIndex(index)}
               aria-label={`View image ${index + 1} of ${images.length}`}
+              data-story="gallery-thumb"
             >
               <Image src={src || FALLBACK} alt="" fill className="object-cover" sizes="15vw" />
             </Button>

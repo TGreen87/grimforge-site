@@ -17,7 +17,8 @@ import {
   TagsOutlined,
   DashboardOutlined,
   NotificationOutlined,
-  SettingOutlined
+  SettingOutlined,
+  BookOutlined
 } from "@ant-design/icons";
 import "@refinedev/antd/dist/reset.css";
 
@@ -51,6 +52,14 @@ const resources = [
       canDelete: false,
       parent: "campaigns",
       hide: true,
+    },
+  },
+  {
+    name: "story",
+    list: "/admin/story",
+    meta: {
+      label: "Story Content",
+      icon: <BookOutlined />,
     },
   },
   {

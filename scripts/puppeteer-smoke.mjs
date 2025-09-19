@@ -59,6 +59,20 @@ async function run() {
     log('Open homepage', true, `title: ${title}`);
     await shot('home.png');
 
+    // Story sections (timeline/testimonials/newsletter)
+    try {
+      await page.evaluate(() => {
+        const el = document.querySelector('[data-story="timeline-section"]');
+        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      });
+      await new Promise((r) => setTimeout(r, 600));
+      const hasTimeline = await page.$('[data-story="timeline-section"]');
+      log('Story sections present', !!hasTimeline);
+      await shot('story-sections.png');
+    } catch (e) {
+      log('Story sections present', false, String(e));
+    }
+
     // Try footer Vinyl anchor
     try {
       // Prefer header nav button "Vinyl"
@@ -101,6 +115,26 @@ async function run() {
       const addBtnDirect = hydrated ? await findByText(['button', '[role="button"]'], /add to cart/i) : null;
       log('Open product by slug', !!addBtnDirect, hydrated ? page.url() : 'hydration-timeout');
       await shot('product.png');
+
+      // Gallery lightbox
+      try {
+        const galleryTrigger = await page.$('[data-story="gallery-main"]');
+        if (galleryTrigger) {
+          await galleryTrigger.click();
+          await page.waitForSelector('[data-story="gallery-lightbox"]', { timeout: TIMEOUT_MS }).catch(() => null);
+          log('Gallery lightbox', true);
+          await shot('product-gallery.png');
+          await page.keyboard.press('Escape').catch(() => {});
+          await new Promise((r) => setTimeout(r, 200));
+        }
+        const stickyState = await page.evaluate(() => {
+          const aside = document.querySelector('aside');
+          return aside ? getComputedStyle(aside).position : 'unknown';
+        });
+        log('Sticky buy module', stickyState === 'sticky', stickyState);
+      } catch (galleryError) {
+        log('Gallery lightbox', false, String(galleryError));
+      }
       if (addBtnDirect) {
         await addBtnDirect.click();
         await new Promise(r => setTimeout(r, 600));
@@ -202,6 +236,8 @@ async function run() {
           await page.goto(BASE_URL.replace(/\/$/, '') + '/admin/dashboard', { waitUntil: 'domcontentloaded' });
           await page.waitForSelector('h1.blackletter', { timeout: TIMEOUT_MS }).catch(()=>{});
           log('Admin dashboard renders', true);
+          const historyCount = await page.evaluate(() => document.querySelectorAll('[data-story="announcement-history-item"]').length);
+          log('Announcement history visible', historyCount >= 1, `count=${historyCount}`);
           await shot('admin-dashboard.png');
         } catch (dashError) {
           log('Admin dashboard renders', false, String(dashError));
@@ -309,11 +345,21 @@ async function run() {
       }
 
       // Admin visuals screenshots
+     try {
+       await page.goto(BASE_URL.replace(/\/$/, '') + '/admin/products', { waitUntil: 'domcontentloaded' });
+       await new Promise(r => setTimeout(r, 800));
+       await shot('admin-products.png');
+     } catch {}
+
       try {
-        await page.goto(BASE_URL.replace(/\/$/, '') + '/admin/products', { waitUntil: 'domcontentloaded' });
-        await new Promise(r => setTimeout(r, 800));
-        await shot('admin-products.png');
-      } catch {}
+        await page.goto(BASE_URL.replace(/\/$/, '') + '/admin/story', { waitUntil: 'domcontentloaded' });
+        await page.waitForSelector('.ant-card', { timeout: TIMEOUT_MS }).catch(()=>{});
+        log('Admin story content renders', true);
+        await shot('admin-story.png');
+      } catch (storyError) {
+        log('Admin story content renders', false, String(storyError));
+      }
+
       try {
         await page.goto(BASE_URL.replace(/\/$/, '') + '/admin/variants', { waitUntil: 'domcontentloaded' });
         await new Promise(r => setTimeout(r, 800));

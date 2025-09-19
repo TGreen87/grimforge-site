@@ -65,7 +65,7 @@ export default function AnnouncementCard({ announcement, history }: Props) {
   }
 
   return (
-    <div className="rounded-xl border border-border bg-background/60 p-5">
+    <div className="rounded-xl border border-border bg-background/60 p-5" data-story="announcement-card">
       <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
         <div>
           <h2 className="text-lg font-semibold text-bone">Dashboard announcement</h2>
@@ -108,11 +108,11 @@ export default function AnnouncementCard({ announcement, history }: Props) {
         </div>
       </div>
       {history.length > 0 ? (
-        <div className="mt-6 space-y-3 rounded-lg border border-border/60 bg-background/40 p-4">
+        <div className="mt-6 space-y-3 rounded-lg border border-border/60 bg-background/40 p-4" data-story="announcement-history">
           <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">Revision history</p>
           <ul className="space-y-3">
             {history.map((entry) => (
-              <li key={entry.id} className="rounded border border-border/60 bg-background/60 p-3">
+              <li key={entry.id} className="rounded border border-border/60 bg-background/60 p-3" data-story="announcement-history-item">
                 <p className="text-sm text-muted-foreground whitespace-pre-wrap">{entry.message}</p>
                 <div className="mt-2 flex flex-col gap-2 text-xs text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
                   <span>{formatDistanceToNow(new Date(entry.created_at), { addSuffix: true })}</span>

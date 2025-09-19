@@ -4,7 +4,24 @@ import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 
-const timeline = [
+export interface TimelineEntry {
+  year: string;
+  title: string;
+  description?: string | null;
+}
+
+export interface TestimonialEntry {
+  quote: string;
+  author: string;
+}
+
+export interface NewsletterContent {
+  heading: string;
+  subheading: string;
+  ctaLabel: string;
+}
+
+const FALLBACK_TIMELINE: TimelineEntry[] = [
   {
     year: "2015",
     title: "Ritual Beginnings",
@@ -27,7 +44,7 @@ const timeline = [
   },
 ];
 
-const testimonials = [
+const FALLBACK_TESTIMONIALS: TestimonialEntry[] = [
   {
     quote: "The only label that ships faster than the blast beats they promote.",
     author: "Serpent's Wake Zine",
@@ -42,9 +59,23 @@ const testimonials = [
   },
 ];
 
-export function StorySections() {
+const FALLBACK_NEWSLETTER: NewsletterContent = {
+  heading: "Join the midnight mailing list",
+  subheading: "Monthly rituals, early access to limited pressings, and subscriber-only discount codes delivered straight from the furnace.",
+  ctaLabel: "Subscribe",
+};
+
+interface StorySectionsProps {
+  timeline: TimelineEntry[];
+  testimonials: TestimonialEntry[];
+}
+
+export function StorySections({ timeline, testimonials }: StorySectionsProps) {
+  const timelineEntries = timeline?.length ? timeline : FALLBACK_TIMELINE;
+  const testimonialEntries = testimonials?.length ? testimonials : FALLBACK_TESTIMONIALS;
+
   return (
-    <section className="bg-background/95 py-20">
+    <section className="bg-background/95 py-20" data-story="timeline-section">
       <div className="container mx-auto grid gap-16 px-4 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]">
         <motion.div
           initial={{ opacity: 0, y: 24 }}
@@ -59,8 +90,8 @@ export function StorySections() {
             Obsidian Rite amplifies black metal with handmade pressings, artist-first releases, and rituals spanning antipodean forests to Nordic crypts.
           </p>
           <ol className="relative space-y-6 border-l border-border pl-6">
-            {timeline.map((item) => (
-              <li key={item.year} className="space-y-1">
+            {timelineEntries.map((item) => (
+              <li key={`${item.year}-${item.title}`} className="space-y-1" data-story="timeline-item">
                 <div className="absolute -left-[7px] h-3 w-3 rounded-full border border-border bg-background" aria-hidden="true" />
                 <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">{item.year}</p>
                 <p className="font-semibold text-bone">{item.title}</p>
@@ -76,14 +107,16 @@ export function StorySections() {
           transition={{ delay: 0.1, duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
           viewport={{ once: true, amount: 0.2 }}
           className="space-y-6 rounded-2xl border border-border bg-[#0d1117] p-8 shadow-lg"
+          data-story="testimonials-section"
         >
           <span className="text-xs uppercase tracking-[0.4em] text-muted-foreground">Testimony</span>
           <h2 className="blackletter text-3xl text-bone">What the coven says</h2>
           <div className="space-y-5">
-            {testimonials.map(({ quote, author }) => (
+            {testimonialEntries.map(({ quote, author }) => (
               <blockquote
                 key={author}
                 className="rounded-xl border border-border/60 bg-background/30 p-5 text-sm text-muted-foreground"
+                data-story="testimonial"
               >
                 <p className="italic">“{quote}”</p>
                 <footer className="mt-3 text-xs uppercase tracking-[0.2em] text-muted-foreground/80">{author}</footer>
@@ -96,9 +129,18 @@ export function StorySections() {
   );
 }
 
-export function NewsletterSection() {
+interface NewsletterSectionProps {
+  content?: Partial<NewsletterContent> | null;
+}
+
+export function NewsletterSection({ content }: NewsletterSectionProps) {
+  const resolved = {
+    ...FALLBACK_NEWSLETTER,
+    ...(content ?? {}),
+  } satisfies NewsletterContent;
+
   return (
-    <section className="bg-gradient-to-b from-[#0d1117] via-background to-background py-16">
+    <section className="bg-gradient-to-b from-[#0d1117] via-background to-background py-16" data-story="newsletter-section">
       <div className="container mx-auto px-4">
         <motion.div
           initial={{ opacity: 0, y: 24 }}
@@ -108,9 +150,9 @@ export function NewsletterSection() {
           className="mx-auto max-w-2xl rounded-3xl border border-border bg-background/60 p-8 shadow-xl backdrop-blur"
         >
           <span className="text-xs uppercase tracking-[0.3em] text-muted-foreground">Newsletter</span>
-          <h2 className="blackletter mt-3 text-3xl text-bone sm:text-4xl">Join the midnight mailing list</h2>
+          <h2 className="blackletter mt-3 text-3xl text-bone sm:text-4xl">{resolved.heading}</h2>
           <p className="mt-3 text-sm text-muted-foreground sm:text-base">
-            Monthly rituals, early access to limited pressings, and subscriber-only discount codes delivered straight from the furnace.
+            {resolved.subheading}
           </p>
           <form className="mt-6 flex flex-col gap-3 sm:flex-row">
             <input
@@ -121,7 +163,7 @@ export function NewsletterSection() {
               aria-label="Email address"
             />
             <Button type="submit" className="h-12 px-6" size="lg">
-              Subscribe
+              {resolved.ctaLabel || 'Subscribe'}
             </Button>
           </form>
           <p className="mt-2 text-xs text-muted-foreground">No spam. Unsubscribe anytime.</p>

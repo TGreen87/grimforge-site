@@ -79,6 +79,7 @@ This guide explains the key concepts in the admin and the typical flows. Use `do
 - Use lowercase URL links with hyphens; keep them short and descriptive.
 - Keep SKUs consistent (auto‑generated, but edit if you have a store‑wide scheme).
 - Prefer “Stock Units” to refer to purchasable items (we’ve renamed UI labels accordingly).
+- Manage storytelling blocks via **Admin → Story Content** (timeline order, testimonials, newsletter CTA). Changes persist instantly to the storefront.
 
 ## Users & Roles (Grant Admin)
 - Path: `/admin/users` (preview environments only; requires an existing authenticated session).

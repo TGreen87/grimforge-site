@@ -18,6 +18,7 @@ This document tracks every action required to ship grimforge-site to production 
 | ☐ | QA | `npm run test:puppeteer` w/ admin creds (after keys). Attach screenshots in `docs/qa-screenshots/`. |  |
 | ☐ | QA | With hero flag on, smoke Classic/Split/Minimal layouts, verify badge/highlights, reduced-motion fallback, and media controls. |  |
 | ☐ | QA | Dashboard revenue goal card shows correct progress and saving a new target/period persists across refresh. |  |
+| ☐ | QA | Story content (timeline/testimonials/newsletter) reflects Supabase entries and `/admin/story` updates publish instantly. |  |
 | ☐ | QA | Manual smoke on production preview (`/`, `/products/<slug>`, `/admin/dashboard`) post-deploy. |  |
 | ☐ | Release | Merge `dev → main`; monitor Netlify deploy; announce go-live. |  |
 
