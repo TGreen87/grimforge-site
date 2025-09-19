@@ -14,6 +14,7 @@ import NeedsFulfillmentPanel from './components/needs-fulfillment-panel'
 import AnnouncementCard from './components/announcement-card'
 import { AlertWatcher } from './components/alert-watcher'
 import AlertSummaryBanner from './components/alert-summary-banner'
+import RevenueGoalCard from './components/revenue-goal-card'
 
 interface OrderRecord {
   id: string
@@ -84,6 +85,10 @@ interface AdminSettings {
     awaiting_fulfilment_threshold: number
     low_stock_threshold: number
     enable_dashboard_alerts?: boolean
+  }
+  revenue_goal: {
+    target: number
+    period: '7d' | '30d'
   }
 }
 
@@ -261,13 +266,17 @@ async function fetchAdminSettings(): Promise<AdminSettings> {
   const { data } = await supabase
     .from('admin_settings')
     .select('key, value')
-    .in('key', ['dashboard_alerts'])
+    .in('key', ['dashboard_alerts', 'dashboard_revenue_goal'])
 
   const defaults = {
     dashboard_alerts: {
       awaiting_fulfilment_threshold: 3,
       low_stock_threshold: 5,
       enable_dashboard_alerts: true,
+    },
+    revenue_goal: {
+      target: 5000,
+      period: '30d' as '7d' | '30d',
     },
   }
 
@@ -281,9 +290,28 @@ async function fetchAdminSettings(): Promise<AdminSettings> {
         enable_dashboard_alerts: Boolean((row.value as any)?.enable_dashboard_alerts ?? true),
       }
     }
+    if (row.key === 'dashboard_revenue_goal' && row.value) {
+      const goal = row.value as Record<string, unknown>
+      const target = Number(goal?.target ?? 5000)
+      const periodRaw = (goal?.period ?? '30d') as string
+      defaults.revenue_goal = {
+        target: Number.isFinite(target) ? target : 5000,
+        period: periodRaw === '7d' ? '7d' : '30d',
+      }
+    }
   }
 
   return defaults
+}
+
+function computeWindowTotals(series: RevenuePoint[], days: number) {
+  const current = sumPaid(series.slice(-days))
+  const previous = sumPaid(series.slice(-(days * 2), -days))
+  return {
+    current,
+    previous,
+    changePct: previous > 0 ? ((current - previous) / previous) * 100 : null,
+  }
 }
 
 function formatCurrency(amount: number, currency = 'AUD') {
@@ -327,6 +355,10 @@ export default async function AdminDashboardPage() {
   const revenueStats = computeRevenueChange(revenueSeries30)
   const revenueSeries7 = revenueSeries30.slice(-7)
   const alertsConfig = adminSettings.dashboard_alerts
+  const revenueGoal = adminSettings.revenue_goal
+  const goalWindowDays = revenueGoal.period === '7d' ? 7 : 30
+  const goalStats = computeWindowTotals(revenueSeries30, goalWindowDays)
+  const currency = stripePayout?.currency ?? 'AUD'
 
   return (
     <section className="space-y-8">
@@ -398,6 +430,15 @@ export default async function AdminDashboardPage() {
           </CardContent>
         </Card>
       </section>
+
+      <RevenueGoalCard
+        current={goalStats.current}
+        previous={goalStats.previous}
+        changePct={goalStats.changePct}
+        target={revenueGoal.target}
+        period={revenueGoal.period}
+        currency={currency}
+      />
 
       <section className="grid gap-4 xl:grid-cols-3">
         <Card className="xl:col-span-2">

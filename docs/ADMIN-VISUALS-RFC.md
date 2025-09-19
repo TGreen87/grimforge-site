@@ -51,6 +51,7 @@ Purpose: Improve daily admin usability and clarity with consistent theme tokens,
 ## Dashboard Snapshot
 - `/admin/dashboard` now opens with KPI cards, Stripe payout summary (when keys configured), recent orders, and low-stock alerts. Reference screenshot: `docs/qa-screenshots/admin-dashboard.png`.
 - Quick actions (Add product, View orders, Receive stock) sit in the header; ensure future visual updates keep these primary actions above the fold.
+- Revenue goal card displays progress toward configurable 7-day / 30-day targets and should remain above the fold for fast monitoring.
 
 ### Upcoming Dashboard Enhancements
 - Revenue goal card with editable targets + 7/30 day comparison.

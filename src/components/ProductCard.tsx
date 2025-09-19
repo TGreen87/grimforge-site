@@ -1,6 +1,6 @@
 'use client'
 
-import { memo, KeyboardEvent } from "react";
+import { memo, KeyboardEvent, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -10,6 +10,7 @@ import Link from "next/link";
 import { useCart } from "@/contexts/CartContext";
 import { useWishlist } from "@/contexts/WishlistContext";
 import { useToast } from "@/hooks/use-toast";
+import { cn } from "@/lib/utils";
 
 interface ProductCardProps {
   id: string;
@@ -28,6 +29,7 @@ const ProductCard = ({ id, slug, title, artist, format, price, image, limited, p
   const { addItem } = useCart();
   const { addItem: addToWishlist, removeItem: removeFromWishlist, isInWishlist } = useWishlist();
   const { toast } = useToast();
+  const priceNumber = useMemo(() => parseFloat(price.replace('$', '')), [price]);
   
   // Prefer slug for navigation; fallback to a slugified title route handled by product page
   const fallbackSlugFromTitle = `${artist} ${title}`.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')
@@ -38,17 +40,18 @@ const ProductCard = ({ id, slug, title, artist, format, price, image, limited, p
     cd: "💿"
   };
 
-  const handleAddToCart = () => {
-    const priceNumber = parseFloat(price.replace('$', ''));
+  const isWishlisted = isInWishlist(id);
+
+  const addToCart = () => {
     addItem({
       id,
       title,
       artist,
       format,
-      price: priceNumber,
-      image
+      price: Number.isFinite(priceNumber) ? priceNumber : 0,
+      image,
     });
-    
+
     toast({
       title: "Added to cart",
       description: `${artist} - ${title} has been summoned to your cart`,
@@ -56,11 +59,13 @@ const ProductCard = ({ id, slug, title, artist, format, price, image, limited, p
     });
   };
 
-  const handleWishlistToggle = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    const priceNumber = parseFloat(price.replace('$', ''));
-    
-    if (isInWishlist(id)) {
+  const handleAddToCartClick = (event?: React.MouseEvent<HTMLButtonElement>) => {
+    event?.stopPropagation();
+    addToCart();
+  };
+
+  const toggleWishlist = () => {
+    if (isWishlisted) {
       removeFromWishlist(id);
       toast({
         title: "Removed from wishlist",
@@ -73,8 +78,8 @@ const ProductCard = ({ id, slug, title, artist, format, price, image, limited, p
         title,
         artist,
         format,
-        price: priceNumber,
-        image
+        price: Number.isFinite(priceNumber) ? priceNumber : 0,
+        image,
       });
       toast({
         title: "Added to wishlist",
@@ -82,6 +87,11 @@ const ProductCard = ({ id, slug, title, artist, format, price, image, limited, p
         duration: 2000,
       });
     }
+  };
+
+  const handleWishlistClick = (event?: React.MouseEvent<HTMLButtonElement | HTMLAnchorElement>) => {
+    event?.stopPropagation();
+    toggleWishlist();
   };
 
   const handleCardClick = () => {
@@ -136,7 +146,7 @@ const ProductCard = ({ id, slug, title, artist, format, price, image, limited, p
           </div>
 
           {/* Hover Actions - Touch optimized */}
-          <div className="absolute inset-0 bg-background/80 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center gap-2">
+          <div className="absolute inset-0 flex items-center justify-center gap-2 bg-background/80 opacity-0 transition-opacity duration-300 group-hover:opacity-100 group-focus-within:opacity-100">
             <Link href={href} onClick={(e) => e.stopPropagation()}>
               <Button 
                 size="default"
@@ -149,17 +159,22 @@ const ProductCard = ({ id, slug, title, artist, format, price, image, limited, p
             </Link>
             <Button 
               size="default"
-              variant={isInWishlist(id) ? "default" : "outline"}
-              className={`h-11 w-11 sm:h-10 sm:w-10 p-0 ${isInWishlist(id) ? "bg-accent hover:bg-accent/90" : "border-frost text-frost hover:bg-frost hover:text-background"}`}
-              onClick={handleWishlistToggle}
-              aria-label={`${isInWishlist(id) ? 'Remove from' : 'Add to'} wishlist: ${artist} - ${title}`}
+              variant={isWishlisted ? "default" : "outline"}
+              className={cn(
+                "h-11 w-11 sm:h-10 sm:w-10 p-0",
+                isWishlisted ? "bg-accent hover:bg-accent/90" : "border-frost text-frost hover:bg-frost hover:text-background",
+              )}
+              onClick={(event) => handleWishlistClick(event)}
+              aria-label={`${isWishlisted ? 'Remove from' : 'Add to'} wishlist: ${artist} - ${title}`}
             >
-              <Heart className={`h-3.5 w-3.5 md:h-4 md:w-4 ${isInWishlist(id) ? 'fill-current' : ''}`} />
+              <Heart className={cn('h-3.5 w-3.5 md:h-4 md:w-4', isWishlisted ? 'fill-current' : undefined)} />
             </Button>
-            <Button size="default" className="h-11 w-11 sm:h-10 sm:w-10 bg-accent hover:bg-accent/90 p-0" onClick={(e) => {
-              e.stopPropagation();
-              handleAddToCart();
-            }} aria-label={`Add to cart: ${artist} - ${title}`}>
+            <Button
+              size="default"
+              className="h-11 w-11 sm:h-10 sm:w-10 bg-accent hover:bg-accent/90 p-0"
+              onClick={(event) => handleAddToCartClick(event)}
+              aria-label={`Add to cart: ${artist} - ${title}`}
+            >
               <ShoppingCart className="h-3.5 w-3.5 md:h-4 md:w-4" />
             </Button>
           </div>
@@ -179,9 +194,35 @@ const ProductCard = ({ id, slug, title, artist, format, price, image, limited, p
             <span className="text-base md:text-lg font-bold text-accent">
               {price}
             </span>
-            <Button size="sm" variant="ghost" className="text-xs md:text-sm text-muted-foreground hover:text-accent px-2" onClick={handleAddToCart}>
-            <span className="hidden sm:inline">Add to Cart</span>
-            <span className="sm:hidden">Add</span>
+          </div>
+          <div className="mt-3 flex flex-wrap items-center gap-2">
+            <Button
+              size="sm"
+              className="flex-1 min-w-[120px] bg-accent hover:bg-accent/90 text-sm"
+              onClick={(event) => handleAddToCartClick(event)}
+            >
+              Quick add
+            </Button>
+            <Button
+              size="icon"
+              variant={isWishlisted ? "secondary" : "outline"}
+              className={cn('h-9 w-9', isWishlisted ? 'bg-accent/20 text-accent-foreground' : 'text-muted-foreground hover:text-accent')}
+              onClick={(event) => handleWishlistClick(event)}
+            >
+              <Heart className={cn('h-4 w-4', isWishlisted ? 'fill-current' : undefined)} />
+              <span className="sr-only">{`${isWishlisted ? 'Remove from' : 'Add to'} wishlist`}</span>
+            </Button>
+            <Button
+              size="icon"
+              variant="ghost"
+              className="h-9 w-9 text-muted-foreground hover:text-accent"
+              onClick={(event) => {
+                event.stopPropagation();
+                router.push(href);
+              }}
+            >
+              <Eye className="h-4 w-4" />
+              <span className="sr-only">View release</span>
             </Button>
           </div>
         </div>

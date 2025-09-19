@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Card, Form, InputNumber, Input, Button, message, Switch, Space } from "antd";
+import { Card, Form, InputNumber, Input, Button, message, Switch, Space, Select } from "antd";
 import { useRouter } from "next/navigation";
 
 interface DashboardAlertSettings {
@@ -19,7 +19,13 @@ interface AdminSettingsResponse {
   settings: {
     dashboard_alerts?: DashboardAlertSettings;
     slack_webhooks?: SlackWebhookSettings;
+    dashboard_revenue_goal?: RevenueGoalSettings;
   };
+}
+
+interface RevenueGoalSettings {
+  target: number;
+  period: "7d" | "30d";
 }
 
 export default function AdminSettingsPage() {
@@ -54,6 +60,10 @@ export default function AdminSettingsPage() {
             enable_ops_alerts: slack.enable_ops_alerts ?? false,
             ops_alert_webhook: slack.ops_alert_webhook ?? '',
           },
+          revenue: {
+            target: (payload.settings.dashboard_revenue_goal as RevenueGoalSettings | undefined)?.target ?? 5000,
+            period: (payload.settings.dashboard_revenue_goal as RevenueGoalSettings | undefined)?.period ?? '30d',
+          },
         });
       })
       .catch((error) => {
@@ -69,7 +79,7 @@ export default function AdminSettingsPage() {
     };
   }, [form]);
 
-  const handleSubmit = (values: { alerts: DashboardAlertSettings; slack: SlackWebhookSettings }) => {
+  const handleSubmit = (values: { alerts: DashboardAlertSettings; slack: SlackWebhookSettings; revenue: RevenueGoalSettings }) => {
     setLoading(true);
     fetch('/api/admin/settings', {
       method: 'POST',
@@ -79,6 +89,7 @@ export default function AdminSettingsPage() {
       body: JSON.stringify({
         dashboard_alerts: values.alerts,
         slack_webhooks: values.slack,
+        dashboard_revenue_goal: values.revenue,
       }),
     })
       .then(async (res) => {
@@ -104,6 +115,15 @@ export default function AdminSettingsPage() {
           layout="vertical"
           onFinish={handleSubmit}
         >
+          <Card title="Revenue goal" size="small" style={{ marginBottom: 24 }}>
+            <Form.Item label="Target" name={['revenue', 'target']} rules={[{ required: true, message: 'Enter a goal' }] }>
+              <InputNumber min={0} step={100} style={{ width: '100%' }} addonBefore="$" />
+            </Form.Item>
+            <Form.Item label="Period" name={['revenue', 'period']} rules={[{ required: true, message: 'Select a period' }] }>
+              <Select options={[{ label: 'Last 7 days', value: '7d' }, { label: 'Last 30 days', value: '30d' }]} />
+            </Form.Item>
+          </Card>
+
           <Form.Item label="Enable dashboard alerts" name={['alerts', 'enable_dashboard_alerts']} valuePropName="checked">
             <Switch />
           </Form.Item>

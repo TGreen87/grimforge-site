@@ -47,6 +47,7 @@ This guide explains the key concepts in the admin and the typical flows. Use `do
 ## Dashboard Overview
 - Visiting `/admin` now lands on the Dashboard. It surfaces:
   - KPI cards for total revenue (paid orders), count of paid orders, orders awaiting action, and low-stock variants (≤5 available).
+  - Revenue goal progress with configurable target (7-day or 30-day window) and trend delta.
   - Recent orders list with quick status snapshots and links into Orders.
   - Low stock list with direct links to edit Stock Units.
   - A “Next steps” checklist tailored to the owner.

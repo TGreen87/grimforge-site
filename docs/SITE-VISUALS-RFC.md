@@ -24,7 +24,7 @@ Purpose: Track the roadmap for elevating the public storefront (non-admin) exper
 
 ### 2. Catalog Browsing
 - Unified card grid (masonry fallback) with hover reveals (tracklist, pressing notes).
-- Inline quick actions (Add to cart, Wishlist) and keyboard/focus support.
+- ✅ Inline quick actions (Add to cart, Wishlist) with keyboard/focus support.
 - Skeleton loaders and shimmer while data hydrates.
 - Filter chip bar for formats, availability, limited runs.
 

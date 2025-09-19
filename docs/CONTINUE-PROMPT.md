@@ -19,9 +19,10 @@ Paste the following into a fresh Codex session whenever you need to resume work 
 **Goals When Restarting**
 1. Confirm branch deploy health: homepage 200, `/status` env flags, seeded product slug reachable.
 2. Run the Puppeteer smoke (`npm run test:puppeteer`) per `docs/QA-CHECKLIST.md`; capture and review screenshots in `docs/qa-screenshots/`.
-3. Validate admin critical flows (product create/save, dashboard alerts, Slack test button where creds allow) and note regressions.
+3. Validate catalog quick actions (hover/focus add-to-cart + wishlist) and admin critical flows (product create/save, dashboard alerts, Slack test button where creds allow).
 4. Cycle campaign hero layouts (Classic/Split/Minimal) and ensure badges, highlights, and media controls behave; note reduced-motion fallback.
-5. Update task trackers (`docs/NEXT-STEPS.md`, latest `docs/SESSION-YYYY-MM-DD.md`) with findings.
+5. Confirm dashboard revenue goal card progress + settings save behaviour.
+6. Update task trackers (`docs/NEXT-STEPS.md`, latest `docs/SESSION-YYYY-MM-DD.md`) with findings.
 
 **Playbook**
 1. **Tool readiness** — Ensure Supabase + Puppeteer MCP servers are running; request restart if unavailable.
@@ -39,6 +40,7 @@ Paste the following into a fresh Codex session whenever you need to resume work 
 5. **Optional flows**
    - Checkout smoke: capture shipping modal (`checkout-shipping.png`) and Stripe redirect (`stripe.png`).
    - Toggle campaign layout + badge/highlight fields to align with storefront variants; record screenshots if visuals changed.
+   - Adjust revenue goal target/period in `/admin/settings`, confirm dashboard reflects updates after refresh.
    - Run bulk order action or packing slip download if relevant to current sprint.
 6. **Wrap-up** — Update docs/notes, file issues, and refresh `docs/NEXT-STEPS.md` and session log with outcomes.
 

@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 
 import { createClient, createServiceClient } from '@/lib/supabase/server'
 
-const MANAGED_KEYS = new Set(['dashboard_alerts', 'slack_webhooks'])
+const MANAGED_KEYS = new Set(['dashboard_alerts', 'slack_webhooks', 'dashboard_revenue_goal'])
 
 async function getSession() {
   const supabase = createClient()

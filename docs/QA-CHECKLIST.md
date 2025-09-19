@@ -20,6 +20,7 @@ Use this checklist to verify the dev Branch Deploy before promoting to main. Ref
 - Product cards render (if data available); images not broken.
 - Card link opens `/products/{slug}` when slug exists; legacy id fallback still works if present.
 - Keyboard navigation: card actions reachable; focus rings visible.
+- Quick actions (Add to cart, Wishlist, Quick view) available on hover/focus and functional without navigation side-effects.
 
 ## Product Detail
 - `/products/{slug}` shows title/artist, primary image, price; variant selector updates price/availability.
@@ -49,6 +50,10 @@ Use this checklist to verify the dev Branch Deploy before promoting to main. Ref
 - Layout: header (actions + Kbar trigger), sider (Catalog/Commerce/Content/System groups; collapsed tooltips; selected left rail accent).
 - Header shortcuts: Alt+1 Products, Alt+2 Inventory, Alt+3 Orders, Alt+4 Customers, Alt+5 Articles.
 - Kbar opens via Cmd/Ctrl+K.
+
+## Admin — Dashboard
+- Revenue goal card displays current progress, allows editing target/period, and persists changes.
+- Needs fulfilment panel reflects awaiting fulfilment, low stock, and pending payment counts with thresholds.
 
 Tip: Use a temporary QA admin account (email/password) for branch testing, or log in with an existing admin and keep the session open while running MCP.
 

@@ -29,7 +29,7 @@ Consult `AGENTS.md` for contributor expectations and deployment discipline. Use 
 
 ## Short-Term Enhancements (Priority B)
 - Dashboard
-  - [ ] Revenue goal card with editable target + trend delta.
+  - [x] Revenue goal card with editable target + trend delta.
   - [ ] Announcement history log + restore UI.
   - [ ] Needs fulfilment panel: add quick export + filter links.
 - Orders Workflow
@@ -38,7 +38,7 @@ Consult `AGENTS.md` for contributor expectations and deployment discipline. Use 
   - [ ] AusPost label hook (blocked until credentials).
 - Storefront
   - [x] Campaign hero layout variants (classic/split/minimal) with badges, highlights, and reduced-motion handling.
-  - [ ] Catalog quick actions (Add to cart/Wishlist) with focus states.
+  - [x] Catalog quick actions (Add to cart/Wishlist) with focus states.
   - [ ] Product gallery lightbox + sticky buy module.
   - [ ] Story block (“About the Label”) + testimonials carousel.
   - [ ] Checkout sheet UX + wallet row (blocked on publishable key).

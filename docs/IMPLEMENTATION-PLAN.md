@@ -182,7 +182,7 @@ Status:
 - Goals: deliver immersive, performant storefront experience aligned with black-metal brand.
 - Tasks:
   - Motion-ready hero/campaign system w/ Supabase-backed presets.
-  - Catalog quick actions (Add to cart, wishlist) + filter chip bar.
+  - Catalog quick actions (Add to cart, wishlist) + filter chip bar. [done]
   - Lightbox gallery + sticky buy module + social proof blocks on product detail.
   - Storytelling sections (label timeline, testimonials, newsletter footer).
   - Checkout sheet UX with wallet buttons and shipping timeline.
