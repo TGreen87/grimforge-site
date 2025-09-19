@@ -38,6 +38,7 @@ Use this checklist to verify the dev Branch Deploy before promoting to main. Ref
 - Without AusPost env: Stripe static options appear; select one and totals update.
 - With AusPost env: Domestic (Parcel Post/Express) and Intl (Standard/Express) appear; sorted by price; selection updates totals.
 - “Continue” → “Place order” opens Stripe Checkout; selected shipping label/amount visible on Stripe.
+- Checkout sheet stepper shows Shipping → Payment → Review; wallet row disabled message appears when no publishable key.
 - If `/api/checkout` returns 500, confirm `STRIPE_SECRET_KEY` exists; redeploy dev and retry.
 - Multi‑item: 2+ items included in session; shipping option still applied.
 

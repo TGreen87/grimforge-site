@@ -33,6 +33,7 @@ See `docs/README.md` for doc map.
 - When the campaign hero flag is on, sanity-check all layouts (classic/split/minimal) before shipping.
 - Verify catalog quick actions (hover/focus Add to cart + wishlist) in QA when product card changes ship.
 - When product detail UX changes, test gallery thumbnails/lightbox and sticky buy module across breakpoints before pushing.
+- Checkout sheet currently operates as a three-step slide-over; ensure Continue/Complete order flow works with and without Stripe publishable key.
 
 ## Commit & Deployment Workflow
 - Write imperative commit summaries (e.g., `Add campaign revision history`).

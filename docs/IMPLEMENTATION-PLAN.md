@@ -185,7 +185,7 @@ Status:
   - Catalog quick actions (Add to cart, wishlist) + filter chip bar. [done]
   - Lightbox gallery + sticky buy module + social proof blocks on product detail. [in progress — gallery + sticky buy shipped]
   - Storytelling sections (label timeline, testimonials, newsletter footer).
-  - Checkout sheet UX with wallet buttons and shipping timeline.
+  - Checkout sheet UX with wallet buttons and shipping timeline. [in progress — skeleton live pending publishable key]
 - Acceptance:
   - Owner can configure hero + campaign blocks via admin without code.
   - Catalog/product flows pass aXe accessibility checks and maintain Core Web Vitals.

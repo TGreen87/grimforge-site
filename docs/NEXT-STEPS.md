@@ -41,7 +41,7 @@ Consult `AGENTS.md` for contributor expectations and deployment discipline. Use 
   - [x] Catalog quick actions (Add to cart/Wishlist) with focus states.
   - [x] Product gallery lightbox + sticky buy module.
   - [x] Story block (“About the Label”) + testimonials carousel.
-  - [ ] Checkout sheet UX + wallet row (blocked on publishable key).
+  - [x] Checkout sheet UX skeleton + wallet row placeholder (wallet buttons activate once publishable key is set).
 
 ## Research / Decisions (Priority C)
 - [ ] Select third-party animation helper for list transitions (`auto-animate`, `motion.dev`, etc.).

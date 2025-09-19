@@ -23,8 +23,9 @@ Paste the following into a fresh Codex session whenever you need to resume work 
 4. Cycle campaign hero layouts (Classic/Split/Minimal) and ensure badges, highlights, and media controls behave; note reduced-motion fallback.
 5. Confirm product detail gallery (thumbnails + lightbox) and sticky buy module behaviour across breakpoints.
 6. Confirm dashboard revenue goal card progress + settings save behaviour.
-7. Load `/admin/story` to verify timeline/testimonial rows persist and newsletter copy saves.
-8. Update task trackers (`docs/NEXT-STEPS.md`, latest `docs/SESSION-YYYY-MM-DD.md`) with findings.
+7. Validate checkout sheet: multi-step flow, wallet row placeholder (disabled without publishable key), and review totals.
+8. Load `/admin/story` to verify timeline/testimonial rows persist and newsletter copy saves.
+9. Update task trackers (`docs/NEXT-STEPS.md`, latest `docs/SESSION-YYYY-MM-DD.md`) with findings.
 
 **Playbook**
 1. **Tool readiness** — Ensure Supabase + Puppeteer MCP servers are running; request restart if unavailable.

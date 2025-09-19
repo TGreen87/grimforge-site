@@ -12,6 +12,7 @@ This note explains how to keep each file in the `docs/` directory current. Pair 
 - **Dashboard revenue goal** lives in `docs/ADMIN-WORKFLOWS.md` + `docs/ADMIN-VISUALS-RFC.md`; update those when altering progress logic or settings flows.
 - **Product detail gallery/sticky buy module** is tracked in `docs/SITE-VISUALS-RFC.md` and QA checklist—refresh both after UX changes.
 - **Story content (timeline/testimonials/newsletter)** managed via `/admin/story`; ensure Supabase tables stay aligned and docs capture schema.
+- **Checkout sheet slide-over**: confirm QA steps in `docs/QA-CHECKLIST.md` stay current (wallet placeholder until publishable key available).
 
 ## Execution Guides
 - **ADMIN-WORKFLOWS.md** — Explain how the label owner uses the admin panel (products, inventory, orders, articles, roles). Update when UX, terminology, or admin endpoints change.
