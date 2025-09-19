@@ -107,7 +107,8 @@ This guide explains the key concepts in the admin and the typical flows.
 - Path: `/admin/campaigns` (table/cards views).
 - Toggle active state via the switch; start/end dates schedule activation automatically.
 - Use sort order (ascending) to control priority of active campaigns.
-- "Preview" opens the storefront with `?previewCampaign=slug` to review content without activating it.
+- "Preview" opens the storefront with `/?previewCampaign=slug` to review content without activating it.
+- Revision history available on the edit screen; each save captures a snapshot. Use **Revert** to restore prior copy (new revision entry is logged).
 
 ## Admin Settings (Alerts & Integrations)
 - Path: `/admin/settings`.

@@ -169,8 +169,17 @@ export interface Campaign {
   starts_at?: string | null;
   ends_at?: string | null;
   sort_order: number;
+  revision_note?: string | null;
   created_at: string;
   updated_at: string;
+}
+
+export interface CampaignRevision {
+  id: string;
+  campaign_id: string;
+  snapshot: Record<string, unknown>;
+  created_by?: string | null;
+  created_at: string;
 }
 
 // Form types for create/edit operations

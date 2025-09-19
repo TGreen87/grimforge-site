@@ -44,6 +44,16 @@ const resources = [
     },
   },
   {
+    name: "campaign_revisions",
+    list: "/admin/campaigns",
+    meta: {
+      label: "Campaign Revisions",
+      canDelete: false,
+      parent: "campaigns",
+      hide: true,
+    },
+  },
+  {
     name: "settings",
     list: "/admin/settings",
     meta: {

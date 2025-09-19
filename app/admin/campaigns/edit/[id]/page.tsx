@@ -2,17 +2,57 @@
 
 import React from "react";
 import { Edit, useForm } from "@refinedev/antd";
-import { Form, Input, Switch, InputNumber, DatePicker } from "antd";
+import { useList } from "@refinedev/core";
+import { Form, Input, Switch, InputNumber, DatePicker, Card, Table, Button, Spin } from "antd";
 import dayjs from "dayjs";
 
-import type { Campaign } from "../../../types";
+import type { Campaign, CampaignRevision } from "../../../types";
 
 const { TextArea } = Input;
 
 export default function CampaignEdit() {
-  const { formProps, saveButtonProps } = useForm<Campaign>({
+  const { formProps, saveButtonProps, queryResult } = useForm<Campaign>({
     resource: "campaigns",
   });
+
+  const record = queryResult?.data?.data
+  const campaignId = record?.id
+
+  const { data: revisionsData, isLoading: revisionsLoading, refetch: refetchRevisions } = useList<CampaignRevision>({
+    resource: "campaign_revisions",
+    filters: [
+      {
+        field: "campaign_id",
+        operator: "eq",
+        value: campaignId,
+      },
+    ],
+    sorters: [
+      {
+        field: "created_at",
+        order: "desc",
+      },
+    ],
+    pagination: {
+      mode: "off",
+    },
+    queryOptions: {
+      enabled: Boolean(campaignId),
+    },
+  })
+
+  const revisions = revisionsData?.data ?? []
+
+  const handleRevert = async (revisionId: string) => {
+    if (!campaignId) return
+    const res = await fetch(`/api/admin/campaigns/${campaignId}/revisions/${revisionId}/revert`, { method: 'POST' })
+    if (!res.ok) {
+      const text = await res.text()
+      throw new Error(text)
+    }
+    refetchRevisions()
+    queryResult?.refetch()
+  }
 
   return (
     <Edit saveButtonProps={saveButtonProps} title="Edit campaign">
@@ -72,6 +112,10 @@ export default function CampaignEdit() {
           <Input />
         </Form.Item>
 
+        <Form.Item label="Internal revision note" name="revision_note" extra="Optional note displayed in revision history.">
+          <TextArea rows={2} maxLength={140} />
+        </Form.Item>
+
         <Form.Item label="Sort order" name="sort_order" extra="Lower numbers appear first">
           <InputNumber min={0} style={{ width: "100%" }} />
         </Form.Item>
@@ -102,6 +146,60 @@ export default function CampaignEdit() {
           <DatePicker showTime style={{ width: "100%" }} />
         </Form.Item>
       </Form>
+
+      <Card
+        title="Revision history"
+        className="mt-8"
+        extra={record?.slug ? (
+          <Button size="small" href={`/?previewCampaign=${record.slug}`} target="_blank" rel="noreferrer">
+            Preview current campaign
+          </Button>
+        ) : null}
+      >
+        {revisionsLoading ? (
+          <div className="flex justify-center py-6">
+            <Spin />
+          </div>
+        ) : revisions.length === 0 ? (
+          <p className="text-sm text-muted-foreground">No revisions captured yet.</p>
+        ) : (
+          <Table
+            dataSource={revisions}
+            rowKey="id"
+            pagination={false}
+            size="small"
+          >
+            <Table.Column
+              title="Saved"
+              dataIndex="created_at"
+              render={(value: string) => new Date(value).toLocaleString()}
+            />
+            <Table.Column
+              title="Note"
+              render={(_, revision: CampaignRevision) => (
+                (revision.snapshot?.revision_note as string) || '—'
+              )}
+            />
+            <Table.Column
+              title="Actions"
+              render={(_, revision: CampaignRevision) => (
+                <Button
+                  size="small"
+                  onClick={async () => {
+                    try {
+                      await handleRevert(revision.id)
+                    } catch (error) {
+                      console.error('Revert failed', error)
+                    }
+                  }}
+                >
+                  Revert
+                </Button>
+              )}
+            />
+          </Table>
+        )}
+      </Card>
     </Edit>
   );
 }
