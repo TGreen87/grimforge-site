@@ -1,8 +1,8 @@
 # Branch Deploy QA Checklist (dev)
 
-Last modified: 2025-09-13
+Last modified: 2025-09-19
 
-Use this checklist to verify the dev Branch Deploy before promoting to main.
+Use this checklist to verify the dev Branch Deploy before promoting to main. Reference `docs/README.md` for related launch docs.
 
 ## Preflight
 - Open `https://dev--obsidianriterecords.netlify.app` → 200 OK.

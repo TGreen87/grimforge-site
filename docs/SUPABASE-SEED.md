@@ -1,8 +1,8 @@
 # Supabase Bootstrap & No-DO Seed
 
-Last updated: 2025-09-16
+Last updated: 2025-09-19
 
-This guide walks through verifying the minimum schema, bootstrapping any missing tables/policies, and seeding the preview product + admin role for branch deploys. The statements are idempotent; a short `DO $$` wrapper is only used when checking for existing policies.
+Pair with `docs/README.md` for context. This guide walks through verifying the minimum schema, bootstrapping any missing tables/policies, and seeding the preview product + admin role for branch deploys. The statements are idempotent; a short `DO $$` wrapper is only used when checking for existing policies.
 
 > ⚠️ Never paste service role keys into client-side code. Run these statements from Serverless SQL (Studio) or via the Supabase MCP with service-role auth.
 

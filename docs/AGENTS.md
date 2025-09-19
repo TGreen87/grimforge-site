@@ -1,6 +1,8 @@
 # Documentation Maintenance Guide
 
-This note explains how to keep each file in the `docs/` directory current. When significant work lands, update the relevant section(s) below and commit to `dev` so the history stays synchronized with the branch deploy.
+_Last updated: 2025-09-19_
+
+This note explains how to keep each file in the `docs/` directory current. Pair with `docs/README.md` for a high-level map of the documentation set. When significant work lands, update the relevant section(s) below and commit to `dev` so the history stays synchronized with the branch deploy.
 
 ## Core Playbooks
 - **AGENTS.md (repo root)** — Primary project playbook for future Codex sessions. Update whenever workflow rules, QA process, or tooling assumptions change.

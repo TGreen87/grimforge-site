@@ -1,8 +1,8 @@
 # Owner Quick Start Handbook
 
-_Last updated: 2025-09-18_
+_Last updated: 2025-09-19_
 
-This guide walks through the core day-to-day tasks for running Obsidian Rite Records without touching code.
+This guide walks through the core day-to-day tasks for running Obsidian Rite Records without touching code. Use `docs/README.md` for the full documentation index when onboarding new owners or assistants.
 
 ## 1. Signing in
 1. Visit `https://dev--obsidianriterecords.netlify.app/admin/login` (or production `/admin/login` once live).
@@ -67,4 +67,4 @@ This guide walks through the core day-to-day tasks for running Obsidian Rite Rec
 - Totals look wrong? Verify Stripe keys are set and check recent webhook events.
 - Shipping only shows a generic rate? AusPost keys may be missing; static rates are expected until they’re provided.
 
-Happy selling! Keep this handbook alongside `docs/ADMIN-WORKFLOWS.md` for deeper workflows.
+Happy selling! Keep this handbook alongside `docs/ADMIN-WORKFLOWS.md` for deeper workflows. Reference `docs/README.md` whenever new guides are added.

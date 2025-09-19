@@ -1,54 +1,54 @@
 ## Continuation Prompt (New Chat)
 
-Use this prompt when you need to spin up a fresh Codex chat with MCP tools (Supabase + Puppeteer) already configured and resume QA on the `dev` branch deploy.
+_Last updated: 2025-09-19_
+
+Paste the following into a fresh Codex session whenever you need to resume work on grimforge-site with MCP tools enabled.
 
 ---
 
-**Context**
-- Repo: `grimforge-site` (Next.js 15 App Router storefront + Refine/AntD admin shell).
-- Working branch: `dev` (single active branch; see `AGENTS.md`).
-- Branch deploy: https://dev--obsidianriterecords.netlify.app (update if the Netlify URL changes).
-- Planning docs: `AGENTS.md`, `docs/IMPLEMENTATION-PLAN.md`, `docs/NEXT-STEPS.md`.
-- QA guide: `docs/QA-CHECKLIST.md`.
-- MCP setup: `docs/MCP-CONFIG.md`; Puppeteer hints: `docs/MCP-PUPPETEER.md`.
-- Seed/Bootstrap reference: `docs/SUPABASE-SEED.md` (No-DO seed, admin bootstrap, policy checks).
-- Shipping: customer pays; AusPost quotes when env present; Stripe static fallback otherwise.
-- Admin visuals: modern shell, density toggle, Cards/Board views, Kbar actions, warm EmptyStates, Products/Inventory CSV export.
+**Context Snapshot**
+- Documentation map lives in `docs/README.md`; start there to orient before coding.
+- Repo: `grimforge-site` — Next.js 15 App Router storefront with Refine/AntD admin.
+- Working branch: `dev` (single-branch workflow, see `AGENTS.md`).
+- Branch deploy: https://dev--obsidianriterecords.netlify.app (treat as QA surface).
+- Core docs: `AGENTS.md`, `docs/IMPLEMENTATION-PLAN.md`, `docs/NEXT-STEPS.md`, `docs/QA-CHECKLIST.md`, `docs/PRODUCTION-LAUNCH-CHECKLIST.md`.
+- MCP setup: Supabase MCP reads `supabase/config.toml` (service-role token `sbp_*`); Puppeteer MCP runs via Docker `docker run --rm --init -e DOCKER_CONTAINER=true mcp/puppeteer`.
+- Seed & policies: `docs/SUPABASE-SEED.md`. Shipping/AusPost behaviour documented in `docs/SHIPPING-AUSPOST.md`.
+- Feature flags: campaign hero (`NEXT_PUBLIC_FEATURE_HERO_CAMPAIGN`), admin bulk tools, Slack alerts; defaults noted in `docs/NEXT-STEPS.md`.
 
-**Goals**
-1. Run MCP Puppeteer smoke against the dev branch deploy (homepage → vinyl anchor → seeded product slug → robots/sitemap → admin login).
-2. Seed/verify the `test-vinyl-dark-rituals` product if it is missing before smoke; confirm slug renders with price/CTA and legal footer links resolve.
-3. Capture pass/fail notes + screenshots; flag regressions or missing copy for follow-up.
+**Goals When Restarting**
+1. Confirm branch deploy health: homepage 200, `/status` env flags, seeded product slug reachable.
+2. Run the Puppeteer smoke (`npm run test:puppeteer`) per `docs/QA-CHECKLIST.md`; capture and review screenshots in `docs/qa-screenshots/`.
+3. Validate admin critical flows (product create/save, dashboard alerts, Slack test button where creds allow) and note regressions.
+4. Update task trackers (`docs/NEXT-STEPS.md`, latest `docs/SESSION-YYYY-MM-DD.md`) with findings.
 
-**Assistant Instructions**
-1. Confirm MCP tools (Puppeteer / Supabase) are available. If not, request a restart with MCP enabled.
-2. Public checks:
-   - Load the homepage, report status + `<title>`, capture `home.png`.
-   - Activate the header “Vinyl” control (or footer Vinyl link); confirm hash/tab sync to `/#vinyl`, capture `vinyl.png`.
-   - Verify `/robots.txt` and `/sitemap.xml` return 200.
-3. Admin flow (pause for manual login if session missing):
-   - Visit `/admin/login`; wait for user login if required.
-   - Navigate to `/admin/products/create`; create:
-     - URL (link) `test-vinyl-dark-rituals`
-     - Title `Test Vinyl — Dark Rituals`
-     - Artist `Shadowmoon`
-     - Format `Vinyl`
-     - Price `45.99`
-     - Stock `10`
-     - Active toggle on
-   - Save; screenshot `admin-product-created.png`.
-4. Product slug:
-   - Open `/products/test-vinyl-dark-rituals`; ensure hydration completes (price + CTA visible); screenshot `product.png`.
-5. Optional follow-ups when data/env allow: run end-to-end checkout smoke, capture shipping modal (`checkout-shipping.png`) and Stripe redirect (`stripe.png`).
-6. Optional admin visuals: capture sticky header/zebra on Products/Variants/Inventory, CSV export confirmation, etc.
+**Playbook**
+1. **Tool readiness** — Ensure Supabase + Puppeteer MCP servers are running; request restart if unavailable.
+2. **Public checks**
+   - Load homepage; record status + `<title>`; screenshot `home.png`.
+   - Trigger vinyl anchor (header/foot link) and verify URL `/#vinyl`; screenshot `vinyl.png`.
+   - Fetch `/robots.txt`, `/sitemap.xml`; confirm 200.
+   - Optional: toggle campaign hero flag via query (`/?previewCampaign=slug`) if testing visuals.
+3. **Admin checks**
+   - Visit `/admin/login`; pause for manual auth if needed.
+   - Create or verify `test-vinyl-dark-rituals` via `/admin/products/create` (fields: slug, title, artist, format, price 45.99, stock 10, Active).
+   - Confirm order dashboard alerts respect thresholds; run Slack “Send test alert” if webhook configured.
+   - Screenshot key confirmations (`admin-product-created.png`, `dashboard-alert.png`).
+4. **Product slug** — Load `/products/test-vinyl-dark-rituals`; ensure hydration (price + CTA); screenshot `product.png`.
+5. **Optional flows**
+   - Checkout smoke: capture shipping modal (`checkout-shipping.png`) and Stripe redirect (`stripe.png`).
+   - Run bulk order action or packing slip download if relevant to current sprint.
+6. **Wrap-up** — Update docs/notes, file issues, and refresh `docs/NEXT-STEPS.md` and session log with outcomes.
 
-**Constraints**
-- Never capture or echo credentials. Ask the user to log in or provide temporary creds if needed.
-- Keep work scoped to QA validation (no code edits unless explicitly requested).
-- If AusPost env vars are absent, note `configured:false` from `/api/shipping/quote` and confirm Stripe static rates appear.
+**Constraints & Tips**
+- Never log secrets or credentials. Use owner-provided accounts for admin flows.
+- Keep work scoped to QA unless explicitly tasked with code changes.
+- AusPost creds optional; if absent, `/api/shipping/quote` should report `configured:false` and fallback to Stripe static rates.
+- Respect automation defaults: run lint/type-check/build when touching code (see `AGENTS.md`).
 
 **Deliverables**
-- Short pass/fail summary with screenshot names/links.
-- Note any regressions, flaky selectors, or missing shipping options for follow-up.
+- Pass/fail summary referencing screenshot filenames.
+- Noted regressions, missing copy, or env issues with links to supporting evidence.
+- Updated backlog/session notes capturing decisions and outstanding follow-ups.
 
 ---

@@ -1,8 +1,8 @@
 # Site Visual & UX Enhancement RFC
 
-_Last updated: 2025-09-18_
+_Last updated: 2025-09-19_
 
-Purpose: Track the roadmap for elevating the public storefront (non-admin) experience for Obsidian Rite Records. This complements `docs/ADMIN-VISUALS-RFC.md` and feeds into the overall implementation plan.
+Purpose: Track the roadmap for elevating the public storefront (non-admin) experience for Obsidian Rite Records. This complements `docs/ADMIN-VISUALS-RFC.md` and feeds into the overall implementation plan. See `docs/README.md` for related RFCs and notes.
 
 ## Goals
 - Reinforce the label's black-metal aesthetic while improving conversion and storytelling.

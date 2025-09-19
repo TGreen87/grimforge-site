@@ -1,8 +1,10 @@
 # Environment Quickstart (Branch Deploys + Local)
 
-Last modified: 2025-09-17
+Last modified: 2025-09-19
 
 This guide lists the environment variables required to run the site on Netlify Branch Deploys (dev) and locally. Never commit secrets.
+
+Pair this with `AGENTS.md` (Repository Guidelines) for build/test expectations before pushing. Use `docs/README.md` for the living documentation index.
 
 Key references
 - Mapping at build-time: `next.config.mjs` maps connector vars to `NEXT_PUBLIC_*`.

@@ -1,6 +1,8 @@
-# Production Launch Checklist (2025-09-18)
+# Production Launch Checklist
 
-This document tracks every action required to ship grimforge-site to production once Stripe/AusPost keys are available. Update the status column and add notes as you complete tasks.
+_Last updated: 2025-09-19_
+
+This document tracks every action required to ship grimforge-site to production once Stripe/AusPost keys are available. Update the status column and add notes as you complete tasks. Reference `docs/README.md` for related ops guides.
 
 | Status | Area | Task | Owner Notes |
 |--------|------|------|-------------|

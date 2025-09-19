@@ -1,5 +1,9 @@
 # Execution Plan — September 18, 2025
 
+_Last updated: 2025-09-19_
+
+This snapshot complements `docs/IMPLEMENTATION-PLAN.md`; see `docs/README.md` for the full documentation map.
+
 This working plan translates the refreshed roadmap into concrete delivery slices for the next 2–3 development sprints. Each section lists context, deliverables, acceptance criteria, dependencies, and observability hooks. All work lands on `dev`; every slice ends with automation + doc updates and a Netlify branch deploy verification.
 
 ---

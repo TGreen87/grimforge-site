@@ -1,6 +1,8 @@
 # Admin Visual Overhaul — RFC
 
-Purpose: Improve daily admin usability and clarity with consistent theme tokens, denser layout, readable tables, clearer forms, and better quick actions. This RFC scopes the work for Phase 10 (Implementation Plan) and will be iterated in small, reversible commits on `dev`.
+_Last updated: 2025-09-19_
+
+Purpose: Improve daily admin usability and clarity with consistent theme tokens, denser layout, readable tables, clearer forms, and better quick actions. Use `docs/README.md` for related RFCs and implementation notes. This RFC scopes the work for Phase 10 (Implementation Plan) and will be iterated in small, reversible commits on `dev`.
 
 ## Goals
 - Improve information density without sacrificing readability (compact defaults with breathing room).

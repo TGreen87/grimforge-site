@@ -1,6 +1,8 @@
 # Australia Post Shipping (Scaffold)
 
-This repo includes a safe scaffold for quoting Australia Post rates and passing a selected option into Stripe Checkout. It degrades gracefully to static Stripe rates when AusPost env is not configured.
+_Last updated: 2025-09-19_
+
+This repo includes a safe scaffold for quoting Australia Post rates and passing a selected option into Stripe Checkout. See `docs/README.md` for related integration guides. It degrades gracefully to static Stripe rates when AusPost env is not configured.
 
 ## What’s Implemented
 - Service module: `src/services/shipping/auspost.ts`

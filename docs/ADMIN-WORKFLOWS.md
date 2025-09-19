@@ -1,6 +1,8 @@
 # Admin Workflows & Terminology
 
-This guide explains the key concepts in the admin and the typical flows.
+_Last updated: 2025-09-19_
+
+This guide explains the key concepts in the admin and the typical flows. Use `docs/README.md` for the full documentation index.
 
 ## Concepts
 - **Product**: The main page for a release (title, artist, description, hero image, etc.).

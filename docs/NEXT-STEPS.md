@@ -1,8 +1,10 @@
 # Next Steps (Dev Branch)
 
-Last modified: 2025-09-18
+Last modified: 2025-09-19
 
 This backlog captures the active workstreams after the dashboard revamp. Everything ships on `dev` first; promote to `main` only after the full QA loop completes.
+
+Consult `AGENTS.md` for contributor expectations and deployment discipline. Use `docs/README.md` for the live documentation index.
 
 ## Snapshot — 2025-09-18
 - Supabase schema for customers/orders/inventory + dashboard analytics is live.
