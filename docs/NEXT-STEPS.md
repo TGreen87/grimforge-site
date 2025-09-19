@@ -37,6 +37,7 @@ Consult `AGENTS.md` for contributor expectations and deployment discipline. Use 
   - [x] Upgrade packing slip to branded PDF (HTML-to-PDF service) (attachment flow TBD).
   - [ ] AusPost label hook (blocked until credentials).
 - Storefront
+  - [x] Campaign hero layout variants (classic/split/minimal) with badges, highlights, and reduced-motion handling.
   - [ ] Catalog quick actions (Add to cart/Wishlist) with focus states.
   - [ ] Product gallery lightbox + sticky buy module.
   - [ ] Story block (“About the Label”) + testimonials carousel.
@@ -59,7 +60,7 @@ Consult `AGENTS.md` for contributor expectations and deployment discipline. Use 
 
 ## Documentation & Ops
 - [x] Update `docs/ENV-QUICKSTART.md` when new env vars (Slack webhook, animation toggles) are introduced.
-- [ ] Record work in `docs/SESSION-YYYY-MM-DD.md` per major push.
-- [ ] Refresh `docs/PRODUCTION-LAUNCH-CHECKLIST.md` with storefront QA steps.
+- [x] Record work in `docs/SESSION-YYYY-MM-DD.md` per major push.
+- [x] Refresh `docs/PRODUCTION-LAUNCH-CHECKLIST.md` with storefront QA steps.
 
 Keep this doc updated as tasks complete (mark `[x]`) or get reprioritized.

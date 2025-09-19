@@ -18,7 +18,8 @@ Purpose: Track the roadmap for elevating the public storefront (non-admin) exper
 - Configurable hero presets stored in Supabase (`campaigns` table) with owner controls in admin.
 - ✅ Supabase `campaigns` table + admin CRUD shipped (feature flag `NEXT_PUBLIC_FEATURE_HERO_CAMPAIGN`).
 - ✅ Hero fetch respects start/end scheduling; admin preview via `/?previewCampaign=slug`.
-- 🎧 Audio/video controls in hero (play/pause, mute) with reduced-motion fallback.
+- ✅ Hero layout variants (classic, split, minimal) with badges, highlight bullets, and responsive CTAs.
+- ✅ Audio/video controls in hero (play/pause, mute) with reduced-motion fallback.
 - Optional spotlight carousel for new releases (Embla carousel + framer-motion transitions).
 
 ### 2. Catalog Browsing

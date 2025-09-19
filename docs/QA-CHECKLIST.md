@@ -14,6 +14,7 @@ Use this checklist to verify the dev Branch Deploy before promoting to main. Ref
 - Header/menu responsive; no horizontal overflow on mobile.
 - “Browse catalog” or footer “Vinyl Records” scrolls to Catalog and updates URL to `/#vinyl`.
 - Hero and images load without broken links or layout jitter.
+- When feature flag is on, verify campaign hero layouts (Classic, Split, Minimal): badge renders, reduced-motion falls back, video/audio controls operate.
 
 ## Catalog
 - Product cards render (if data available); images not broken.

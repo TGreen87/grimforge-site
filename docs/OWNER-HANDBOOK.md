@@ -57,12 +57,19 @@ This guide walks through the core day-to-day tasks for running Obsidian Rite Rec
 2. Handle refund/void in Stripe.
 3. Update the order status to “Cancelled” or “Refunded”.
 
-## 9. Weekly health checks
+## 9. Managing storefront campaigns
+- Go to **Campaigns** in the admin menu.
+- Use the layout selector to choose between **Classic** (full-bleed), **Split** (copy plus spotlight media), or **Minimal** (static banner).
+- Add optional badge text to surface labels like “New pressing”.
+- Enter highlight bullets (one per line) to show short selling points beneath the hero copy.
+- Upload a background video for motion; visitors with reduced-motion preferences will see the hero image fallback automatically.
+
+## 10. Weekly health checks
 - Run through the dashboard to confirm revenue, low stock, and payouts look correct.
 - Visit `/status` to ensure required environment variables are set.
 - Optional: run `npm run test:puppeteer` locally or check the latest CI screenshots in `docs/qa-screenshots/`.
 
-## 10. Troubleshooting
+## 11. Troubleshooting
 - Can’t see a product? Ensure the **Active** toggle is on and stock is above zero.
 - Totals look wrong? Verify Stripe keys are set and check recent webhook events.
 - Shipping only shows a generic rate? AusPost keys may be missing; static rates are expected until they’re provided.

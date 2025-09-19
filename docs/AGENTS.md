@@ -8,6 +8,7 @@ This note explains how to keep each file in the `docs/` directory current. Pair 
 - **AGENTS.md (repo root)** — Primary project playbook for future Codex sessions. Update whenever workflow rules, QA process, or tooling assumptions change.
 - **docs/AGENTS.md (this file)** — Checklist for maintaining the documentation set. Extend it as new docs are added.
 - **docs/SITE-VISUALS-RFC.md** — Roadmap for storefront visual/UX enhancements. Reference when planning public-site work.
+- **Campaign hero** updates (layout variants, badges, bullets) live in `docs/SITE-VISUALS-RFC.md` and admin workflows—update both whenever hero behaviour changes.
 
 ## Execution Guides
 - **ADMIN-WORKFLOWS.md** — Explain how the label owner uses the admin panel (products, inventory, orders, articles, roles). Update when UX, terminology, or admin endpoints change.

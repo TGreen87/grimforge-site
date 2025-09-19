@@ -111,6 +111,10 @@ This guide explains the key concepts in the admin and the typical flows. Use `do
 - Use sort order (ascending) to control priority of active campaigns.
 - "Preview" opens the storefront with `/?previewCampaign=slug` to review content without activating it.
 - Revision history available on the edit screen; each save captures a snapshot. Use **Revert** to restore prior copy (new revision entry is logged).
+- Layout selector supports **Classic**, **Split**, and **Minimal** hero treatments. Classic keeps the full-bleed background, Split pairs copy with spotlight media, Minimal provides a static banner; switch layouts directly from the create/edit forms.
+- Optional **Badge text** surfaces above the hero title (e.g., "New campaign"). Leave blank to fall back to “Featured Campaign”.
+- Use **Highlight bullets** (one per line) to surface supporting points under the hero copy; these render as gothic bullet points on the storefront.
+- Background video continues to autoplay only when motion is allowed; provide a static hero image for reduced-motion visitors.
 
 ## Admin Settings (Alerts & Integrations)
 - Path: `/admin/settings`.

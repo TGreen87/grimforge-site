@@ -106,6 +106,11 @@ export default function CampaignList() {
               render={(value: string) => <Tag>{value}</Tag>}
             />
             <Table.Column
+              dataIndex="layout"
+              title="Layout"
+              render={(value: string) => <Tag color="geekblue">{value}</Tag>}
+            />
+            <Table.Column
               dataIndex="active"
               title="Status"
               render={(_, record: Campaign) => (
@@ -175,6 +180,11 @@ export default function CampaignList() {
                   <div>
                     <div className="text-bone text-sm font-semibold">{campaign.title}</div>
                     <div className="text-xs text-muted-foreground">/{campaign.slug}</div>
+                    {campaign.badge_text ? (
+                      <div className="mt-1 inline-flex items-center rounded-full border border-border px-2 py-0.5 text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
+                        {campaign.badge_text}
+                      </div>
+                    ) : null}
                   </div>
                   <Tag color={campaign.active ? "green" : "default"}>
                     {campaign.active ? activeColor.active.label : activeColor.inactive.label}
@@ -188,6 +198,7 @@ export default function CampaignList() {
                   <span>
                     Window: {campaign.starts_at ? new Date(campaign.starts_at).toLocaleDateString() : '—'} → {campaign.ends_at ? new Date(campaign.ends_at).toLocaleDateString() : '—'}
                   </span>
+                  <span>Layout: {campaign.layout}</span>
                 </div>
                 <div className="mt-4 flex gap-2">
                   <Link href={`/admin/campaigns/edit/${campaign.id}`}>

@@ -97,7 +97,7 @@ Acceptance:
 
 ### Phase 7 — UI Polish
 - Header: active link state; ensure cart count live; “Shop” anchor to catalog; render from central navLinks. [ongoing]
-- Hero: poster + reduced-motion fallback; improve overlay contrast; a11y labels on controls. [ongoing]
+- Hero: campaign-driven layouts (classic/split/minimal), badges/highlights, improved reduced-motion + audio controls. [done]
 - Catalog: skeletons, consistent card sizes; badges for Limited/Pre‑order; counts line under header. [partial]
 - Footer: working social links; add Shipping/Returns/Contact quick links; hash anchors jump + tab sync. [done]
 - Mobile polish: adjust paddings, drawers, grid spacing for small screens. [planned]

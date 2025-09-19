@@ -40,6 +40,7 @@ Purpose: Improve daily admin usability and clarity with consistent theme tokens,
 
 ## Forms
 - Normalize labels and help text (e.g., “URL (link)” over “slug”).
+- Campaign create/edit exposes layout selector (classic/split/minimal), badge text, and highlight bullets aligned with storefront hero variants.
 - Group fields (Basics, Pricing, Inventory, Publishing).
 - Inline validation visuals.
 

@@ -30,6 +30,7 @@ See `docs/README.md` for doc map.
 - Keep Playwright specs in `e2e/` for checkout, admin, and catalog flows; tag `@smoke` for CI subsets.
 - Keep Puppeteer smoke (`npm run test:puppeteer`) green; review `docs/qa-screenshots/`.
 - Mock Supabase with `@supabase/ssr`; avoid live network calls in unit runs.
+- When the campaign hero flag is on, sanity-check all layouts (classic/split/minimal) before shipping.
 
 ## Commit & Deployment Workflow
 - Write imperative commit summaries (e.g., `Add campaign revision history`).

@@ -165,6 +165,9 @@ export interface Campaign {
   cta_secondary_label?: string | null;
   cta_secondary_href?: string | null;
   audio_preview_url?: string | null;
+  layout: 'classic' | 'split' | 'minimal' | string;
+  badge_text?: string | null;
+  highlight_items?: string[] | null;
   active: boolean;
   starts_at?: string | null;
   ends_at?: string | null;

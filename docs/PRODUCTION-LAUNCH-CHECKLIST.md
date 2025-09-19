@@ -16,6 +16,7 @@ This document tracks every action required to ship grimforge-site to production 
 | ☐ | Content | Final proofread of `/legal/*` pages (tone, links). |  |
 | ☐ | Documentation | Produce owner-facing “Admin quick start” (adding product, stock, checkout flow). |  |
 | ☐ | QA | `npm run test:puppeteer` w/ admin creds (after keys). Attach screenshots in `docs/qa-screenshots/`. |  |
+| ☐ | QA | With hero flag on, smoke Classic/Split/Minimal layouts, verify badge/highlights, reduced-motion fallback, and media controls. |  |
 | ☐ | QA | Manual smoke on production preview (`/`, `/products/<slug>`, `/admin/dashboard`) post-deploy. |  |
 | ☐ | Release | Merge `dev → main`; monitor Netlify deploy; announce go-live. |  |
 
