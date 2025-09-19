@@ -3,8 +3,8 @@ import { notFound } from 'next/navigation'
 import { generateProductMetadata } from '@/lib/seo/metadata'
 import { ProductJsonLd } from '@/components/seo/JsonLd'
 import { getProduct } from './metadata'
-import Image from 'next/image'
 import VariantClientBlock from './variant-client-block'
+import { ProductGallery } from '@/components/ProductGallery'
 
 interface Inventory {
   available?: number
@@ -71,6 +71,13 @@ export default async function ProductPage({ params }: ProductPageProps) {
 
     const primaryVariant = product.variants?.[0]
     const initialPrice = primaryVariant?.price ?? product.price
+    const primaryImage = (product as any).image || (product as any).image_url || '/placeholder.svg'
+
+    const additionalImages = Array.isArray((product as any)?.gallery_images)
+      ? ((product as any).gallery_images as string[])
+      : undefined
+    const productArtist = (product as any).artist || ''
+    const productDescription = (product as any).description
 
     return (
       <main>
@@ -79,45 +86,78 @@ export default async function ProductPage({ params }: ProductPageProps) {
           <ProductJsonLd
             name={product.title || product.name || slug}
             description={product.description || 'Underground black metal release'}
-            image={(product as any).image || (product as any).image_url || '/placeholder.svg'}
+            image={primaryImage}
             sku={(product as any).sku}
             price={Number(initialPrice ?? 0)}
             availability={((product as any)?.variants?.[0]?.inventory?.available ?? 0) > 0}
-            brand={(product as any).artist || 'Obsidian Rite Records'}
+            brand={productArtist || 'Obsidian Rite Records'}
           />
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <div className="relative w-full aspect-square bg-secondary/20 rounded overflow-hidden">
-              <Image
-                src={(product as any).image || (product as any).image_url || '/placeholder.svg'}
-                alt={product.title || slug}
-                fill
-                sizes="(max-width: 768px) 100vw, 50vw"
-                priority
-                className="object-cover"
+          <div className="grid gap-10 md:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)]">
+            <div className="space-y-8">
+              <ProductGallery
+                title={product.title || product.name || slug}
+                artist={productArtist}
+                primaryImage={primaryImage}
+                additionalImages={additionalImages}
               />
+
+              <section className="space-y-4">
+                <h2 className="text-lg font-semibold text-bone">About this release</h2>
+                {productDescription ? (
+                  <p className="text-sm leading-relaxed text-muted-foreground whitespace-pre-wrap">
+                    {productDescription}
+                  </p>
+                ) : (
+                  <p className="text-sm text-muted-foreground">
+                    Detailed description forthcoming. Reach out via the contact page for pressing details.
+                  </p>
+                )}
+                <div className="grid gap-3 rounded-lg border border-border bg-background/40 p-4 text-sm text-muted-foreground sm:grid-cols-2">
+                  <div>
+                    <span className="block text-xs uppercase tracking-[0.3em] text-muted-foreground/80">Format</span>
+                    <span>{Array.isArray((product as any).format) ? (product as any).format.join(', ') : (product as any).format || 'Vinyl'}</span>
+                  </div>
+                  <div>
+                    <span className="block text-xs uppercase tracking-[0.3em] text-muted-foreground/80">SKU</span>
+                    <span>{(product as any).sku || 'TBD'}</span>
+                  </div>
+                  <div>
+                    <span className="block text-xs uppercase tracking-[0.3em] text-muted-foreground/80">Release</span>
+                    <span>{(product as any).release_year || new Date().getFullYear()}</span>
+                  </div>
+                  <div>
+                    <span className="block text-xs uppercase tracking-[0.3em] text-muted-foreground/80">Shipping</span>
+                    <span>Ships worldwide from Australia. Rates calculated at checkout.</span>
+                  </div>
+                </div>
+              </section>
             </div>
 
-            <div>
-              <h1 className="blackletter text-3xl md:text-5xl text-bone mb-4">{product.title || product.name || slug}</h1>
-              {(product as any).artist && (
-                <p className="text-muted-foreground mb-6">{(product as any).artist}</p>
-              )}
-              {(product as any).description && (
-                <p className="mb-6 text-muted-foreground leading-relaxed">{(product as any).description}</p>
-              )}
+            <aside className="md:sticky md:top-28">
+              <div className="rounded-2xl border border-border bg-background/50 p-6 shadow-lg backdrop-blur">
+                <div className="mb-6 space-y-2">
+                  <span className="text-xs uppercase tracking-[0.4em] text-muted-foreground">Obsidian Rite Records</span>
+                  <h1 className="blackletter text-3xl text-bone sm:text-4xl">{product.title || product.name || slug}</h1>
+                  {productArtist ? <p className="text-sm text-muted-foreground">{productArtist}</p> : null}
+                </div>
 
-              {/* Variant selection and price/availability */}
-              <VariantClientBlock
-                variants={(product.variants || []) as any}
-                initialPrice={Number(initialPrice ?? 0)}
-                productMeta={{
-                  title: product.title || product.name || slug,
-                  artist: (product as any).artist || '',
-                  image: (product as any).image || (product as any).image_url || '/placeholder.svg',
-                  format: Array.isArray((product as any).format) ? (product as any).format[0] : (product as any).format
-                }}
-              />
-            </div>
+                <VariantClientBlock
+                  variants={(product.variants || []) as any}
+                  initialPrice={Number(initialPrice ?? 0)}
+                  productMeta={{
+                    title: product.title || product.name || slug,
+                    artist: productArtist,
+                    image: primaryImage,
+                    format: Array.isArray((product as any).format) ? (product as any).format[0] : (product as any).format
+                  }}
+                />
+
+                <div className="mt-8 space-y-3 text-xs text-muted-foreground">
+                  <p>Orders ship within 2–3 business days. Tracking provided on dispatch.</p>
+                  <p>Need help? <a className="underline" href="/legal/contact">Contact the label</a>.</p>
+                </div>
+              </div>
+            </aside>
           </div>
         </div>
       </main>

@@ -183,7 +183,7 @@ Status:
 - Tasks:
   - Motion-ready hero/campaign system w/ Supabase-backed presets.
   - Catalog quick actions (Add to cart, wishlist) + filter chip bar. [done]
-  - Lightbox gallery + sticky buy module + social proof blocks on product detail.
+  - Lightbox gallery + sticky buy module + social proof blocks on product detail. [in progress — gallery + sticky buy shipped]
   - Storytelling sections (label timeline, testimonials, newsletter footer).
   - Checkout sheet UX with wallet buttons and shipping timeline.
 - Acceptance:

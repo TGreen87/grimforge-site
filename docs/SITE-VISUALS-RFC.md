@@ -29,7 +29,7 @@ Purpose: Track the roadmap for elevating the public storefront (non-admin) exper
 - Filter chip bar for formats, availability, limited runs.
 
 ### 3. Product Detail Experience
-- Lightbox gallery with zoom, variant thumbnails, and sticky buy module.
+- ✅ Lightbox gallery with zoom, thumbnails, and sticky buy module.
 - Social proof (reviews, pressing counters, low-stock badges).
 - Shareable promo snippet (copy to clipboard + OG preview).
 - Shipping estimate preview (AusPost/live rates when credentials provided).

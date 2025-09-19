@@ -4,6 +4,8 @@ import { useMemo, useState } from 'react'
 import BuyNowButton from '@/components/BuyNowButton'
 import VariantSelector from './variant-selector'
 import { useCart } from '@/src/contexts/CartContext'
+import { Button } from '@/components/ui/button'
+import { cn } from '@/lib/utils'
 
 interface InventoryInfo {
   available?: number | null
@@ -35,10 +37,6 @@ function normalizeInventory(entry: InventoryInfo | InventoryInfo[] | null | unde
 }
 
 export default function VariantClientBlock({ variants, initialPrice, productMeta }: Props) {
-  if (typeof window === 'undefined') {
-    return null
-  }
-
   const [selected, setSelected] = useState<VariantOption | null>(variants[0] ?? null)
   const { addItem } = useCart()
 
@@ -72,27 +70,32 @@ export default function VariantClientBlock({ variants, initialPrice, productMeta
   }
 
   return (
-    <>
-      <div className="mb-6 space-y-4">
+    <div className="space-y-5">
+      <div className="space-y-4">
         <VariantSelector variants={variants as any} onChange={handleVariantChange} initialVariantId={variants[0]?.id} />
-        <div>
+        <div className="space-y-1">
           <p className="text-2xl font-bold text-accent">${price.toFixed(2)} AUD</p>
-          <p className={`text-sm ${available > 0 ? 'text-green-500' : 'text-muted-foreground'}`}>
+          <p className={cn('text-sm', available > 0 ? 'text-emerald-400' : 'text-muted-foreground')}>
             {available > 0 ? `In stock (${available} available)` : 'Out of stock'}
           </p>
         </div>
       </div>
-      <div className="flex items-center gap-3 mt-2">
+
+      <div className="space-y-2">
         <BuyNowButton variantId={selected?.id} quantity={1} />
-        <button
-          className="px-4 py-2 border border-frost text-frost rounded hover:bg-frost hover:text-background"
+        <Button
+          type="button"
+          className="w-full"
+          size="lg"
           disabled={!canBuy}
           onClick={handleAddToCart}
         >
-          Add to Cart
-        </button>
-        {!canBuy && <span className="text-sm text-muted-foreground">Select variant unavailable</span>}
+          Add to cart
+        </Button>
+        {!canBuy ? (
+          <p className="text-xs text-muted-foreground">Select a variant to enable cart actions.</p>
+        ) : null}
       </div>
-    </>
+    </div>
   )
 }

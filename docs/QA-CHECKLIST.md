@@ -29,6 +29,7 @@ Use this checklist to verify the dev Branch Deploy before promoting to main. Ref
 - Legacy `/product/{id}` redirects to slug route.
 - If no products exist or admin Save fails, seed via `docs/SUPABASE-SEED.md` (Supabase MCP/Studio) and retry with slug `test-vinyl-dark-rituals`.
 - If the product route returns 500 with data present, verify envs above and redeploy dev (SSR/runtime).
+- Gallery supports thumbnail selection, keyboard focus, and lightbox open/close; sticky buy module remains visible on desktop.
 
 ## Cart & Checkout (Shipping)
 - Cart drawer opens; items reflect title/variant/qty; totals correct.

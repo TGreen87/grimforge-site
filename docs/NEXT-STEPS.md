@@ -39,7 +39,7 @@ Consult `AGENTS.md` for contributor expectations and deployment discipline. Use 
 - Storefront
   - [x] Campaign hero layout variants (classic/split/minimal) with badges, highlights, and reduced-motion handling.
   - [x] Catalog quick actions (Add to cart/Wishlist) with focus states.
-  - [ ] Product gallery lightbox + sticky buy module.
+  - [x] Product gallery lightbox + sticky buy module.
   - [ ] Story block (“About the Label”) + testimonials carousel.
   - [ ] Checkout sheet UX + wallet row (blocked on publishable key).
 
