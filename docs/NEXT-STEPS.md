@@ -12,6 +12,7 @@ Consult `AGENTS.md` for contributor expectations and deployment discipline. Use 
 - Heading typography switched to Marcellus for better legibility while retaining gothic styling tokens.
 - Preorder email capture is disabled until the marketing stack is ready (input + button rendered read-only).
 - Puppeteer smoke remains green; lint still carries historic `any`/hook warnings (no regressions introduced).
+- Lighthouse accessibility audit now automated via `npm run audit:a11y`; homepage scores 1.00, admin dashboard currently at 0.82 pending UI contrast/label tweaks.
 
 ## Immediate Execution Queue (Priority A)
 1. **Storytelling content population**
@@ -26,6 +27,7 @@ Consult `AGENTS.md` for contributor expectations and deployment discipline. Use 
    - [x] Needs fulfilment panel quick-export/filter links (CSV download + animated task list).
    - Alert threshold + Slack webhook wiring (blocked on secrets).
    - Dashboard motion tokens + aXe review after visual polish lands (motion presets partially applied; accessibility audit pending).
+   - [ ] Address Lighthouse dashboard findings (progressbar naming, breadcrumb hit-area, contrast, unlabeled fields) and confirm ≥0.95 score via `npm run audit:a11y` post-deploy.
 
 ## Short-Term Enhancements (Priority B)
 - Storefront

@@ -93,7 +93,11 @@ export default function RevenueGoalCard({ current, previous, changePct, target, 
             <span>Progress</span>
             <span>{targetNumber > 0 ? `${Math.min(progress, 999).toFixed(0)}%` : 'Set a target'}</span>
           </div>
-          <Progress value={Number.isFinite(progress) ? Math.min(progress, 100) : 0} className="h-2" />
+          <Progress
+            value={Number.isFinite(progress) ? Math.min(progress, 100) : 0}
+            className="h-2"
+            aria-label="Revenue goal progress"
+          />
           <div className="flex items-baseline justify-between text-xs text-muted-foreground">
             <span>Goal</span>
             <span className={cn('font-medium', goalMet ? 'text-emerald-400' : undefined)}>
@@ -122,9 +126,12 @@ export default function RevenueGoalCard({ current, previous, changePct, target, 
             />
           </div>
           <div className="space-y-1">
-            <Label>Period</Label>
-            <Select value={localPeriod} onValueChange={(value: "7d" | "30d") => setLocalPeriod(value)}>
-              <SelectTrigger className="bg-background/60">
+            <Label htmlFor="revenue-period">Period</Label>
+            <Select
+              value={localPeriod}
+              onValueChange={(value: "7d" | "30d") => setLocalPeriod(value)}
+            >
+              <SelectTrigger id="revenue-period" aria-label="Revenue tracking period" className="bg-background/60">
                 <SelectValue placeholder="Select window" />
               </SelectTrigger>
               <SelectContent>

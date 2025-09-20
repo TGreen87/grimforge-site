@@ -33,6 +33,8 @@ for (const { url, name } of targets) {
     '--output=json',
     `--output-path=${outputPath}`,
     "--chrome-flags=--headless --no-sandbox --disable-dev-shm-usage --disable-gpu",
+    '--max-wait-for-load=120000',
+    '--max-wait-for-fcp=120000',
   ];
 
   const result = spawnSync('npx', args, {

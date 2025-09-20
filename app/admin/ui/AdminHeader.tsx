@@ -44,7 +44,32 @@ export default function AdminHeader() {
     <Header style={{ background: "linear-gradient(90deg,#0f0f0f,#111827)", borderBottom: "1px solid #1f2937" }}>
       <div className="flex items-center justify-between gap-3">
         <Breadcrumb
-          items={crumbs.map((c, i) => ({ title: <a href={c.href}>{c.title}</a> }))}
+          items={crumbs.map((crumb, index) => {
+            const isLast = index === crumbs.length - 1
+            const commonClass = "inline-flex min-h-[32px] items-center rounded px-3 py-1 text-sm transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+            if (isLast) {
+              return {
+                title: (
+                  <span
+                    className={`${commonClass} text-bone cursor-default`}
+                    aria-current="page"
+                  >
+                    {crumb.title}
+                  </span>
+                ),
+              }
+            }
+            return {
+              title: (
+                <a
+                  href={crumb.href}
+                  className={`${commonClass} text-muted-foreground hover:text-accent`}
+                >
+                  {crumb.title}
+                </a>
+              ),
+            }
+          })}
         />
         <Space size="middle">
           <Input

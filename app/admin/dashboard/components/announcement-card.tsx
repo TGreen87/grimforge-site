@@ -6,6 +6,7 @@ import { toast } from 'sonner'
 
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
+import { Label } from '@/components/ui/label'
 import { updateDashboardAnnouncement, revertDashboardAnnouncement } from '../actions'
 
 interface AnnouncementRecord {
@@ -83,7 +84,11 @@ export default function AnnouncementCard({ announcement, history }: Props) {
         </Button>
       </div>
       <div className="mt-4 space-y-2">
+        <Label htmlFor="dashboard-announcement-body" className="text-sm text-bone">
+          Announcement message
+        </Label>
         <Textarea
+          id="dashboard-announcement-body"
           value={value}
           onChange={(event) => setValue(event.target.value)}
           rows={4}
