@@ -210,7 +210,7 @@ async function fetchInventoryCsv() {
   })
 }
 
-export async function GET(_request: NextRequest, { params }: { params: { resource: string } }) {
+export async function GET(request: NextRequest, { params }: { params: { resource: string } }) {
   try {
     await assertAdmin()
   } catch (error) {
@@ -220,24 +220,44 @@ export async function GET(_request: NextRequest, { params }: { params: { resourc
   }
 
   const resource = params.resource
+  const search = request.nextUrl.searchParams
 
   let rows: CsvRow[] = []
   let filename = `export-${DATE_SUFFIX()}.csv`
 
   try {
     switch (resource) {
-      case 'orders':
+      case 'orders': {
+        const scope = search.get('scope')
         rows = await fetchOrdersCsv()
+        if (scope === 'awaiting-fulfilment') {
+          rows = rows.filter((row) => {
+            const paymentStatus = String(row.payment_status ?? '').toLowerCase()
+            const status = String(row.status ?? '').toLowerCase()
+            if (paymentStatus !== 'paid') return false
+            return !['shipped', 'delivered', 'cancelled', 'refunded'].includes(status)
+          })
+        } else if (scope === 'pending-payment') {
+          rows = rows.filter((row) => String(row.payment_status ?? '').toLowerCase() !== 'paid')
+        }
         filename = `orders-${DATE_SUFFIX()}.csv`
         break
+      }
       case 'customers':
         rows = await fetchCustomersCsv()
         filename = `customers-${DATE_SUFFIX()}.csv`
         break
-      case 'inventory':
+      case 'inventory': {
         rows = await fetchInventoryCsv()
+        const scope = search.get('scope')
+        if (scope === 'low-stock') {
+          const thresholdRaw = Number(search.get('threshold') ?? '5')
+          const threshold = Number.isFinite(thresholdRaw) ? thresholdRaw : 5
+          rows = rows.filter((row) => Number(row.available ?? 0) <= threshold)
+        }
         filename = `inventory-${DATE_SUFFIX()}.csv`
         break
+      }
       default:
         return NextResponse.json({ error: 'unsupported_resource' }, { status: 400 })
     }

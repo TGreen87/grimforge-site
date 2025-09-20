@@ -54,6 +54,7 @@ This guide explains the key concepts in the admin and the typical flows. Use `do
 - Quick actions (Add product, View orders, Receive stock) are pinned to the header for fast access.
 - Dashboard announcement editor now tracks history; use the “Revert to this copy” action to restore previous messages.
 - Tables remain available via the navigation, but the dashboard is the preferred entry point for non-technical operators.
+- Needs fulfilment panel now includes one-click CSV exports beside each task for quick reporting (only active when counts >0).
 
 ## Full Control (Products / Stock Units / Inventory)
 - Use when you need multiple Stock Units (e.g., different pressings, bundles):

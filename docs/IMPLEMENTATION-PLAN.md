@@ -178,6 +178,7 @@ Status:
   - Order timeline RPC + admin UI shipped (timeline card on order detail page).
   - Bulk "Mark shipped/cancel/refund" actions available via toolbar; packing slip HTML export live (PDF branding pending).
   - Alert thresholds, revenue goal card, notification hooks outstanding.
+  - Needs fulfilment panel now animates task rows and exposes scoped CSV exports for quick reporting.
 
 ### Phase 13 — Storefront Visual Refresh (see `docs/SITE-VISUALS-RFC.md`)
 - Goals: deliver immersive, performant storefront experience aligned with black-metal brand.

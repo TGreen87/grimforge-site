@@ -27,7 +27,8 @@ Paste the following into a fresh Codex session whenever you need to resume work 
 7. Validate checkout sheet: multi-step flow, wallet row remains disabled without a Stripe publishable key, and totals recalc correctly.
 8. Verify storytelling surfaces: `/admin/story` CRUD works, storefront hides timeline/testimonials/newsletter when tables are empty, and shows real content when populated.
 9. Confirm homepage Journal renders featured + secondary articles when Supabase has published entries (fallback copy otherwise).
-10. Update task trackers (`docs/NEXT-STEPS.md`, latest `docs/SESSION-YYYY-MM-DD.md`) with findings.
+10. Download scoped CSVs from the needs fulfilment panel exports when counts >0 (awaiting fulfilment, low stock, pending payments).
+11. Update task trackers (`docs/NEXT-STEPS.md`, latest `docs/SESSION-YYYY-MM-DD.md`) with findings.
 
 **Playbook**
 1. **Tool readiness** — Ensure Supabase + Puppeteer MCP servers are running; request restart if unavailable.
@@ -44,6 +45,7 @@ Paste the following into a fresh Codex session whenever you need to resume work 
    - Confirm order dashboard alerts respect thresholds; run Slack “Send test alert” if webhook configured.
    - Screenshot key confirmations (`admin-product-created.png`, `dashboard-alert.png`).
    - Visit `/admin/story`; add/remove timeline/testimonial rows as needed and ensure the storefront reflects changes after refresh.
+   - Use the needs fulfilment export icons to download scoped CSV snapshots when counts are non-zero; note filenames.
 4. **Product slug** — Load `/products/test-vinyl-dark-rituals`; ensure hydration (price + CTA); screenshot `product.png`.
 5. **Optional flows**
    - Checkout smoke: capture shipping modal (`checkout-shipping.png`) and Stripe redirect (`stripe.png`).

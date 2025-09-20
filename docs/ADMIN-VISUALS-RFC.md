@@ -45,6 +45,7 @@ Purpose: Improve daily admin usability and clarity with consistent theme tokens,
 - Story content placeholders removed; inputs now use neutral helper copy so staff are guided to add authentic entries.
 - Group fields (Basics, Pricing, Inventory, Publishing).
 - Inline validation visuals.
+- Needs fulfilment panel adopts dashboard motion preset (fade + rise) for task rows and exposes contextual CSV export buttons.
 
 ## Quick Actions
 - In-table toggles: Active on/off; quick price edit; quick stock adjust (Receive dialog).

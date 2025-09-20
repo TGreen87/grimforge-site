@@ -23,9 +23,9 @@ Consult `AGENTS.md` for contributor expectations and deployment discipline. Use 
    - Prototype collection endpoint + Supabase storage (or direct ESP subscribe) without exposing API keys client-side.
    - Extend QA checklist once sign-up flow is wired.
 3. **Admin dashboard 2.0 follow-ups**
-   - Needs fulfilment panel quick-export/filter links.
+   - [x] Needs fulfilment panel quick-export/filter links (CSV download + animated task list).
    - Alert threshold + Slack webhook wiring (blocked on secrets).
-   - Dashboard motion tokens + aXe review after visual polish lands.
+   - Dashboard motion tokens + aXe review after visual polish lands (motion presets partially applied; accessibility audit pending).
 
 ## Short-Term Enhancements (Priority B)
 - Storefront

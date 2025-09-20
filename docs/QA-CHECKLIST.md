@@ -60,6 +60,7 @@ Use this checklist to verify the dev Branch Deploy before promoting to main. Ref
 ## Admin — Dashboard
 - Revenue goal card displays current progress, allows editing target/period, and persists changes.
 - Needs fulfilment panel reflects awaiting fulfilment, low stock, and pending payment counts with thresholds.
+- Needs fulfilment panel export icons trigger filtered CSV downloads (awaiting fulfilment, low stock, pending payments) when counts are >0.
 - Announcement history lists previous messages and “Revert” restores copy without errors.
 
 ## Admin — Story Content
