@@ -54,6 +54,7 @@ const HeroSection = () => {
           size="icon"
           onClick={togglePlay}
           className="h-8 w-8 md:h-10 md:w-10 bg-background/20 hover:bg-background/40 text-white backdrop-blur-sm"
+          aria-label={isPlaying ? 'Pause background video' : 'Play background video'}
         >
           {isPlaying ? <Pause size={16} className="md:w-5 md:h-5" /> : <Play size={16} className="md:w-5 md:h-5" />}
         </Button>
@@ -62,6 +63,7 @@ const HeroSection = () => {
           size="icon"
           onClick={toggleMute}
           className="h-8 w-8 md:h-10 md:w-10 bg-background/20 hover:bg-background/40 text-white backdrop-blur-sm"
+          aria-label={isMuted ? 'Unmute background audio' : 'Mute background audio'}
         >
           {isMuted ? <VolumeX size={16} className="md:w-5 md:h-5" /> : <Volume2 size={16} className="md:w-5 md:h-5" />}
         </Button>

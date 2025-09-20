@@ -90,7 +90,12 @@ const Navigation = () => {
           <div className="hidden md:block">
             <AdvancedSearch />
           </div>
-          <Button variant="ghost" size="sm" className="md:hidden text-foreground hover:text-accent">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="md:hidden text-foreground hover:text-accent"
+            aria-label="Open search"
+          >
             <Search className="h-4 w-4" />
           </Button>
           <WishlistDrawer />

@@ -20,7 +20,8 @@
     "test:e2e:headed": "playwright test --headed",
     "test:e2e:install": "playwright install --with-deps",
     "test:e2e:report": "playwright show-report",
-    "test:puppeteer": "node scripts/puppeteer-smoke.mjs"
+    "test:puppeteer": "node scripts/puppeteer-smoke.mjs",
+    "audit:a11y": "node scripts/accessibility-report.mjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.0",

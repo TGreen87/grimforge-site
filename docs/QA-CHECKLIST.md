@@ -113,3 +113,4 @@ Tip: Use a temporary QA admin account (email/password) for branch testing, or lo
 - `npm run type-check`, `npm run lint`, `npm test` are green.
 - Sitemap and robots verified; shipping works (fallback without AusPost; live with AusPost).
 - Merge `dev` → `main` fast‑forward; monitor for 10–15 minutes; revert fast if regression.
+- Run `npm run audit:a11y` to refresh Lighthouse accessibility reports for home and admin (`docs/qa-screenshots/lighthouse-*.json`).

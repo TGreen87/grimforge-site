@@ -54,6 +54,7 @@ Consult `AGENTS.md` for contributor expectations and deployment discipline. Use 
 - [ ] Extend Puppeteer smoke to cover Journal feature card + fallback when no articles exist.
 - [ ] Add Vitest coverage for story content RPCs once API endpoints are finalized.
 - [ ] Schedule Lighthouse/aXe runs post visual refresh (hero + Journal) to baseline performance/accessibility.
+- [x] Automate accessibility scan via `npm run audit:a11y` (homepage + admin dashboard Lighthouse JSON reports).
 
 ## Documentation & Ops
 - [x] Update `docs/AGENTS.md`, `docs/README.md`, and `docs/QA-CHECKLIST.md` for storytelling cleanup + Journal behaviour.

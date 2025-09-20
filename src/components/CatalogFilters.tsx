@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Search, SlidersHorizontal, X } from "lucide-react";
 import { catalog as catalogCopy } from "@/content/copy";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useId } from "react";
 
 interface Filters {
   searchTerm: string;
@@ -31,6 +31,12 @@ const CatalogFilters = ({ onFiltersChange, onReset }: CatalogFiltersProps) => {
   const [sortBy, setSortBy] = useState("featured");
   const [inStock, setInStock] = useState(false);
   const [limitedOnly, setLimitedOnly] = useState(false);
+  const searchInputId = useId();
+  const sortSelectId = useId();
+  const priceSliderId = useId();
+  const priceSliderLabelId = `${priceSliderId}-label`;
+  const intensitySliderId = useId();
+  const intensitySliderLabelId = `${intensitySliderId}-label`;
 
   const genres = [
     "Black Metal", "Death Metal", "Atmospheric Black Metal", 
@@ -87,10 +93,11 @@ const CatalogFilters = ({ onFiltersChange, onReset }: CatalogFiltersProps) => {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
         {/* Search */}
         <div className="space-y-2">
-          <Label className="text-sm text-bone">{catalogCopy.searchLabel}</Label>
+          <Label className="text-sm text-bone" htmlFor={searchInputId}>{catalogCopy.searchLabel}</Label>
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
+              id={searchInputId}
               placeholder="Band, album, label..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
@@ -101,9 +108,9 @@ const CatalogFilters = ({ onFiltersChange, onReset }: CatalogFiltersProps) => {
 
         {/* Sort */}
         <div className="space-y-2">
-          <Label className="text-sm text-bone">{catalogCopy.sortByLabel}</Label>
+          <Label className="text-sm text-bone" htmlFor={sortSelectId}>{catalogCopy.sortByLabel}</Label>
           <Select value={sortBy} onValueChange={setSortBy}>
-            <SelectTrigger className="bg-secondary/50 border-border">
+            <SelectTrigger id={sortSelectId} aria-label={catalogCopy.sortByLabel} className="bg-secondary/50 border-border">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -119,9 +126,13 @@ const CatalogFilters = ({ onFiltersChange, onReset }: CatalogFiltersProps) => {
 
         {/* Price range */}
         <div className="space-y-2">
-          <Label className="text-sm text-bone">{catalogCopy.priceRangeLabel}</Label>
+          <Label className="text-sm text-bone" id={priceSliderLabelId} htmlFor={priceSliderId}>{catalogCopy.priceRangeLabel}</Label>
           <div className="px-2">
             <Slider
+              id={priceSliderId}
+              aria-labelledby={priceSliderLabelId}
+              aria-label="Price range"
+              thumbLabels={["Minimum price", "Maximum price"]}
               value={priceRange}
               onValueChange={(value) => setPriceRange(value as [number, number])}
               max={100}
@@ -137,9 +148,12 @@ const CatalogFilters = ({ onFiltersChange, onReset }: CatalogFiltersProps) => {
 
         {/* Intensity */}
         <div className="space-y-2">
-          <Label className="text-sm text-bone">Intensity</Label>
+          <Label className="text-sm text-bone" id={intensitySliderLabelId} htmlFor={intensitySliderId}>Intensity</Label>
           <div className="px-2">
             <Slider
+              id={intensitySliderId}
+              aria-labelledby={intensitySliderLabelId}
+              aria-label="Catalog intensity"
               value={grimnessLevel}
               onValueChange={(value) => setGrimnessLevel(value as [number])}
               max={100}

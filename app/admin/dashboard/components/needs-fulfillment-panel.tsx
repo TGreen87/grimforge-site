@@ -94,19 +94,37 @@ export default function NeedsFulfillmentPanel({
             <div className="flex items-center gap-2">
               <span className={cn('text-lg font-semibold tabular-nums', toneClass)}>{task.count}</span>
               <div className="flex items-center gap-1">
-                <Button asChild size="sm" variant="secondary" disabled={task.count === 0}>
-                  <Link href={task.href}>Review</Link>
+                <Button
+                  asChild
+                  size="sm"
+                  variant="secondary"
+                  disabled={task.count === 0}
+                >
+                  <Link href={task.href} aria-label={`Review ${task.label.toLowerCase()}`}>
+                    Review
+                  </Link>
                 </Button>
                 {task.exportHref && (
                   task.count > 0 ? (
-                    <Button size="sm" variant="ghost" className="text-muted-foreground hover:text-foreground" asChild>
-                      <a href={task.exportHref} download>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="text-muted-foreground hover:text-foreground"
+                      asChild
+                    >
+                      <a href={task.exportHref} download aria-label={`Export ${task.label} CSV`}>
                         <span className="sr-only">Export {task.label} CSV</span>
                         <Download className="h-4 w-4" aria-hidden="true" />
                       </a>
                     </Button>
                   ) : (
-                    <Button size="sm" variant="ghost" disabled className="text-muted-foreground/60">
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      disabled
+                      className="text-muted-foreground/60"
+                      aria-label={`Export ${task.label} CSV (disabled)`}
+                    >
                       <Download className="h-4 w-4" aria-hidden="true" />
                     </Button>
                   )
