@@ -1,6 +1,6 @@
 ## Continuation Prompt (New Chat)
 
-_Last updated: 2025-09-19_
+_Last updated: 2025-09-20_
 
 Paste the following into a fresh Codex session whenever you need to resume work on grimforge-site with MCP tools enabled.
 
@@ -15,6 +15,7 @@ Paste the following into a fresh Codex session whenever you need to resume work 
 - MCP setup: Supabase MCP reads `supabase/config.toml` (service-role token `sbp_*`); Puppeteer MCP runs via Docker `docker run --rm --init -e DOCKER_CONTAINER=true mcp/puppeteer`.
 - Seed & policies: `docs/SUPABASE-SEED.md`. Shipping/AusPost behaviour documented in `docs/SHIPPING-AUSPOST.md`.
 - Feature flags: campaign hero (`NEXT_PUBLIC_FEATURE_HERO_CAMPAIGN`), admin bulk tools, Slack alerts; defaults noted in `docs/NEXT-STEPS.md`.
+- Before coding, skim `docs/IMPLEMENTATION-PLAN.md` to understand phased priorities; keep `docs/NEXT-STEPS.md` in sync with any new decisions.
 
 **Goals When Restarting**
 1. Confirm branch deploy health: homepage 200, `/status` env flags, seeded product slug reachable.
@@ -23,9 +24,10 @@ Paste the following into a fresh Codex session whenever you need to resume work 
 4. Cycle campaign hero layouts (Classic/Split/Minimal) and ensure badges, highlights, and media controls behave; note reduced-motion fallback.
 5. Confirm product detail gallery (thumbnails + lightbox) and sticky buy module behaviour across breakpoints.
 6. Confirm dashboard revenue goal card progress + settings save behaviour.
-7. Validate checkout sheet: multi-step flow, wallet row placeholder (disabled without publishable key), and review totals.
-8. Load `/admin/story` to verify timeline/testimonial rows persist and newsletter copy saves.
-9. Update task trackers (`docs/NEXT-STEPS.md`, latest `docs/SESSION-YYYY-MM-DD.md`) with findings.
+7. Validate checkout sheet: multi-step flow, wallet row remains disabled without a Stripe publishable key, and totals recalc correctly.
+8. Verify storytelling surfaces: `/admin/story` CRUD works, storefront hides timeline/testimonials/newsletter when tables are empty, and shows real content when populated.
+9. Confirm homepage Journal renders featured + secondary articles when Supabase has published entries (fallback copy otherwise).
+10. Update task trackers (`docs/NEXT-STEPS.md`, latest `docs/SESSION-YYYY-MM-DD.md`) with findings.
 
 **Playbook**
 1. **Tool readiness** — Ensure Supabase + Puppeteer MCP servers are running; request restart if unavailable.
@@ -34,11 +36,14 @@ Paste the following into a fresh Codex session whenever you need to resume work 
    - Trigger vinyl anchor (header/foot link) and verify URL `/#vinyl`; screenshot `vinyl.png`.
    - Fetch `/robots.txt`, `/sitemap.xml`; confirm 200.
    - Optional: toggle campaign hero flag via query (`/?previewCampaign=slug`) if testing visuals.
+   - Confirm Journal section: capture `journal.png` when articles exist or note fallback copy if empty.
+   - Note preorder module shows disabled email input/button (“Email list opens soon”).
 3. **Admin checks**
    - Visit `/admin/login`; pause for manual auth if needed.
    - Create or verify `test-vinyl-dark-rituals` via `/admin/products/create` (fields: slug, title, artist, format, price 45.99, stock 10, Active).
    - Confirm order dashboard alerts respect thresholds; run Slack “Send test alert” if webhook configured.
    - Screenshot key confirmations (`admin-product-created.png`, `dashboard-alert.png`).
+   - Visit `/admin/story`; add/remove timeline/testimonial rows as needed and ensure the storefront reflects changes after refresh.
 4. **Product slug** — Load `/products/test-vinyl-dark-rituals`; ensure hydration (price + CTA); screenshot `product.png`.
 5. **Optional flows**
    - Checkout smoke: capture shipping modal (`checkout-shipping.png`) and Stripe redirect (`stripe.png`).
@@ -47,6 +52,7 @@ Paste the following into a fresh Codex session whenever you need to resume work 
    - Walk through product gallery thumbnails/lightbox and capture `product-gallery.png` if visuals changed.
    - Run bulk order action or packing slip download if relevant to current sprint.
 6. **Wrap-up** — Update docs/notes, file issues, and refresh `docs/NEXT-STEPS.md` and session log with outcomes.
+   - Cross-check `docs/IMPLEMENTATION-PLAN.md` milestones; adjust status if scope changed.
 
 **Constraints & Tips**
 - Never log secrets or credentials. Use owner-provided accounts for admin flows.

@@ -70,8 +70,9 @@ export default {
 				metal: 'hsl(var(--metal))'
 			},
 			fontFamily: {
-				'gothic': ['Cinzel', 'serif'],
-				'blackletter': ['Old English Text MT', 'Cinzel', 'serif']
+				'sans': ['var(--font-body)', 'Inter', 'sans-serif'],
+				'gothic': ['var(--font-heading)', 'Cinzel', 'serif'],
+				'blackletter': ['var(--font-heading)', 'Cinzel', 'serif']
 			},
 			animation: {
 				'vinyl-spin': 'vinyl-spin 3s linear infinite',

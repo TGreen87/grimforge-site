@@ -1,6 +1,6 @@
 # Documentation Index
 
-Last modified: 2025-09-19
+Last modified: 2025-09-20
 
 Use this index as the starting point before touching code or deployments. Pair it with [../AGENTS.md](../AGENTS.md) for contributor rules.
 
@@ -18,7 +18,7 @@ Use this index as the starting point before touching code or deployments. Pair i
 - [`ADMIN-WORKFLOWS.md`](ADMIN-WORKFLOWS.md) – Day-to-day admin tasks, bulk actions, fulfilment flows.
 
 ## Design & RFCs
-- [`SITE-VISUALS-RFC.md`](SITE-VISUALS-RFC.md) – Storefront visual refresh specs.
+- [`SITE-VISUALS-RFC.md`](SITE-VISUALS-RFC.md) – Storefront visual refresh specs (campaign hero, storytelling, Journal blocks).
 - [`ADMIN-VISUALS-RFC.md`](ADMIN-VISUALS-RFC.md) – Admin dashboard visual overhaul.
 - [`CONTINUE-PROMPT.md`](CONTINUE-PROMPT.md) – Session handoff primer for agents.
 

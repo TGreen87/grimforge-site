@@ -1,48 +1,36 @@
 # Repository Guidelines
 
-See `docs/README.md` for doc map.
+See `docs/README.md` for the full documentation index and session logs.
 
 ## Project Structure & Module Organization
-- `app/` – App Router routes and layouts.
-- `components/` + `src/` – UI blocks/modules migrating to App Router.
-- `lib/` + `integrations/` – Supabase clients, formatting helpers, and external service adapters.
-- `supabase/` – SQL, policies, MCP config; never commit secrets.
-- `tests/`, `e2e/`, `scripts/` – Vitest units, Playwright flows, automation tasks.
-- `docs/` – process guides (`docs/NEXT-STEPS.md`, QA checklists) that should evolve with features.
+- `app/` – Next.js App Router routes. `app/(site)` drives the public storefront; `app/admin` hosts the Refine/AntD admin.
+- `src/components`, `src/lib`, `src/hooks` – Shared UI blocks, helpers, and client utilities. Prefer colocating tests under `tests/`.
+- `integrations/`, `lib/supabase` – Supabase client factories plus external service adapters (Stripe, AusPost).
+- `supabase/` – SQL migrations, RLS policies, MCP config. Never edit tables in the dashboard without exporting a migration.
+- `docs/` – Working agreements, RFCs, QA guides, and continuation prompts; keep every file synchronized with shipped behaviour.
 
 ## Build, Test & Development Commands
-- `npm run dev` – start app at http://localhost:3000 with Supabase auth context.
-- `npm run build && npm start` – smoke the production bundle before pushing.
-- `npm run lint` + `npm run type-check` – ESLint and TypeScript gates for merge readiness.
-- `npm run test` / `npm run test:coverage` – Vitest suites; keep new logic ≈80% covered.
-- `npm run test:e2e` – Playwright flows (`--ui` to debug); `npm run test:puppeteer` for smoke screenshots.
-- `npm run init` – rerun env validation after dependency or schema updates.
+- `npm run dev` – Launch local dev with App Router + Supabase SSR helpers.
+- `npm run type-check`, `npm run lint`, `npm test` – Baseline gates before any push.
+- `npm run build && npm start` – Production build smoke; run before promoting `dev → main`.
+- `npm run test:puppeteer` – Netlify smoke (homepage, catalog, product, checkout shell, admin login) with screenshots in `docs/qa-screenshots/`.
+- `npx playwright test e2e/tests/smoke.spec.ts` – Deeper storefront coverage when investigating regressions.
 
 ## Coding Style & Naming Conventions
-- Prefer `const`, explicit returns in server actions, and narrow generics.
-- Follow App Router patterns; add `"use client"` atop interactive modules.
-- `PascalCase` components, `camelCase` helpers, kebab-case routes/files.
-- Order Tailwind classes layout → spacing → color; use `tailwind-merge` to dedupe.
-- `npm run lint` gates merges; config extends `eslint-config-next` with Hooks guardrails.
+- TypeScript everywhere; `const` by default. Explicit return types on server actions/API routes.
+- Components in `PascalCase`, helpers in `camelCase`, route folders in kebab-case.
+- Tailwind class order: layout → spacing → color → state. Use shared tokens (`blackletter`, `gothic-heading`) and the Marcellus heading font via `var(--font-heading)`.
+- Prefer Supabase RPCs for analytics-heavy queries; wrap fetchers in `lib/`.
+- Never commit env secrets or Supabase API keys.
 
 ## Testing Guidelines
-- Place unit specs in `tests/**` mirroring source paths, named `*.test.ts(x)`.
-- Keep Playwright specs in `e2e/` for checkout, admin, and catalog flows; tag `@smoke` for CI subsets.
-- Keep Puppeteer smoke (`npm run test:puppeteer`) green; review `docs/qa-screenshots/`.
-- Mock Supabase with `@supabase/ssr`; avoid live network calls in unit runs.
-- When the campaign hero flag is on, sanity-check all layouts (classic/split/minimal) before shipping.
-- Verify catalog quick actions (hover/focus Add to cart + wishlist) in QA when product card changes ship.
-- When product detail UX changes, test gallery thumbnails/lightbox and sticky buy module across breakpoints before pushing.
-- Checkout sheet currently operates as a three-step slide-over; ensure Continue/Complete order flow works with and without Stripe publishable key.
+- Co-locate unit specs under `tests/` mirroring source paths; keep new logic ≈80% covered.
+- Targeted Playwright specs live in `e2e/tests/**`; guard unstable suites with tags.
+- Storytelling surfaces (timeline/testimonials/newsletter) and the Journal section are data-driven—verify they stay hidden when tables are empty.
+- Checkout sheet is a three-step slide-over; wallets remain disabled until a Stripe publishable key is configured.
 
 ## Commit & Deployment Workflow
-- Write imperative commit summaries (e.g., `Add campaign revision history`).
-- Squash WIP and push to `dev`; deployments trigger from this branch, no PR gate.
-- Link RFCs/issues and add UI screenshots when visuals change.
-- Run `npm run build` plus baseline tests before push; confirm Netlify preview.
-- Store secrets in `.env.local`, Netlify, or Supabase—never in Git.
-
-## Security & Configuration Tips
-- Load required env vars per `docs/ENV-QUICKSTART.md` (`NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `STRIPE_SECRET_KEY`, `NEXT_PUBLIC_SITE_URL`).
-- Update `supabase/` through SQL migrations to preserve policy history; export dashboard edits first.
-- Review `netlify.toml` and `/middleware.ts` before changing redirects or auth and rerun `npm run build`.
+- Work directly on `dev`; no PRs. Keep commits imperative (e.g., `Remove placeholder story seeds`).
+- Push after lint/type/test + Puppeteer and record results in the latest `docs/SESSION-*.md`.
+- Confirm the Netlify branch deploy (`https://dev--obsidianriterecords.netlify.app`) before promoting to `main`; production deploy happens only after explicit “Go live on main”.
+- Update `docs/NEXT-STEPS.md`, `docs/IMPLEMENTATION-PLAN.md`, and `docs/CONTINUE-PROMPT.md` whenever scope or plan shifts.

@@ -1,6 +1,6 @@
 # Implementation Plan (Dev Branch)
 
-Last modified: 2025-09-19
+Last modified: 2025-09-20
 
 This document captures the end-to-end plan to finish the storefront and admin for Obsidian Rite Records. It aligns with the solo workflow on the `dev` branch and Netlify Branch Deploys.
 
@@ -48,9 +48,9 @@ Acceptance:
 - Visiting `/products/[slug]` renders real data; checkout creates Stripe session; insufficient inventory/inactive are gracefully handled. [partially met]
 
 ### Phase 2 — Articles MVP
-- DB: `articles` table (slug, title, markdown, image, author, published, timestamps). [pending]
-- Admin: Refine resource for create/edit (markdown), publish toggle. [pending]
-- Public: `/articles` list and `/articles/[slug]` detail; SEO + article JSON‑LD. [partial — JSON‑LD scaffolded]
+- DB: `articles` table (slug, title, markdown, image, author, published, timestamps). [done]
+- Admin: Refine resource for create/edit (markdown), publish toggle. [done]
+- Public: `/articles` list, `/articles/[slug]` detail, and homepage Journal feed with featured card; SEO + article JSON‑LD. [partial — JSON‑LD follow-up]
 
 Acceptance:
 - Admin can publish/unpublish; public routes render published articles with metadata.
@@ -90,7 +90,7 @@ Acceptance:
 ### Phase 6 — Tests & Copy Alignment
 - Update webhook test to match route behavior (200 on internal errors to avoid Stripe retries) or adjust route to return 200 consistently.
 - Add tests for product detail metadata and checkout wiring.
-- Apply new site/admin copy; purge “placeholder” voice.
+- Apply new site/admin copy; purge “placeholder” voice. [done — storytelling placeholders removed, Journal now data-driven]
 
 Acceptance:
 - `npm test` green locally; critical e2e flows pass on branch deploy; copy consistent with brand tone.
@@ -157,6 +157,7 @@ Status:
   - Catalog: card uniformity, badges, skeletons, grid consistency.
   - Product: image sizing, variant selector visual treatment, CTA grouping.
   - Footer: links and spacing on mobile.
+  - Adopt Marcellus heading font + gothic tokens to improve legibility while preserving tone. [done]
 - Acceptance:
   - Mobile pages have no overflow; tap targets are accessible; layout feels consistent across sections.
 

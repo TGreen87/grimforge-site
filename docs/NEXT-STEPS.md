@@ -1,66 +1,63 @@
 # Next Steps (Dev Branch)
 
-Last modified: 2025-09-19
+Last modified: 2025-09-20
 
-This backlog captures the active workstreams after the dashboard revamp. Everything ships on `dev` first; promote to `main` only after the full QA loop completes.
+This backlog captures the active workstreams after the storefront storytelling cleanup and Journal integration. Ship everything on `dev`; promote to `main` only after the full QA loop completes.
 
-Consult `AGENTS.md` for contributor expectations and deployment discipline. Use `docs/README.md` for the live documentation index.
+Consult `AGENTS.md` for contributor expectations and deployment discipline. Use `docs/README.md` for the documentation index.
 
-## Snapshot — 2025-09-18
-- Supabase schema for customers/orders/inventory + dashboard analytics is live.
-- Admin dashboard v1.5 shipped (KPIs, revenue trend, low-stock roster, announcement editor, CSV exports).
-- Checkout API persists orders + items; Stripe webhook handler updates payment status.
-- Smoke automation (`npm run test:puppeteer`) green; lint backlog still outstanding (legacy `any` usage, hook warnings).
+## Snapshot — 2025-09-20
+- Storytelling surfaces (timeline, testimonials, newsletter CTA) now ship empty by default; storefront hides them until genuine content is added.
+- Journal section pulls the latest published Supabase articles (no placeholder cards) with featured + secondary layout.
+- Heading typography switched to Marcellus for better legibility while retaining gothic styling tokens.
+- Preorder email capture is disabled until the marketing stack is ready (input + button rendered read-only).
+- Puppeteer smoke remains green; lint still carries historic `any`/hook warnings (no regressions introduced).
 
 ## Immediate Execution Queue (Priority A)
-1. **Admin Dashboard 2.0 groundwork**
-   - [x] Design order timeline data shape (extend `audit_logs`, add service calls for events).
-   - [x] Add bulk order status mutation endpoint + packing slip generator scaffold.
-   - [x] Add bulk cancel/refund flows with audit logs and optional customer notifications (email notification stub pending).
-   - [x] Instrument configurable alert thresholds (awaiting fulfilment, low stock) in Supabase + expose on dashboard.
-2. **Storefront visual scaffolding**
-   - [x] Introduce motion utilities (`framer-motion`) and shared animation tokens.
-   - [x] Lay down hero campaign config (Supabase table + admin form draft).
-   - [x] Prototype refreshed hero (static + reduced motion fallback) behind feature flag.
-   - [x] Wire storefront hero to consume active campaign data (with fallback when none active).
-3. **Third-party integrations**
-   - [ ] Evaluate/choose image hosting flow (Supabase Storage vs. Cloudinary) and document requirements.
-   - [x] Add Slack webhook settings to admin (env + settings table) for alerts.
+1. **Storytelling content population**
+   - Seed real entries for `story_timeline` and `story_testimonials` (owner supplied copy).
+   - Draft public-safe newsletter heading/subheading once ESP is chosen.
+   - Update `/admin/story` guidance once content is live (screenshots + doc snippets).
+2. **Newsletter/ESP integration spike**
+   - Evaluate Buttondown vs. Mailchimp for double opt-in + API support.
+   - Prototype collection endpoint + Supabase storage (or direct ESP subscribe) without exposing API keys client-side.
+   - Extend QA checklist once sign-up flow is wired.
+3. **Admin dashboard 2.0 follow-ups**
+   - Needs fulfilment panel quick-export/filter links.
+   - Alert threshold + Slack webhook wiring (blocked on secrets).
+   - Dashboard motion tokens + aXe review after visual polish lands.
 
 ## Short-Term Enhancements (Priority B)
-- Dashboard
-  - [x] Revenue goal card with editable target + trend delta.
-  - [x] Announcement history log + restore UI.
-  - [ ] Needs fulfilment panel: add quick export + filter links.
-- Orders Workflow
-  - [x] Timeline tab on `/admin/orders/show/[id]` combining status/payment/audit events.
-  - [x] Upgrade packing slip to branded PDF (HTML-to-PDF service) (attachment flow TBD).
-  - [ ] AusPost label hook (blocked until credentials).
 - Storefront
-  - [x] Campaign hero layout variants (classic/split/minimal) with badges, highlights, and reduced-motion handling.
-  - [x] Catalog quick actions (Add to cart/Wishlist) with focus states.
-  - [x] Product gallery lightbox + sticky buy module.
-  - [x] Story block (“About the Label”) + testimonials carousel.
-  - [x] Checkout sheet UX skeleton + wallet row placeholder (wallet buttons activate once publishable key is set).
+  - Populate campaign hero presets with real release copy once assets approved.
+  - Add owner-configurable highlight articles to the Journal grid (fallback to automatic order when none chosen).
+  - Introduce optional newsletter footnote once ESP integration is settled.
+- Orders Workflow
+  - AusPost label hook (pending credentials).
+  - Branded PDF packing slips (follow-up to HTML export) for bulk actions.
+- Analytics & Observability
+  - Select analytics stack (Plausible vs. Vercel Analytics) and document rollout plan.
+  - Add structured logging for `/api/client-logs` and dashboard RPCs.
 
 ## Research / Decisions (Priority C)
-- [ ] Select third-party animation helper for list transitions (`auto-animate`, `motion.dev`, etc.).
-- [ ] Determine analytics stack (Plausible vs. Vercel Analytics) for conversion tracking.
-- [ ] Define newsletter provider integration (Mailchimp, Buttondown) for footer opt-in.
+- Pick lightweight animation helper for list transitions (`auto-animate` vs `motion.dev`).
+- Confirm image hosting plan (Supabase Storage hardening vs. Cloudinary) for campaign hero/media.
+- Determine marketing automation cadence once ESP selected (welcome drips vs. monthly digest).
 
 ## Dependencies & Blockers
-- Stripe publishable key: wallet buttons, checkout UX validation.
-- AusPost API credentials: live rate QA, labels, dashboard shipping widgets.
-- Slack/email webhook secrets: notifications for high-value orders.
+- Stripe publishable key: required to enable wallet buttons in checkout.
+- AusPost API credentials: required for live label generation + accurate shipping ETA copy.
+- ESP/API keys: required to enable newsletter opt-in and remove read-only inputs.
+- Slack webhook + alert thresholds: required to finish dashboard automation slice.
 
 ## QA & Automation To-Dos
-- [ ] Extend Puppeteer smoke to cover dashboard announcement edit + CSV export download.
-- [ ] Add Vitest coverage for dashboard RPCs (`orders_revenue_series`, `inventory_low_stock_trend`).
-- [ ] Lighthouse/aXe baseline for refreshed storefront once hero revamp lands.
+- [ ] Extend Puppeteer smoke to cover Journal feature card + fallback when no articles exist.
+- [ ] Add Vitest coverage for story content RPCs once API endpoints are finalized.
+- [ ] Schedule Lighthouse/aXe runs post visual refresh (hero + Journal) to baseline performance/accessibility.
 
 ## Documentation & Ops
-- [x] Update `docs/ENV-QUICKSTART.md` when new env vars (Slack webhook, animation toggles) are introduced.
-- [x] Record work in `docs/SESSION-YYYY-MM-DD.md` per major push.
-- [x] Refresh `docs/PRODUCTION-LAUNCH-CHECKLIST.md` with storefront QA steps.
+- [x] Update `docs/AGENTS.md`, `docs/README.md`, and `docs/QA-CHECKLIST.md` for storytelling cleanup + Journal behaviour.
+- [ ] Capture screenshots of the new Journal layout once real articles are published.
+- [ ] Refresh `docs/PRODUCTION-LAUNCH-CHECKLIST.md` after ESP integration lands.
 
-Keep this doc updated as tasks complete (mark `[x]`) or get reprioritized.
+Keep this doc updated as tasks complete (`[x]`) or plans shift.

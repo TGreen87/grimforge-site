@@ -1,6 +1,6 @@
 # Admin Visual Overhaul — RFC
 
-_Last updated: 2025-09-19_
+_Last updated: 2025-09-20_
 
 Purpose: Improve daily admin usability and clarity with consistent theme tokens, denser layout, readable tables, clearer forms, and better quick actions. Use `docs/README.md` for related RFCs and implementation notes. This RFC scopes the work for Phase 10 (Implementation Plan) and will be iterated in small, reversible commits on `dev`.
 
@@ -42,6 +42,7 @@ Purpose: Improve daily admin usability and clarity with consistent theme tokens,
 - Normalize labels and help text (e.g., “URL (link)” over “slug”).
 - Campaign create/edit exposes layout selector (classic/split/minimal), badge text, and highlight bullets aligned with storefront hero variants.
 - Story content page uses modal forms for timeline/testimonials; keep modal width, spacing, and validation messaging aligned with other admin forms.
+- Story content placeholders removed; inputs now use neutral helper copy so staff are guided to add authentic entries.
 - Group fields (Basics, Pricing, Inventory, Publishing).
 - Inline validation visuals.
 

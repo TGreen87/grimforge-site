@@ -1,12 +1,12 @@
 import type { Metadata } from 'next'
-import { Inter, Cinzel } from 'next/font/google'
+import { Inter, Marcellus } from 'next/font/google'
 import { generateSiteMetadata } from '@/lib/seo/metadata'
 import { OrganizationJsonLd } from '@/components/seo/JsonLd'
 import Providers from './providers'
 import './globals.css'
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-body' })
-const cinzel = Cinzel({ subsets: ['latin'], weight: ['400', '500', '600', '700'], variable: '--font-heading' })
+const marcellus = Marcellus({ weight: '400', subsets: ['latin'], variable: '--font-heading' })
 
 export const metadata: Metadata = generateSiteMetadata()
 
@@ -24,7 +24,7 @@ export default function RootLayout({
           description="Independent underground metal label. Limited vinyl, cassettes, and merchandise from the darkest corners of the metal underground."
         />
       </head>
-      <body className={`${inter.variable} ${cinzel.variable} font-sans overflow-x-hidden`}>
+      <body className={`${inter.variable} ${marcellus.variable} font-sans overflow-x-hidden`}>
         <Providers>
           {children}
         </Providers>

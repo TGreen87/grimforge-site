@@ -30,60 +30,73 @@ export function StorySections({ timeline, testimonials }: StorySectionsProps) {
   const timelineEntries = Array.isArray(timeline) ? timeline.filter((entry) => entry.title?.trim()) : [];
   const testimonialEntries = Array.isArray(testimonials) ? testimonials.filter((entry) => entry.quote?.trim() && entry.author?.trim()) : [];
 
-  if (timelineEntries.length === 0 && testimonialEntries.length === 0) {
+  const hasTimeline = timelineEntries.length > 0;
+  const hasTestimonials = testimonialEntries.length > 0;
+
+  if (!hasTimeline && !hasTestimonials) {
     return null;
   }
 
+  const gridClass = hasTimeline && hasTestimonials
+    ? "lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]"
+    : "lg:grid-cols-1";
+
   return (
     <section className="bg-background/95 py-20" data-story="timeline-section">
-      <div className="container mx-auto grid gap-16 px-4 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]">
-        <motion.div
-          initial={{ opacity: 0, y: 24 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-          viewport={{ once: true, amount: 0.2 }}
-          className="space-y-6"
-        >
-          <span className="text-xs uppercase tracking-[0.4em] text-muted-foreground">Label Story</span>
-          <h2 className="blackletter text-4xl text-bone sm:text-5xl">An underground lineage</h2>
-          <p className="text-sm leading-relaxed text-muted-foreground sm:text-base">
-            Obsidian Rite amplifies black metal with handmade pressings, artist-first releases, and rituals spanning antipodean forests to Nordic crypts.
-          </p>
-          <ol className="relative space-y-6 border-l border-border pl-6">
-            {timelineEntries.map((item) => (
-              <li key={`${item.year}-${item.title}`} className="space-y-1" data-story="timeline-item">
-                <div className="absolute -left-[7px] h-3 w-3 rounded-full border border-border bg-background" aria-hidden="true" />
-                <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">{item.year}</p>
-                <p className="font-semibold text-bone">{item.title}</p>
-                <p className="text-sm text-muted-foreground">{item.description}</p>
-              </li>
-            ))}
-          </ol>
-        </motion.div>
+      <div className={`container mx-auto grid gap-16 px-4 ${gridClass}`}>
+        {hasTimeline ? (
+          <motion.div
+            initial={{ opacity: 0, y: 24 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+            viewport={{ once: true, amount: 0.2 }}
+            className="space-y-6"
+          >
+            <span className="text-xs uppercase tracking-[0.4em] text-muted-foreground">Label Story</span>
+            <h2 className="blackletter text-4xl text-bone sm:text-5xl">An underground lineage</h2>
+            <p className="text-sm leading-relaxed text-muted-foreground sm:text-base">
+              Obsidian Rite curates independent extreme music with careful pressings and artist-first campaigns.
+            </p>
+            <ol className="relative space-y-6 border-l border-border pl-6">
+              {timelineEntries.map((item) => (
+                <li key={`${item.year}-${item.title}`} className="space-y-1" data-story="timeline-item">
+                  <div className="absolute -left-[7px] h-3 w-3 rounded-full border border-border bg-background" aria-hidden="true" />
+                  <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">{item.year}</p>
+                  <p className="font-semibold text-bone">{item.title}</p>
+                  {item.description ? (
+                    <p className="text-sm text-muted-foreground">{item.description}</p>
+                  ) : null}
+                </li>
+              ))}
+            </ol>
+          </motion.div>
+        ) : null}
 
-        <motion.div
-          initial={{ opacity: 0, y: 24 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1, duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-          viewport={{ once: true, amount: 0.2 }}
-          className="space-y-6 rounded-2xl border border-border bg-[#0d1117] p-8 shadow-lg"
-          data-story="testimonials-section"
-        >
-          <span className="text-xs uppercase tracking-[0.4em] text-muted-foreground">Testimony</span>
-          <h2 className="blackletter text-3xl text-bone">What the coven says</h2>
-          <div className="space-y-5">
-            {testimonialEntries.map(({ quote, author }) => (
-              <blockquote
-                key={author}
-                className="rounded-xl border border-border/60 bg-background/30 p-5 text-sm text-muted-foreground"
-                data-story="testimonial"
-              >
-                <p className="italic">“{quote}”</p>
-                <footer className="mt-3 text-xs uppercase tracking-[0.2em] text-muted-foreground/80">{author}</footer>
-              </blockquote>
-            ))}
-          </div>
-        </motion.div>
+        {hasTestimonials ? (
+          <motion.div
+            initial={{ opacity: 0, y: 24 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1, duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+            viewport={{ once: true, amount: 0.2 }}
+            className="space-y-6 rounded-2xl border border-border bg-[#0d1117] p-8 shadow-lg"
+            data-story="testimonials-section"
+          >
+            <span className="text-xs uppercase tracking-[0.4em] text-muted-foreground">Testimonials</span>
+            <h2 className="blackletter text-3xl text-bone">Voices from the label</h2>
+            <div className="space-y-5">
+              {testimonialEntries.map(({ quote, author }) => (
+                <blockquote
+                  key={`${author}-${quote.slice(0, 16)}`}
+                  className="rounded-xl border border-border/60 bg-background/30 p-5 text-sm text-muted-foreground"
+                  data-story="testimonial"
+                >
+                  <p className="italic">“{quote}”</p>
+                  <footer className="mt-3 text-xs uppercase tracking-[0.2em] text-muted-foreground/80">{author}</footer>
+                </blockquote>
+              ))}
+            </div>
+          </motion.div>
+        ) : null}
       </div>
     </section>
   );

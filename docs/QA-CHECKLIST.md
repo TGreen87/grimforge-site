@@ -1,6 +1,6 @@
 # Branch Deploy QA Checklist (dev)
 
-Last modified: 2025-09-19
+Last modified: 2025-09-20
 
 Use this checklist to verify the dev Branch Deploy before promoting to main. Reference `docs/README.md` for related launch docs.
 
@@ -15,7 +15,10 @@ Use this checklist to verify the dev Branch Deploy before promoting to main. Ref
 - “Browse catalog” or footer “Vinyl Records” scrolls to Catalog and updates URL to `/#vinyl`.
 - Hero and images load without broken links or layout jitter.
 - When feature flag is on, verify campaign hero layouts (Classic, Split, Minimal): badge renders, reduced-motion falls back, video/audio controls operate.
-- Story section renders timeline + testimonials sourced from Supabase; newsletter CTA copy matches admin settings.
+- Storytelling blocks: timeline/testimonials render only when Supabase tables contain content; when empty, the entire section is hidden.
+- Newsletter CTA appears only when all copy fields are populated; otherwise it should be absent.
+- Journal section (homepage) shows featured + secondary articles when Supabase has published entries; fallback message appears when none exist.
+- Preorder section shows “Email list opens soon” with disabled inputs/buttons (no placeholder alerts).
 
 ## Catalog
 - Product cards render (if data available); images not broken.
@@ -60,9 +63,9 @@ Use this checklist to verify the dev Branch Deploy before promoting to main. Ref
 - Announcement history lists previous messages and “Revert” restores copy without errors.
 
 ## Admin — Story Content
-- `/admin/story` loads timeline and testimonials tables.
-- Creating, editing, and deleting story points/testimonials update the storefront on refresh.
-- Newsletter CTA form saves heading/subheading/CTA label successfully.
+- `/admin/story` loads timeline and testimonials tables with no seeded rows by default.
+- Creating, editing, and deleting story points/testimonials update the storefront on refresh (verify section hides when all rows removed).
+- Newsletter CTA form saves heading/subheading/CTA label successfully; leaving fields blank should hide the storefront CTA.
 
 Tip: Use a temporary QA admin account (email/password) for branch testing, or log in with an existing admin and keep the session open while running MCP.
 

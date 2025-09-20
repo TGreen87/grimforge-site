@@ -1,6 +1,6 @@
 # Admin Workflows & Terminology
 
-_Last updated: 2025-09-19_
+_Last updated: 2025-09-20_
 
 This guide explains the key concepts in the admin and the typical flows. Use `docs/README.md` for the full documentation index.
 
@@ -68,6 +68,7 @@ This guide explains the key concepts in the admin and the typical flows. Use `do
 ## Articles
 - Admin → Articles: Create an article with Title, URL (link), content (markdown ok), and Publish.
 - Public pages will appear at `/articles` and `/articles/{url-link}` once published.
+- Homepage Journal automatically features the most recent published articles (one featured, up to two secondary); unpublish to remove from the feed.
 
 ## Checkout & Cart
 - Customers add items from product pages (this captures the Stock Unit for checkout).
@@ -79,7 +80,7 @@ This guide explains the key concepts in the admin and the typical flows. Use `do
 - Use lowercase URL links with hyphens; keep them short and descriptive.
 - Keep SKUs consistent (auto‑generated, but edit if you have a store‑wide scheme).
 - Prefer “Stock Units” to refer to purchasable items (we’ve renamed UI labels accordingly).
-- Manage storytelling blocks via **Admin → Story Content** (timeline order, testimonials, newsletter CTA). Changes persist instantly to the storefront.
+- Manage storytelling blocks via **Admin → Story Content** (timeline order, testimonials, newsletter CTA). With no rows, the storefront hides these sections; populate real entries before launch.
 
 ## Users & Roles (Grant Admin)
 - Path: `/admin/users` (preview environments only; requires an existing authenticated session).

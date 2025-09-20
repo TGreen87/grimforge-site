@@ -261,15 +261,15 @@ export default function StoryContentPage() {
 
           <Card title="Newsletter CTA">
             <Form form={newsletterForm} layout="vertical" onFinish={handleNewsletterSubmit}>
-              <Form.Item name="heading" label="Heading" rules={[{ required: true, message: 'Heading is required' }]}>
-                <Input placeholder="Join the midnight mailing list" />
-              </Form.Item>
-              <Form.Item name="subheading" label="Subheading" rules={[{ required: true, message: 'Subheading is required' }]}>
-                <Input.TextArea rows={3} placeholder="Monthly rituals..." />
-              </Form.Item>
-              <Form.Item name="cta_label" label="CTA Label" rules={[{ required: true, message: 'CTA label is required' }]}>
-                <Input placeholder="Subscribe" />
-              </Form.Item>
+          <Form.Item name="heading" label="Heading" rules={[{ required: true, message: 'Heading is required' }]}>
+            <Input placeholder="Newsletter heading" />
+          </Form.Item>
+          <Form.Item name="subheading" label="Subheading" rules={[{ required: true, message: 'Subheading is required' }]}>
+            <Input.TextArea rows={3} placeholder="Describe what subscribers receive" />
+          </Form.Item>
+          <Form.Item name="cta_label" label="CTA Label" rules={[{ required: true, message: 'CTA label is required' }]}>
+            <Input placeholder="Button label" />
+          </Form.Item>
               <Button type="primary" htmlType="submit">
                 Save newsletter copy
               </Button>
@@ -287,13 +287,13 @@ export default function StoryContentPage() {
       >
         <Form form={timelineForm} layout="vertical">
           <Form.Item name="year" label="Year" rules={[{ required: true, message: 'Year is required' }]}>
-            <Input placeholder="2015" />
+            <Input placeholder="Year" />
           </Form.Item>
           <Form.Item name="title" label="Title" rules={[{ required: true, message: 'Title is required' }]}>
-            <Input placeholder="Ritual Beginnings" />
+            <Input placeholder="Timeline title" />
           </Form.Item>
           <Form.Item name="description" label="Description">
-            <Input.TextArea rows={3} placeholder="Short summary..." />
+            <Input.TextArea rows={3} placeholder="Optional summary" />
           </Form.Item>
           <Form.Item name="sort_order" label="Sort order" rules={[{ required: true, message: 'Sort order is required' }]}>
             <InputNumber min={0} style={{ width: '100%' }} />
@@ -310,10 +310,10 @@ export default function StoryContentPage() {
       >
         <Form form={testimonialForm} layout="vertical">
           <Form.Item name="quote" label="Quote" rules={[{ required: true, message: 'Quote is required' }]}>
-            <Input.TextArea rows={3} placeholder="The only label that ships faster..." />
+            <Input.TextArea rows={3} placeholder="Customer or press quote" />
           </Form.Item>
           <Form.Item name="author" label="Author" rules={[{ required: true, message: 'Author is required' }]}>
-            <Input placeholder="Serpent's Wake Zine" />
+            <Input placeholder="Quoted source" />
           </Form.Item>
           <Form.Item name="sort_order" label="Sort order" rules={[{ required: true, message: 'Sort order is required' }]}>
             <InputNumber min={0} style={{ width: '100%' }} />

@@ -1,6 +1,6 @@
 # Production Launch Checklist
 
-_Last updated: 2025-09-19_
+_Last updated: 2025-09-20_
 
 This document tracks every action required to ship grimforge-site to production once Stripe/AusPost keys are available. Update the status column and add notes as you complete tasks. Reference `docs/README.md` for related ops guides.
 
@@ -18,7 +18,8 @@ This document tracks every action required to ship grimforge-site to production 
 | ☐ | QA | `npm run test:puppeteer` w/ admin creds (after keys). Attach screenshots in `docs/qa-screenshots/`. |  |
 | ☐ | QA | With hero flag on, smoke Classic/Split/Minimal layouts, verify badge/highlights, reduced-motion fallback, and media controls. |  |
 | ☐ | QA | Dashboard revenue goal card shows correct progress and saving a new target/period persists across refresh. |  |
-| ☐ | QA | Story content (timeline/testimonials/newsletter) reflects Supabase entries and `/admin/story` updates publish instantly. |  |
+| ☐ | QA | Story content (timeline/testimonials/newsletter) reflects Supabase entries and `/admin/story` updates publish instantly; verify sections stay hidden when tables are empty. |  |
+| ☐ | QA | Homepage Journal shows featured + secondary articles (or “Editorial features return soon” fallback when none published). |  |
 | ☐ | QA | Manual smoke on production preview (`/`, `/products/<slug>`, `/admin/dashboard`) post-deploy. |  |
 | ☐ | Release | Merge `dev → main`; monitor Netlify deploy; announce go-live. |  |
 

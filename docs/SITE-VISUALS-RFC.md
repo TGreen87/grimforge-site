@@ -1,6 +1,6 @@
 # Site Visual & UX Enhancement RFC
 
-_Last updated: 2025-09-19_
+_Last updated: 2025-09-20_
 
 Purpose: Track the roadmap for elevating the public storefront (non-admin) experience for Obsidian Rite Records. This complements `docs/ADMIN-VISUALS-RFC.md` and feeds into the overall implementation plan. See `docs/README.md` for related RFCs and notes.
 
@@ -39,6 +39,8 @@ Purpose: Track the roadmap for elevating the public storefront (non-admin) exper
 - Press/testimonial band with quotes from blogs or partners.
 - Newsletter + Instagram feed block in footer.
 - Weekly rituals card (owner-configurable checklist or blog excerpts).
+- ✅ Story timeline/testimonials now hide until genuine entries exist; admin Story screen controls copy.
+- ✅ Journal section consumes published Supabase articles (featured + secondary layout, fallback copy when empty).
 
 ### 5. Checkout Flow
 - Sheet-based checkout (mobile-first) with progress indicators.
@@ -56,11 +58,12 @@ Purpose: Track the roadmap for elevating the public storefront (non-admin) exper
 - Preview/scheduler workflow for hero + announcements.
 - Image management via Supabase Storage or Cloudinary integration.
 
-### 8. Performance & Accessibility
+- ### 8. Performance & Accessibility
 - Responsive typography scale (fluid clamp), improved line length.
 - Audit color contrast in light/dark tokens.
 - Lazy-load heavy media with intersection observers.
 - Automated Lighthouse/aXe script as part of deployment checklist.
+- ✅ Heading type updated to Marcellus (via `--font-heading`) for better readability while keeping gothic tone.
 
 ## Dependencies & Third-Party Enhancements
 - `framer-motion` for hero + microinteractions.

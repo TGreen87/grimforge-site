@@ -118,7 +118,7 @@ All colors MUST be HSL. Gothic aesthetic with frost and blood accents.
   }
 
   body {
-    @apply bg-background text-foreground font-serif;
+    @apply bg-background text-foreground font-sans;
     background-image: var(--gradient-gothic);
     background-attachment: fixed;
   }
