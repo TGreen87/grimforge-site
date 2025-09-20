@@ -35,7 +35,7 @@ export default function GrimoireSection({ articles }: GrimoireSectionProps) {
 
   if (!featured) {
     return (
-      <section id="grimoire" className="py-20 px-4 bg-secondary/20">
+      <section id="grimoire" data-story="journal-section" data-story-state="empty" className="py-20 px-4 bg-secondary/20">
         <div className="container mx-auto text-center">
           <h2 className="blackletter text-4xl md:text-6xl mb-4 text-bone">{fallbackCopy.heading}</h2>
           <div className="w-24 h-1 blood-accent mx-auto mb-6" aria-hidden="true" />
@@ -82,7 +82,7 @@ export default function GrimoireSection({ articles }: GrimoireSectionProps) {
   };
 
   return (
-    <section id="grimoire" className="bg-secondary/20 py-20 px-4">
+    <section id="grimoire" data-story="journal-section" data-story-state="filled" className="bg-secondary/20 py-20 px-4">
       <div className="container mx-auto">
         <div className="mb-12 text-center">
           <h2 className="blackletter text-4xl text-bone md:text-6xl">Journal</h2>
@@ -92,7 +92,7 @@ export default function GrimoireSection({ articles }: GrimoireSectionProps) {
           </p>
         </div>
 
-        <Card className="mb-12 overflow-hidden border-border bg-card/80 backdrop-blur-sm md:flex">
+        <Card data-story="journal-feature" className="mb-12 overflow-hidden border-border bg-card/80 backdrop-blur-sm md:flex">
           {featured.imageUrl ? (
             <div className="md:w-1/2">
               <img
@@ -136,7 +136,7 @@ export default function GrimoireSection({ articles }: GrimoireSectionProps) {
         </Card>
 
         {secondary.length > 0 ? (
-          <div className="mb-12 grid grid-cols-1 gap-6 md:grid-cols-2">
+          <div className="mb-12 grid grid-cols-1 gap-6 md:grid-cols-2" data-story="journal-secondary">
             {secondary.map((article) => (
               <Card key={article.id} className="group border-border bg-card/80 transition-colors hover:border-accent">
                 {article.imageUrl ? (

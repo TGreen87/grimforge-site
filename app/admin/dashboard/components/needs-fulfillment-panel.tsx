@@ -99,7 +99,7 @@ export default function NeedsFulfillmentPanel({
                   size="sm"
                   variant="secondary"
                   disabled={task.count === 0}
-                  className="min-h-10 px-3 py-2 text-sm disabled:opacity-100 disabled:bg-background/70 disabled:text-bone/70 disabled:border-border"
+                  className="min-h-10 px-3 py-2 text-sm disabled:opacity-100 disabled:bg-[#2d3240] disabled:text-[#f3f4f6] disabled:border-[#444a5a]"
                 >
                   <Link href={task.href} aria-label={`Review ${task.label.toLowerCase()}`}>
                     Review
@@ -123,7 +123,7 @@ export default function NeedsFulfillmentPanel({
                       size="sm"
                       variant="ghost"
                       disabled
-                      className="text-muted-foreground/60 disabled:opacity-100"
+                      className="text-[#cbd5f5] disabled:bg-[#2d3240] disabled:text-[#e7ecff] disabled:opacity-100"
                       aria-label={`Export ${task.label} CSV (disabled)`}
                     >
                       <Download className="h-4 w-4" aria-hidden="true" />

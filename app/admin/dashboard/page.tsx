@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { format } from 'date-fns'
 
 import { createServiceClient } from '@/lib/supabase/server'
+import { mapRevenueSeries, mapLowStockTrend } from '@/lib/dashboard'
 import { getStripe } from '@/lib/stripe'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -232,22 +233,13 @@ async function fetchStripePayoutSummary(): Promise<StripePayoutSummary | null> {
 async function fetchRevenueSeries(days = 30): Promise<RevenuePoint[]> {
   const supabase = createServiceClient()
   const { data } = await supabase.rpc('orders_revenue_series', { days })
-  const series = Array.isArray(data) ? data : []
-  return series.map((row) => ({
-    day: row.day,
-    paid_total: Number(row.paid_total ?? 0),
-    pending_total: Number(row.pending_total ?? 0),
-  }))
+  return mapRevenueSeries(Array.isArray(data) ? data : [])
 }
 
 async function fetchLowStockTrend(days = 14): Promise<LowStockPoint[]> {
   const supabase = createServiceClient()
   const { data } = await supabase.rpc('inventory_low_stock_trend', { days })
-  const series = Array.isArray(data) ? data : []
-  return series.map((row) => ({
-    day: row.day,
-    low_stock_count: Number(row.low_stock_count ?? 0),
-  }))
+  return mapLowStockTrend(Array.isArray(data) ? data : [])
 }
 
 async function fetchAnnouncement(): Promise<AnnouncementRecord | null> {

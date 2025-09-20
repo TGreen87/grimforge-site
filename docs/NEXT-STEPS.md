@@ -54,8 +54,9 @@ Consult `AGENTS.md` for contributor expectations and deployment discipline. Use 
 
 ## QA & Automation To-Dos
 - [ ] Extend Puppeteer smoke to cover Journal feature card + fallback when no articles exist.
-- [ ] Add Vitest coverage for story content RPCs once API endpoints are finalized.
+- [x] Add baseline Vitest coverage for dashboard RPC mappers (`mapRevenueSeries`, `mapLowStockTrend`).
 - [ ] Schedule Lighthouse/aXe runs post visual refresh (hero + Journal) to baseline performance/accessibility.
+- [ ] Evaluate Playwright + axe integration to complement Lighthouse in automated QA.
 - [x] Automate accessibility scan via `npm run audit:a11y` (homepage + admin dashboard Lighthouse JSON reports).
 
 ## Documentation & Ops

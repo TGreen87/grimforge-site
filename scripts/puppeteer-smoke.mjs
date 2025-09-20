@@ -75,6 +75,28 @@ async function run() {
       log('Story sections present', true, `skipped (${String(e)})`);
     }
 
+    try {
+      const journal = await page.evaluate(() => {
+        const section = document.querySelector('[data-story="journal-section"]');
+        if (!section) return { present: false };
+        const state = section.getAttribute('data-story-state') || 'unknown';
+        const hasFeature = Boolean(section.querySelector('[data-story="journal-feature"]'));
+        const secondaryCount = section.querySelector('[data-story="journal-secondary"]')?.childElementCount || 0;
+        return { present: true, state, hasFeature, secondaryCount };
+      });
+      if (!journal.present) {
+        log('Journal section', true, 'missing (fallback rendered server-side only when data present)');
+      } else if (journal.state === 'empty') {
+        log('Journal section', true, 'fallback copy displayed');
+        await shot('journal-fallback.png');
+      } else {
+        log('Journal section', true, `feature:${journal.hasFeature} secondary:${journal.secondaryCount}`);
+        await shot('journal-feature.png');
+      }
+    } catch (e) {
+      log('Journal section', false, String(e));
+    }
+
     // Try footer Vinyl anchor
     try {
       // Prefer header nav button "Vinyl"
