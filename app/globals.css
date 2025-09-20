@@ -126,13 +126,13 @@ All colors MUST be HSL. Gothic aesthetic with frost and blood accents.
   /* Custom Gothic Typography */
   .gothic-heading {
     @apply font-bold tracking-wider text-bone;
-    font-family: 'Cinzel', serif;
+    font-family: var(--font-heading), serif;
     text-shadow: 2px 2px 4px hsl(var(--shadow));
   }
 
   .blackletter {
     @apply font-bold tracking-wide;
-    font-family: 'Old English Text MT', 'Cinzel', serif;
+    font-family: var(--font-heading), serif;
     text-shadow: 1px 1px 2px hsl(var(--shadow));
   }
 

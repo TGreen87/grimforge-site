@@ -21,58 +21,18 @@ export interface NewsletterContent {
   ctaLabel: string;
 }
 
-const FALLBACK_TIMELINE: TimelineEntry[] = [
-  {
-    year: "2015",
-    title: "Ritual Beginnings",
-    description: "Obsidian Rite Records forms in a Hobart basement, pressing 50 copies of a demo on recycled wax.",
-  },
-  {
-    year: "2017",
-    title: "Into the Underground",
-    description: "Partnerships across AUS/NZ bring in exclusive cassettes and first press vinyl runs for touring acts.",
-  },
-  {
-    year: "2020",
-    title: "Global Distribution",
-    description: "Warehouse upgrade + Supabase storefront launch enables worldwide fulfilment during lockdowns.",
-  },
-  {
-    year: "2024",
-    title: "Campaign Era",
-    description: "Dynamic campaign hero + analytics stack give artists a spotlight ahead of each ritual release.",
-  },
-];
-
-const FALLBACK_TESTIMONIALS: TestimonialEntry[] = [
-  {
-    quote: "The only label that ships faster than the blast beats they promote.",
-    author: "Serpent's Wake Zine",
-  },
-  {
-    quote: "Packaging is immaculate, pressings are pristine, and every parcel smells like bonfire smoke.",
-    author: "Nocturnal Frequencies",
-  },
-  {
-    quote: "Obsidian Rite championed our debut when bigger labels wouldn’t return email.",
-    author: "Thy Ossuary (NZ)",
-  },
-];
-
-const FALLBACK_NEWSLETTER: NewsletterContent = {
-  heading: "Join the midnight mailing list",
-  subheading: "Monthly rituals, early access to limited pressings, and subscriber-only discount codes delivered straight from the furnace.",
-  ctaLabel: "Subscribe",
-};
-
 interface StorySectionsProps {
   timeline: TimelineEntry[];
   testimonials: TestimonialEntry[];
 }
 
 export function StorySections({ timeline, testimonials }: StorySectionsProps) {
-  const timelineEntries = timeline?.length ? timeline : FALLBACK_TIMELINE;
-  const testimonialEntries = testimonials?.length ? testimonials : FALLBACK_TESTIMONIALS;
+  const timelineEntries = Array.isArray(timeline) ? timeline.filter((entry) => entry.title?.trim()) : [];
+  const testimonialEntries = Array.isArray(testimonials) ? testimonials.filter((entry) => entry.quote?.trim() && entry.author?.trim()) : [];
+
+  if (timelineEntries.length === 0 && testimonialEntries.length === 0) {
+    return null;
+  }
 
   return (
     <section className="bg-background/95 py-20" data-story="timeline-section">
@@ -134,10 +94,16 @@ interface NewsletterSectionProps {
 }
 
 export function NewsletterSection({ content }: NewsletterSectionProps) {
-  const resolved = {
-    ...FALLBACK_NEWSLETTER,
-    ...(content ?? {}),
-  } satisfies NewsletterContent;
+  if (!content) return null;
+
+  const heading = content.heading?.trim() ?? '';
+  const subheading = content.subheading?.trim() ?? '';
+  const ctaLabel = (content as NewsletterContent | Record<string, string | undefined> | undefined)?.ctaLabel?.trim?.() ||
+    (content as Record<string, string | undefined> | undefined)?.cta_label?.trim?.() || '';
+
+  if (!heading && !subheading && !ctaLabel) {
+    return null;
+  }
 
   return (
     <section className="bg-gradient-to-b from-[#0d1117] via-background to-background py-16" data-story="newsletter-section">
@@ -150,10 +116,14 @@ export function NewsletterSection({ content }: NewsletterSectionProps) {
           className="mx-auto max-w-2xl rounded-3xl border border-border bg-background/60 p-8 shadow-xl backdrop-blur"
         >
           <span className="text-xs uppercase tracking-[0.3em] text-muted-foreground">Newsletter</span>
-          <h2 className="blackletter mt-3 text-3xl text-bone sm:text-4xl">{resolved.heading}</h2>
-          <p className="mt-3 text-sm text-muted-foreground sm:text-base">
-            {resolved.subheading}
-          </p>
+          {heading ? (
+            <h2 className="blackletter mt-3 text-3xl text-bone sm:text-4xl">{heading}</h2>
+          ) : null}
+          {subheading ? (
+            <p className="mt-3 text-sm text-muted-foreground sm:text-base">
+              {subheading}
+            </p>
+          ) : null}
           <form className="mt-6 flex flex-col gap-3 sm:flex-row">
             <input
               type="email"
@@ -163,7 +133,7 @@ export function NewsletterSection({ content }: NewsletterSectionProps) {
               aria-label="Email address"
             />
             <Button type="submit" className="h-12 px-6" size="lg">
-              {resolved.ctaLabel || 'Subscribe'}
+              {ctaLabel || 'Subscribe'}
             </Button>
           </form>
           <p className="mt-2 text-xs text-muted-foreground">No spam. Unsubscribe anytime.</p>
