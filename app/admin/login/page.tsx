@@ -83,7 +83,7 @@ export default function LoginPage() {
           >
             <Input 
               prefix={<UserOutlined />} 
-              placeholder="arg@obsidianriterecords.com" 
+              placeholder="you@example.com" 
             />
           </Form.Item>
 

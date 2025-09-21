@@ -32,7 +32,7 @@ const NewsletterSignup = () => {
       <div className="flex">
         <Input
           type="email"
-          placeholder="arg@obsidianriterecords.com"
+          placeholder="you@example.com"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           className="rounded-r-none"

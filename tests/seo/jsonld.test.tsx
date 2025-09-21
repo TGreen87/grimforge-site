@@ -99,7 +99,7 @@ describe('JSON-LD Structured Data', () => {
       expect(jsonLd.name).toBe('Obsidian Rite Records')
       expect(jsonLd.contactPoint).toBeDefined()
       expect(jsonLd.contactPoint['@type']).toBe('ContactPoint')
-      expect(jsonLd.contactPoint.email).toBe('obsidianriterecords@gmail.com')
+      expect(jsonLd.contactPoint.email).toBe('arg@obsidianriterecords.com')
     })
   })
   

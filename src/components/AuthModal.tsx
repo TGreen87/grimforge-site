@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
-import { Eye, EyeOff, Crown, Users } from "lucide-react";
+import { Eye, EyeOff } from "lucide-react";
 
 interface AuthModalProps {
   trigger?: React.ReactNode;
@@ -116,7 +116,7 @@ const AuthModal = ({ trigger }: AuthModalProps) => {
                 <Input
                   id="login-email"
                   type="email"
-                  placeholder="arg@obsidianriterecords.com"
+                  placeholder="you@example.com"
                   value={loginData.email}
                   onChange={(e) => setLoginData(prev => ({ ...prev, email: e.target.value }))}
                   className="bg-secondary/50 border-border text-foreground"
@@ -178,15 +178,6 @@ const AuthModal = ({ trigger }: AuthModalProps) => {
               </Button>
             </form>
 
-            {/* Demo accounts */}
-            <div className="mt-6 p-4 bg-secondary/20 rounded border border-border">
-              <p className="text-xs text-muted-foreground mb-2">Demo Accounts:</p>
-              <div className="space-y-1 text-xs">
-                <p className="flex items-center"><Users className="h-3 w-3 mr-1 text-frost" /> arg@obsidianriterecords.com</p>
-                <p className="flex items-center"><Crown className="h-3 w-3 mr-1 text-accent" /> arg@obsidianriterecords.com</p>
-                <p className="text-muted-foreground">Password: anything</p>
-              </div>
-            </div>
           </TabsContent>
 
           <TabsContent value="register" className="mt-6">
@@ -209,7 +200,7 @@ const AuthModal = ({ trigger }: AuthModalProps) => {
                 <Input
                   id="register-email"
                   type="email"
-                  placeholder="arg@obsidianriterecords.com"
+                  placeholder="you@example.com"
                   value={registerData.email}
                   onChange={(e) => setRegisterData(prev => ({ ...prev, email: e.target.value }))}
                   className="bg-secondary/50 border-border text-foreground"

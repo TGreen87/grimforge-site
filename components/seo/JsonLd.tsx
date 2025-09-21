@@ -30,7 +30,7 @@ export function OrganizationJsonLd({
     contactPoint: {
       '@type': 'ContactPoint',
       contactType: 'customer service',
-      email: 'obsidianriterecords@gmail.com',
+      email: 'arg@obsidianriterecords.com',
       availableLanguage: ['English']
     }
   }

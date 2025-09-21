@@ -11,7 +11,7 @@ export const seoConfig = {
   // Organization Details
   organization: {
     name: 'Obsidian Rite Records',
-    email: 'obsidianriterecords@gmail.com',
+    email: 'arg@obsidianriterecords.com',
     logo: '/logo.png',
     foundingDate: '2020-01-01',
     founders: ['Obsidian Rite Records'],

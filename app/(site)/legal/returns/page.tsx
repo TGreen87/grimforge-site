@@ -15,7 +15,7 @@ export default function ReturnsPage() {
 
       <section className="space-y-3">
         <h2 className="gothic-heading text-bone text-xl">Damaged or defective items</h2>
-        <p>Email photos to <a className="underline" href="mailto:obsidianriterecords@gmail.com">obsidianriterecords@gmail.com</a> along with your order number. We will ship a replacement or issue a refund once the claim is approved.</p>
+        <p>Email photos to <a className="underline" href="mailto:arg@obsidianriterecords.com">arg@obsidianriterecords.com</a> along with your order number. We will ship a replacement or issue a refund once the claim is approved.</p>
       </section>
 
       <section className="space-y-3">
@@ -30,4 +30,3 @@ export default function ReturnsPage() {
     </article>
   )
 }
-

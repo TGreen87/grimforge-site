@@ -16,7 +16,7 @@ export default function ContactPage() {
       <section className="space-y-2">
         <h2 className="gothic-heading text-bone text-xl">Email</h2>
         <p>
-          <a className="underline" href="mailto:obsidianriterecords@gmail.com">obsidianriterecords@gmail.com</a>
+          <a className="underline" href="mailto:arg@obsidianriterecords.com">arg@obsidianriterecords.com</a>
         </p>
       </section>
 

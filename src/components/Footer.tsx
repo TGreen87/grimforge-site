@@ -21,9 +21,28 @@ const Footer = () => {
             </div>
             <p className="text-muted-foreground text-sm">{footerCopy.tagline}</p>
             <div className="flex space-x-4">
-              <Facebook className="h-5 w-5 text-muted-foreground hover:text-accent cursor-pointer transition-colors" />
-              <Instagram className="h-5 w-5 text-muted-foreground hover:text-accent cursor-pointer transition-colors" />
-              <Mail className="h-5 w-5 text-muted-foreground hover:text-accent cursor-pointer transition-colors" />
+              <a
+                href={brand.socials.facebook}
+                target="_blank"
+                rel="noreferrer"
+                aria-label="Follow on Facebook"
+              >
+                <Facebook className="h-5 w-5 text-muted-foreground hover:text-accent transition-colors" />
+              </a>
+              <a
+                href={brand.socials.instagram}
+                target="_blank"
+                rel="noreferrer"
+                aria-label="Follow on Instagram"
+              >
+                <Instagram className="h-5 w-5 text-muted-foreground hover:text-accent transition-colors" />
+              </a>
+              <a
+                href="mailto:arg@obsidianriterecords.com"
+                aria-label="Email Obsidian Rite Records"
+              >
+                <Mail className="h-5 w-5 text-muted-foreground hover:text-accent transition-colors" />
+              </a>
             </div>
           </div>
 
