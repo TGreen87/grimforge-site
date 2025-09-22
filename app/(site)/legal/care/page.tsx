@@ -10,7 +10,7 @@ export default function CareInstructionsPage() {
     <article className="space-y-6 text-muted-foreground">
       <header className="space-y-2">
         <h1 className="blackletter text-4xl text-bone">Care Instructions</h1>
-        <p>Follow the guidelines below to preserve prints, vinyl and packaging.</p>
+        <p className="leading-relaxed">Follow the guidelines below to preserve prints, vinyl and packaging.</p>
       </header>
 
       <section className="space-y-3">
@@ -23,7 +23,7 @@ export default function CareInstructionsPage() {
       </section>
 
       <section className="space-y-3">
-        <h2 className="gothic-heading text-bone text-xl">Vinyl records</h2>
+        <h2 className="gothic-heading text-bone text-xl">Vinyl Records</h2>
         <ul className="list-disc ml-6 space-y-2">
           <li>Store vertically in a cool, dry space.</li>
           <li>Replace inner sleeves with anti-static rice paper if available.</li>
@@ -33,9 +33,8 @@ export default function CareInstructionsPage() {
 
       <section className="space-y-3">
         <h2 className="gothic-heading text-bone text-xl">Cassettes &amp; CDs</h2>
-        <p>Keep plastics free from heat. If shells or cases crack during shipping, contact us for replacements.</p>
+        <p className="leading-relaxed">Keep plastics free from heat. If shells or cases crack during shipping, contact us for replacements.</p>
       </section>
     </article>
   )
 }
-

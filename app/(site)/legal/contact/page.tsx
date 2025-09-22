@@ -10,7 +10,7 @@ export default function ContactPage() {
     <article className="space-y-6 text-muted-foreground">
       <header className="space-y-2">
         <h1 className="blackletter text-4xl text-bone">Contact</h1>
-        <p>Questions about an order, wholesale or licensing? We respond within two business days.</p>
+        <p className="leading-relaxed">Questions about an order, wholesale or licensing? We respond within two business days.</p>
       </header>
 
       <section className="space-y-2">
@@ -22,12 +22,12 @@ export default function ContactPage() {
 
       <section className="space-y-2">
         <h2 className="gothic-heading text-bone text-xl">Social</h2>
-        <p>Instagram DMs are open for quick questions: <a className="underline" href="https://www.instagram.com/obsidianriterecords/" target="_blank" rel="noreferrer">@obsidianriterecords</a>. Facebook messages are currently routed through <a className="underline" href="https://www.facebook.com/scruffylikestoast" target="_blank" rel="noreferrer">Scruffy Likes Toast</a> until the business page is live.</p>
+        <p className="leading-relaxed">Instagram DMs are open for quick questions: <a className="underline" href="https://www.instagram.com/obsidianriterecords/" target="_blank" rel="noreferrer">@obsidianriterecords</a>. Facebook messages are currently routed through <a className="underline" href="https://www.facebook.com/scruffylikestoast" target="_blank" rel="noreferrer">Scruffy Likes Toast</a> until the business page is live.</p>
       </section>
 
       <section className="space-y-2">
-        <h2 className="gothic-heading text-bone text-xl">Demos &amp; press kits</h2>
-        <p>Send Bandcamp or private streaming links. We review submissions monthly.</p>
+        <h2 className="gothic-heading text-bone text-xl">Demos &amp; Press Kits</h2>
+        <p className="leading-relaxed">Send Bandcamp or private streaming links. We review submissions monthly.</p>
       </section>
     </article>
   )
