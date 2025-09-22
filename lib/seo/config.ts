@@ -25,7 +25,7 @@ export const seoConfig = {
   social: {
     instagram: 'https://www.instagram.com/obsidianriterecords/',
     facebook: '',
-    twitter: '@obsidianrite',
+    twitter: '',
     youtube: '',
     bandcamp: ''
   },
