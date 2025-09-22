@@ -57,7 +57,7 @@ This guide explains the key concepts in the admin and the typical flows. Use `do
 - Needs fulfilment panel now includes one-click CSV exports beside each task for quick reporting (only active when counts >0).
 
 ### Analytics & Copilot
-- **Analytics**: `/admin/analytics` summarises page views and total events over the last seven days, recent referrers, and a live event stream. Data is sourced from the first-party beacon (`/api/analytics/ingest`) so it works without a third-party tracker.
+- **Analytics**: `/admin/analytics` summarises page views and total events over selectable windows (24h/7d/30d), highlights top pages/referrers, and streams recent events. Filter by path, export CSV, and keep an eye on the “Internal Hits” card for admin-only traffic. Data is sourced from the first-party beacon (`/api/analytics/ingest`).
 - **Copilot**: Open the assistant via the robot button in the header (or shortcut `⌘⇧C`/`Ctrl+Shift+C`). Ask about workflows, rollout plans, or current analytics; the bot cites internal docs for quick verification. The assistant lives entirely server-side—no external dashboard needed.
 - **Receive stock via Copilot**: When the assistant suggests a stock receipt, review the variant ID and quantity in the confirmation modal, tweak if required, then run it. The action calls the same Supabase RPC used in the admin UI and records an audit log (`assistant.inventory.receive`).
 - **Run confirmed actions**: When the copilot suggests a supported action (e.g., “Create product draft”), review the parameters, then hit “Review & Run”. The system executes with service-role credentials, logs to `audit_logs`, and leaves outputs inactive until you explicitly publish.
