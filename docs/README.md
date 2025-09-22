@@ -1,6 +1,6 @@
 # Documentation Index
 
-Last modified: 2025-09-20
+Last modified: 2025-09-22
 
 Use this index as the starting point before touching code or deployments. Pair it with [../AGENTS.md](../AGENTS.md) for contributor rules.
 

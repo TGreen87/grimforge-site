@@ -1,6 +1,6 @@
 # Owner Quick Start Handbook
 
-_Last updated: 2025-09-21_
+_Last updated: 2025-09-22_
 
 This guide walks through the core day-to-day tasks for running Obsidian Rite Records without touching code. Use `docs/README.md` for the full documentation index when onboarding new owners or assistants.
 
