@@ -110,6 +110,7 @@
     "globals": "^15.9.0",
     "happy-dom": "^18.0.1",
     "ignore-loader": "^0.1.2",
+    "png-to-ico": "^3.0.1",
     "postcss": "^8.4.47",
     "puppeteer": "^23.4.0",
     "schema-dts": "^1.1.5",
