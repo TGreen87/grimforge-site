@@ -1,22 +1,21 @@
 'use client'
 
 import { useMemo, useState, useEffect } from 'react'
+import type { VariantWithInventory } from './metadata'
 
-interface Inventory { available?: number }
-interface Variant { id: string; name?: string; price?: number; format?: string; inventory?: Inventory }
-
-export default function VariantSelector({
-  variants,
-  onChange,
-  initialVariantId,
-}: {
-  variants: Variant[]
-  onChange: (variant: Variant | null) => void
+interface Props {
+  variants: VariantWithInventory[]
+  onChange: (variant: VariantWithInventory | null) => void
   initialVariantId?: string
-}) {
+}
+
+export default function VariantSelector({ variants, onChange, initialVariantId }: Props) {
   const [selectedId, setSelectedId] = useState<string | undefined>(initialVariantId)
 
-  const current = useMemo(() => variants.find(v => v.id === selectedId) || variants[0] || null, [variants, selectedId])
+  const current = useMemo(
+    () => variants.find((variant) => variant.id === selectedId) || variants[0] || null,
+    [variants, selectedId],
+  )
 
   useEffect(() => {
     onChange(current || null)
@@ -40,7 +39,9 @@ export default function VariantSelector({
       </select>
       {current && (
         <p className="text-xs text-muted-foreground">
-          {((current as any).inventory?.available ?? 0) > 0 ? `${(current as any).inventory.available} available` : 'Out of stock'}
+          {(current.inventory?.available ?? 0) > 0
+            ? `${current.inventory?.available ?? 0} available`
+            : 'Out of stock'}
         </p>
       )}
     </div>

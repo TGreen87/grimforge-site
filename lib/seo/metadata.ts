@@ -162,13 +162,15 @@ export function generateSiteMetadata(): Metadata {
 
 export function generateProductMetadata({
   name,
+  title,
   description,
   image,
   slug,
   price,
   availability
 }: {
-  name: string
+  name?: string
+  title?: string
   description: string
   image?: string
   slug: string
@@ -177,6 +179,7 @@ export function generateProductMetadata({
 }): Metadata {
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || process.env.SITE_URL_STAGING || 'https://obsidianriterecords.com'
   const url = `${siteUrl}/products/${slug}`
+  const resolvedName = name?.trim().length ? name : title?.trim().length ? title : 'Product'
   
   let enrichedDescription = description
   if (price) {
@@ -187,13 +190,13 @@ export function generateProductMetadata({
   }
 
   return generateMetadata({
-    title: name,
+    title: resolvedName,
     description: enrichedDescription,
     image,
     url,
     type: 'product',
     keywords: [
-      name.toLowerCase(),
+      resolvedName.toLowerCase(),
       'black metal',
       'metal vinyl',
       'metal cassette',
@@ -202,6 +205,8 @@ export function generateProductMetadata({
     ]
   })
 }
+
+export const defaultMetadata: Metadata = generateSiteMetadata()
 
 export function generateArticleMetadata({
   title,
@@ -215,13 +220,13 @@ export function generateArticleMetadata({
   title: string
   description: string
   image?: string
-  slug: string
-  publishedTime: string
+  slug?: string
+  publishedTime?: string
   modifiedTime?: string
   author?: string
 }): Metadata {
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || process.env.SITE_URL_STAGING || 'https://obsidianriterecords.com'
-  const url = `${siteUrl}/articles/${slug}`
+  const url = slug ? `${siteUrl}/articles/${slug}` : siteUrl
 
   return generateMetadata({
     title,

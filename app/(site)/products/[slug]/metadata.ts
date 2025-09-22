@@ -1,113 +1,144 @@
 import { getSupabaseServerClient } from '@/integrations/supabase/server'
+import type { Database } from '@/lib/supabase/types'
 
-interface Inventory {
-  available?: number
+type ProductRow = Database['public']['Tables']['products']['Row']
+type VariantRow = Database['public']['Tables']['variants']['Row']
+type InventoryRow = Database['public']['Tables']['inventory']['Row']
+
+type ProductRowWithLegacyFields = Omit<ProductRow, 'format'> & {
+  /** Historical seeds sometimes store non-string formats */
+  format: ProductRow['format'] | ProductRow['format'][] | null
+  /** Legacy storefront data may include a secondary image field */
+  image_url?: string | null
+  /** Early imports used `name` instead of `title` */
+  name?: string | null
+  /** Optional gallery assets stored as JSON */
+  gallery_images?: string[] | null
 }
 
-interface Variant {
-  id: string
-  name: string
-  price: number
-  inventory?: Inventory
-  format?: string
-  product_id?: string
+type VariantRowWithInventoryJoin = VariantRow & {
+  inventory: InventoryRow | InventoryRow[] | null
+  format?: string | null
 }
 
-interface Product {
-  id: string
-  name?: string
-  title: string
-  description?: string
-  image_url?: string
-  image?: string
-  price: number
-  sku?: string
-  category?: string
-  tags?: string[]
-  format?: string[]
-  artist?: string
-  created_at?: string
-  active: boolean
-  slug?: string
-  variants?: Variant[]
+export type VariantWithInventory = VariantRow & {
+  inventory: InventoryRow | null
+  /** Legacy seeds occasionally stored a display format on the variant */
+  format?: string | null
 }
 
-export async function getProduct(slug: string) {
+export type ProductWithVariants = ProductRowWithLegacyFields & {
+  variants: VariantWithInventory[]
+}
+
+function normalizeVariants(variants: VariantRowWithInventoryJoin[] | null | undefined): VariantWithInventory[] {
+  if (!variants) return []
+  return variants.map((variant) => {
+    const { inventory, ...rest } = variant
+    const normalizedInventory = Array.isArray(inventory) ? inventory[0] ?? null : inventory ?? null
+    return {
+      ...rest,
+      inventory: normalizedInventory,
+    }
+  })
+}
+
+export async function getProduct(slug: string): Promise<ProductWithVariants | null> {
   try {
-    const supabase = getSupabaseServerClient()
-    
-    // First try to find by slug (if exists)
-    const { data: product, error } = await supabase
+    const supabase = await getSupabaseServerClient()
+
+    const { data: product } = await supabase
       .from('products')
       .select('*')
       .eq('slug', slug)
       .eq('active', true)
-      .single()
-    
-    // If not found by slug, try by title (for legacy support)
-    let finalProduct = product
+      .maybeSingle()
+
+    let finalProduct = (product as ProductRowWithLegacyFields | null) ?? null
+
     if (!finalProduct) {
       const { data: productByTitle } = await supabase
         .from('products')
         .select('*')
         .eq('title', slug.replace(/-/g, ' '))
         .eq('active', true)
-        .single()
-      
-      finalProduct = productByTitle
+        .maybeSingle()
+
+      finalProduct = (productByTitle as ProductRowWithLegacyFields | null) ?? null
     }
-    
-    // If both lookups failed, treat as not found. Do not gate on the first query's error
-    // if the fallback lookup succeeded.
+
     if (!finalProduct) return null
-    
-    // Get variants if they exist — be defensive and normalize inventory shape
-    let variants: any[] = []
-    try {
-      const { data } = await supabase
-        .from('variants')
-        .select(`
-          *,
-          inventory (* )
-        `)
-        .eq('product_id', finalProduct.id)
-      variants = Array.isArray(data) ? data : []
-    } catch {
-      variants = []
+
+    const { data: variantData, error: variantsError } = await supabase
+      .from('variants')
+      .select('*, inventory(*)')
+      .eq('product_id', finalProduct.id)
+
+    if (variantsError) {
+      console.warn('Failed to load variants for product', { slug, error: variantsError.message })
     }
 
-    // Normalize inventory: some PostgREST joins return an array
-    const normalized = variants.map((v: any) => ({
-      ...v,
-      inventory: Array.isArray(v?.inventory) ? (v.inventory[0] || null) : (v?.inventory ?? null),
-    }))
+    const variants = normalizeVariants(variantData as VariantRowWithInventoryJoin[] | null)
 
-    return { ...finalProduct, variants: normalized }
-  } catch (error) {
-    // During build time or if Supabase is not available, return mock data
-    console.warn('Supabase not available during build, returning mock product data')
     return {
+      ...finalProduct,
+      variants,
+    }
+  } catch (error) {
+    console.warn('Supabase lookup failed, returning fallback product payload', error)
+    const now = new Date().toISOString()
+    const fallbackVariantId = `${slug}-variant-1`
+    const fallbackVariant: VariantWithInventory = {
+      id: fallbackVariantId,
+      name: 'Standard Edition',
+      price: 29.99,
+      product_id: slug,
+      sku: `${slug}-variant-1`,
+      active: true,
+      barcode: null,
+      color: null,
+      created_at: now,
+      dimensions: null,
+      size: null,
+      updated_at: now,
+      weight: null,
+      inventory: {
+        id: `${fallbackVariantId}-inventory`,
+        variant_id: fallbackVariantId,
+        on_hand: 10,
+        allocated: 0,
+        available: 10,
+        reorder_point: null,
+        reorder_quantity: null,
+        updated_at: now,
+      },
+    }
+
+    const fallbackProduct: ProductWithVariants = {
       id: slug,
       title: 'Sample Product',
       name: 'Sample Product',
       description: 'This is a sample product description',
       price: 29.99,
+      image: '/placeholder.svg',
       image_url: '/placeholder.svg',
       active: true,
-      slug: slug,
-      category: 'merchandise',
+      slug,
       sku: slug,
-      created_at: new Date().toISOString(),
-      variants: [
-        {
-          id: `${slug}-variant-1`,
-          name: 'Standard Edition',
-          price: 29.99,
-          inventory: { available: 10 },
-          format: 'standard',
-          product_id: slug
-        }
-      ]
+      created_at: now,
+      updated_at: now,
+      artist: 'Obsidian Rite Records',
+      featured: false,
+      limited: false,
+      pre_order: false,
+      release_year: new Date().getFullYear(),
+      stock: 10,
+      tags: [],
+      format: 'vinyl',
+      variants: [fallbackVariant],
+      gallery_images: ['/placeholder.svg'],
     }
+
+    return fallbackProduct
   }
 }

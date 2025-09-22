@@ -11,14 +11,27 @@ interface ArticlePageProps {
 export async function generateMetadata({ params }: ArticlePageProps): Promise<Metadata> {
   const { slug } = await params
   const article = await getArticle(slug)
+  if (!article) {
+    return generateArticleMetadata({
+      title: 'Article not found',
+      description: 'The requested article is no longer available.',
+      slug,
+      publishedTime: new Date(0).toISOString(),
+    })
+  }
+
+  const description = article.excerpt ?? ''
+  const publishedTime = article.published_at ?? article.created_at
+  const modifiedTime = article.updated_at ?? article.created_at
+
   return generateArticleMetadata({
     title: article.title,
-    description: article.excerpt || article.description,
-    image: article.image_url,
+    description,
+    image: article.image_url ?? undefined,
     slug: article.slug,
-    publishedTime: article.published_at,
-    modifiedTime: article.updated_at,
-    author: article.author,
+    publishedTime,
+    modifiedTime,
+    author: article.author ?? undefined,
   })
 }
 
@@ -28,7 +41,9 @@ export const dynamic = 'force-dynamic'
 export default async function ArticlePage({ params }: ArticlePageProps) {
   const { slug } = await params
   const article = await getArticle(slug)
-  if (!article) notFound()
+  if (!article) {
+    notFound()
+  }
 
   // Minimal markdown rendering: supports headings (#), lists (-), code blocks (```), and paragraphs.
   const raw = (article.content || article.excerpt || '').trim()
@@ -65,11 +80,11 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
       <article className="container mx-auto px-4 py-8">
         <ArticleJsonLd
           title={article.title}
-          description={article.excerpt || article.description || ''}
-          image={article.image_url}
-          datePublished={article.published_at}
-          dateModified={article.updated_at}
-          author={article.author}
+          description={article.excerpt ?? ''}
+          image={article.image_url ?? undefined}
+          datePublished={article.published_at ?? article.created_at}
+          dateModified={article.updated_at ?? article.created_at}
+          author={article.author ?? 'Obsidian Rite Records'}
         />
         <header className="mb-6">
           <h1 className="blackletter text-4xl md:text-6xl mb-2 text-bone break-words">{article.title}</h1>
@@ -97,7 +112,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
               return <br key={i} />
             })
           ) : (
-            <p>{article.description || ''}</p>
+            <p>{article.excerpt ?? ''}</p>
           )}
         </div>
       </article>

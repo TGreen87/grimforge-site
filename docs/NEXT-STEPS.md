@@ -1,6 +1,6 @@
 # Next Steps (Dev Branch)
 
-Last modified: 2025-09-21
+Last modified: 2025-09-22
 
 This backlog captures the active workstreams after the storefront storytelling cleanup and Journal integration. Ship everything on `dev`; promote to `main` only after the full QA loop completes.
 
@@ -66,6 +66,7 @@ Consult `AGENTS.md` for contributor expectations and deployment discipline. Use 
 - [ ] Schedule Lighthouse/aXe runs post visual refresh (hero + Journal) to baseline performance/accessibility.
 - [ ] Evaluate Playwright + axe integration to complement Lighthouse in automated QA.
 - [x] Automate accessibility scan via `npm run audit:a11y` (homepage + admin dashboard Lighthouse JSON reports).
+- [ ] Reduce ESLint `no-explicit-any` debt — storefront product detail & article metadata now typed (2025-09-22); bring admin dashboards/contexts in line next.
 
 ## Documentation & Ops
 - [x] Update `docs/AGENTS.md`, `docs/README.md`, and `docs/QA-CHECKLIST.md` for storytelling cleanup + Journal behaviour.

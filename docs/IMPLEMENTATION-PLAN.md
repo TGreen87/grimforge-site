@@ -106,11 +106,11 @@ Acceptance:
 Acceptance:
 - Visual QA checklist passes; improved a11y and consistency across pages.
 
-### Phase 8 — Supabase Client Unification
-- Standardize on `@/integrations/supabase/*` and remove duplicates in `lib/` and `src/lib/` where safe.
+### Phase 8 — Supabase Client Unification [done]
+- [x] Standardize on `@/integrations/supabase/*` and remove duplicates in `lib/` and `src/lib/` where safe (2025-09-22 cleanup removed superseded `src/lib` shims).
 
 Acceptance:
-- Single client path used across app; no regressions.
+- Single client path used across app; no regressions. Remaining `@/src/lib/storage` usages tracked separately.
 
 ### Phase 9 — Docs & Branch Discipline
 - Align docs to `dev` as working branch (done: `docs/AGENTS.md`, `scripts/init.mjs`).
