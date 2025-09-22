@@ -1,7 +1,7 @@
 
 'use client'
 
-import React, { ReactNode } from 'react'
+import React, { ReactNode, Suspense } from 'react'
 import { AuthProvider } from '@/src/contexts/AuthContext'
 import { CartProvider } from '@/src/contexts/CartContext'
 import { WishlistProvider } from '@/src/contexts/WishlistContext'
@@ -19,7 +19,9 @@ export default function Providers({ children }: ProvidersProps) {
       <CartProvider>
         <WishlistProvider>
           <ClientErrorLogger />
-          <AnalyticsClient />
+          <Suspense fallback={null}>
+            <AnalyticsClient />
+          </Suspense>
           <ErrorBoundary>
             {children}
           </ErrorBoundary>
