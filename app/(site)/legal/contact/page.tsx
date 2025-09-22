@@ -22,7 +22,7 @@ export default function ContactPage() {
 
       <section className="space-y-2">
         <h2 className="gothic-heading text-bone text-xl">Social</h2>
-        <p className="leading-relaxed">Instagram DMs are open for quick questions: <a className="underline" href="https://www.instagram.com/obsidianriterecords/" target="_blank" rel="noreferrer">@obsidianriterecords</a>. Facebook messages are currently routed through <a className="underline" href="https://www.facebook.com/scruffylikestoast" target="_blank" rel="noreferrer">Scruffy Likes Toast</a> until the business page is live.</p>
+        <p className="leading-relaxed">Instagram DMs are open for quick questions: <a className="underline" href="https://www.instagram.com/obsidianriterecords/" target="_blank" rel="noreferrer">@obsidianriterecords</a>. You can also reach us via email for longer-form requests.</p>
       </section>
 
       <section className="space-y-2">

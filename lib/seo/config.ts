@@ -24,7 +24,7 @@ export const seoConfig = {
   // Social Media
   social: {
     instagram: 'https://www.instagram.com/obsidianriterecords/',
-    facebook: 'https://www.facebook.com/scruffylikestoast',
+    facebook: '',
     twitter: '@obsidianrite',
     youtube: '',
     bandcamp: ''
@@ -54,10 +54,9 @@ export const seoConfig = {
   // Product Categories
   productCategories: [
     'Vinyl Records',
-    'cassette',
+    'Cassette',
     'CDs',
     'Merchandise',
-    'Apparel',
     'Accessories'
   ],
   
