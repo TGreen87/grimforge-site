@@ -5,7 +5,8 @@ import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { 
   AppstoreOutlined, TagsOutlined, InboxOutlined, 
-  ShoppingCartOutlined, TeamOutlined, FileTextOutlined, FileSearchOutlined 
+  ShoppingCartOutlined, TeamOutlined, FileTextOutlined, FileSearchOutlined,
+  LineChartOutlined
 } from "@ant-design/icons";
 
 const { Sider } = Layout;
@@ -35,7 +36,10 @@ export default function AdminSider({ collapsed = false, onCollapse }: { collapse
     },
     {
       title: 'System',
-      items: [ { key: '/admin/audit-logs', icon: <FileSearchOutlined />, label: 'Audit Logs' } ],
+      items: [
+        { key: '/admin/analytics', icon: <LineChartOutlined />, label: 'Analytics' },
+        { key: '/admin/audit-logs', icon: <FileSearchOutlined />, label: 'Audit Logs' }
+      ],
     }
   ];
 

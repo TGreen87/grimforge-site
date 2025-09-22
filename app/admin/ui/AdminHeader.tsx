@@ -2,7 +2,7 @@
 import React from "react";
 import { Layout, Breadcrumb, Input, Space, Dropdown, Avatar, Button, Tooltip } from "antd";
 import { usePathname, useRouter } from "next/navigation";
-import { SearchOutlined, UserOutlined, PlusOutlined, InboxOutlined, FileTextOutlined } from "@ant-design/icons";
+import { SearchOutlined, UserOutlined, PlusOutlined, InboxOutlined, FileTextOutlined, RobotOutlined } from "@ant-design/icons";
 
 const { Header } = Layout;
 
@@ -18,7 +18,7 @@ function useBreadcrumb() {
   return items;
 }
 
-export default function AdminHeader() {
+export default function AdminHeader({ onOpenAssistant }: { onOpenAssistant?: () => void }) {
   const crumbs = useBreadcrumb();
   const router = useRouter();
   React.useEffect(() => {
@@ -33,6 +33,16 @@ export default function AdminHeader() {
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
   }, [router]);
+  React.useEffect(() => {
+    const handler = (event: KeyboardEvent) => {
+      if ((event.metaKey || event.ctrlKey) && event.shiftKey && event.key.toLowerCase() === 'c') {
+        event.preventDefault();
+        onOpenAssistant?.();
+      }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [onOpenAssistant]);
   const menu = {
     items: [
       { key: 'profile', label: 'Profile' },
@@ -92,6 +102,13 @@ export default function AdminHeader() {
             }}
             readOnly
           />
+          <Tooltip title="Open Copilot (⌘⇧C)">
+            <Button
+              icon={<RobotOutlined />}
+              onClick={() => onOpenAssistant?.()}
+              aria-label="Open admin copilot"
+            />
+          </Tooltip>
           <Dropdown menu={menu} trigger={["click"]}>
             <Avatar style={{ backgroundColor: "#8B0000" }} icon={<UserOutlined />} />
           </Dropdown>

@@ -6,6 +6,7 @@ import { AuthProvider } from '@/src/contexts/AuthContext'
 import { CartProvider } from '@/src/contexts/CartContext'
 import { WishlistProvider } from '@/src/contexts/WishlistContext'
 import ClientErrorLogger from '@/src/components/ClientErrorLogger'
+import AnalyticsClient from '@/src/components/AnalyticsClient'
 import ErrorBoundary from '@/src/components/ErrorBoundary'
 
 interface ProvidersProps {
@@ -18,6 +19,7 @@ export default function Providers({ children }: ProvidersProps) {
       <CartProvider>
         <WishlistProvider>
           <ClientErrorLogger />
+          <AnalyticsClient />
           <ErrorBoundary>
             {children}
           </ErrorBoundary>

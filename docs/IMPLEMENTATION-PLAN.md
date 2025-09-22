@@ -203,11 +203,11 @@ Status:
   - Integrate `framer-motion` for motion primitives; standardize animation tokens.
   - Adopt `auto-animate` or similar for lightweight list transitions.
   - Evaluate headless CMS or Supabase storage tooling for owner-friendly media management.
-  - Hook into Slack/email for ops alerts; prepare analytics pipeline (Plausible or Vercel Analytics).
+  - Hook into Slack/email for ops alerts; wire first-party analytics beacon into richer dashboards (Phase 0 complete, Plausible still optional).
 - Acceptance:
   - Motion and animation utilities shared across admin + site components with reduced code duplication.
   - Third-party services documented (env vars, rollback) in `docs/ENV-QUICKSTART.md` + relevant RFCs.
-  - Ops alerts tested via staging events; analytics dashboards configured.
+  - Ops alerts tested via staging events; analytics dashboards (first-party + optional external) configured.
 
 ## Rollback
 - Netlify: reset Node to previous major if a runtime regression appears; rebuild branch.

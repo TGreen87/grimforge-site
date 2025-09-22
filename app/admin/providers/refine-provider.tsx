@@ -18,7 +18,8 @@ import {
   DashboardOutlined,
   NotificationOutlined,
   SettingOutlined,
-  BookOutlined
+  BookOutlined,
+  LineChartOutlined
 } from "@ant-design/icons";
 import "@refinedev/antd/dist/reset.css";
 
@@ -68,6 +69,14 @@ const resources = [
     meta: {
       label: "Settings",
       icon: <SettingOutlined />,
+    },
+  },
+  {
+    name: "analytics",
+    list: "/admin/analytics",
+    meta: {
+      label: "Analytics",
+      icon: <LineChartOutlined />,
     },
   },
   {

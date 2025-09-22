@@ -21,14 +21,16 @@ const Footer = () => {
             </div>
             <p className="text-muted-foreground text-sm">{footerCopy.tagline}</p>
             <div className="flex space-x-4">
-              <a
-                href={brand.socials.facebook}
-                target="_blank"
-                rel="noreferrer"
-                aria-label="Follow on Facebook"
-              >
-                <Facebook className="h-5 w-5 text-muted-foreground hover:text-accent transition-colors" />
-              </a>
+              {Boolean(brand.socials.facebook) && (
+                <a
+                  href={brand.socials.facebook}
+                  target="_blank"
+                  rel="noreferrer"
+                  aria-label="Follow on Facebook"
+                >
+                  <Facebook className="h-5 w-5 text-muted-foreground hover:text-accent transition-colors" />
+                </a>
+              )}
               <a
                 href={brand.socials.instagram}
                 target="_blank"

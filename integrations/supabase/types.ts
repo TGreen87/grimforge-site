@@ -13,6 +13,45 @@ export type Database = {
   }
   public: {
     Tables: {
+      analytics_events: {
+        Row: {
+          event_type: string
+          id: string
+          ip_address: string | null
+          metadata: Json | null
+          occurred_at: string
+          pathname: string
+          referrer: string | null
+          search: string | null
+          session_id: string | null
+          user_agent: string | null
+        }
+        Insert: {
+          event_type: string
+          id?: string
+          ip_address?: string | null
+          metadata?: Json | null
+          occurred_at?: string
+          pathname: string
+          referrer?: string | null
+          search?: string | null
+          session_id?: string | null
+          user_agent?: string | null
+        }
+        Update: {
+          event_type?: string
+          id?: string
+          ip_address?: string | null
+          metadata?: Json | null
+          occurred_at?: string
+          pathname?: string
+          referrer?: string | null
+          search?: string | null
+          session_id?: string | null
+          user_agent?: string | null
+        }
+        Relationships: []
+      }
       articles: {
         Row: {
           author: string | null
@@ -180,6 +219,45 @@ export type Database = {
         }
         Relationships: []
       }
+      assistant_documents: {
+        Row: {
+          chunk_index: number
+          content: string
+          created_at: string
+          embedding: number[] | null
+          id: string
+          metadata: Json | null
+          source_path: string
+          title: string | null
+          token_count: number | null
+          updated_at: string
+        }
+        Insert: {
+          chunk_index: number
+          content: string
+          created_at?: string
+          embedding?: number[] | null
+          id?: string
+          metadata?: Json | null
+          source_path: string
+          title?: string | null
+          token_count?: number | null
+          updated_at?: string
+        }
+        Update: {
+          chunk_index?: number
+          content?: string
+          created_at?: string
+          embedding?: number[] | null
+          id?: string
+          metadata?: Json | null
+          source_path?: string
+          title?: string | null
+          token_count?: number | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       variants: {
         Row: {
           active: boolean
@@ -238,7 +316,14 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      analytics_events_7d: {
+        Row: {
+          event_count: number | null
+          event_day: string | null
+          event_type: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       has_role: {
@@ -247,6 +332,22 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      match_assistant_documents: {
+        Args: {
+          query_embedding: number[]
+          match_count?: number
+          match_threshold?: number
+        }
+        Returns: {
+          content: string
+          id: string
+          metadata: Json | null
+          similarity: number | null
+          source_path: string
+          chunk_index: number
+          title: string | null
+        }[]
       }
     }
     Enums: {

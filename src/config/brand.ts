@@ -5,7 +5,7 @@ export const brand = {
   domain: "obsidianriterecords.com",
   socials: {
     instagram: "https://www.instagram.com/obsidianriterecords/",
-    facebook: "https://www.facebook.com/scruffylikestoast"
+    facebook: ""
   }
 } as const;
 

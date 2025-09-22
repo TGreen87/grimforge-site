@@ -1,6 +1,6 @@
 # Environment Quickstart (Branch Deploys + Local)
 
-Last modified: 2025-09-19
+Last modified: 2025-09-21
 
 This guide lists the environment variables required to run the site on Netlify Branch Deploys (dev) and locally. Never commit secrets.
 
@@ -17,6 +17,7 @@ Key references
 - `SUPABASE_SERVICE_ROLE_KEY` (or `SUPABASE_SERVICE_ROLE`) — Server-side operations (e.g., `/api/checkout`)
 - `STRIPE_SECRET_KEY` — Enables Stripe Checkout session creation
 - `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` — (Optional until wallet support enabled) Publishable key used by the cart modal; rotate alongside the secret.
+- `OPENAI_API_KEY` — Powers Supabase edge functions and the in-admin copilot. Store it in Netlify + `.env.local`; the assistant will refuse to load without it.
 
 ## Recommended
 - `NEXT_PUBLIC_SITE_URL` — Set to the Branch Deploy URL for dev (e.g., `https://dev--obsidianriterecords.netlify.app`)

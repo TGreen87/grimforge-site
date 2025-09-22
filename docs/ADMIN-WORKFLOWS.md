@@ -56,6 +56,11 @@ This guide explains the key concepts in the admin and the typical flows. Use `do
 - Tables remain available via the navigation, but the dashboard is the preferred entry point for non-technical operators.
 - Needs fulfilment panel now includes one-click CSV exports beside each task for quick reporting (only active when counts >0).
 
+### Analytics & Copilot
+- **Analytics**: `/admin/analytics` summarises page views and total events over the last seven days, recent referrers, and a live event stream. Data is sourced from the first-party beacon (`/api/analytics/ingest`) so it works without a third-party tracker.
+- **Copilot**: Open the assistant via the robot button in the header (or shortcut `⌘⇧C`/`Ctrl+Shift+C`). Ask about workflows, rollout plans, or current analytics; the bot cites internal docs for quick verification. The assistant lives entirely server-side—no external dashboard needed.
+- **Run confirmed actions**: When the copilot suggests a supported action (e.g., “Create product draft”), review the parameters, then hit “Review & Run”. The system executes with service-role credentials, logs to `audit_logs`, and leaves outputs inactive until you explicitly publish.
+
 ## Full Control (Products / Stock Units / Inventory)
 - Use when you need multiple Stock Units (e.g., different pressings, bundles):
   1) Products → Create: set core details and URL link.

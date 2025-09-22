@@ -1,18 +1,20 @@
 # Next Steps (Dev Branch)
 
-Last modified: 2025-09-20
+Last modified: 2025-09-21
 
 This backlog captures the active workstreams after the storefront storytelling cleanup and Journal integration. Ship everything on `dev`; promote to `main` only after the full QA loop completes.
 
 Consult `AGENTS.md` for contributor expectations and deployment discipline. Use `docs/README.md` for the documentation index.
 
-## Snapshot — 2025-09-20
+## Snapshot — 2025-09-21
 - Storytelling surfaces (timeline, testimonials, newsletter CTA) now ship empty by default; storefront hides them until genuine content is added.
 - Journal section pulls the latest published Supabase articles (no placeholder cards) with featured + secondary layout.
 - Heading typography switched to Marcellus for better legibility while retaining gothic styling tokens.
 - Preorder email capture is disabled until the marketing stack is ready (input + button rendered read-only).
 - Puppeteer smoke remains green; lint still carries historic `any`/hook warnings (no regressions introduced).
 - Lighthouse accessibility audit now automated via `npm run audit:a11y`; homepage scores 1.00, admin dashboard currently at 0.82 pending UI contrast/label tweaks.
+- First-party analytics beacon (`/api/analytics/ingest`) now logs page views + metadata into Supabase; `/admin/analytics` visualises the last ~7 days without third-party trackers.
+- Admin Copilot drawer (⌘⇧C) answers workflow questions using embedded project docs; responses cite sources for quick verification.
 
 ## Immediate Execution Queue (Priority A)
 1. **Storytelling content population**
@@ -20,10 +22,15 @@ Consult `AGENTS.md` for contributor expectations and deployment discipline. Use 
    - Draft public-safe newsletter heading/subheading once ESP is chosen.
    - Update `/admin/story` guidance once content is live (screenshots + doc snippets).
 2. **Newsletter/ESP integration spike**
-   - Evaluate Buttondown vs. Mailchimp for double opt-in + API support.
+   - Finalise ESP vs. Buttondown vs. n8n automation bridge; document pros/cons for AI-driven workflows.
    - Prototype collection endpoint + Supabase storage (or direct ESP subscribe) without exposing API keys client-side.
    - Extend QA checklist once sign-up flow is wired.
-3. **Admin dashboard 2.0 follow-ups**
+3. **Admin assistive tooling**
+   - [x] Phase 0 — retrieval copilot with doc citations.
+   - [x] Phase 1A — product draft creation runs via confirmed assistant actions (audit logged, drafts inactive by default).
+   - [ ] Phase 1B — add inventory adjustments/receive stock tooling with dry-run preview.
+   - [ ] Phase 2 — publish n8n webhook catalogue and wire long-running automations (campaign refresh, content ingest) with audit logging.
+4. **Admin dashboard 2.0 follow-ups**
    - [x] Needs fulfilment panel quick-export/filter links (CSV download + animated task list).
    - Alert threshold + Slack webhook wiring (blocked on secrets).
    - Dashboard motion tokens + aXe review after visual polish lands (motion presets partially applied; accessibility audit pending).
@@ -38,8 +45,9 @@ Consult `AGENTS.md` for contributor expectations and deployment discipline. Use 
   - AusPost label hook (pending credentials).
   - Branded PDF packing slips (follow-up to HTML export) for bulk actions.
 - Analytics & Observability
-  - Select analytics stack (Plausible vs. Vercel Analytics) and document rollout plan.
-  - Add structured logging for `/api/client-logs` and dashboard RPCs.
+  - [x] Ship first-party analytics logger + admin overview.
+  - [ ] Add structured logging for `/api/client-logs` and admin RPCs (tie into audit/event stream).
+  - [ ] Revisit Plausible/Umami once traffic warrants advanced reporting (can ingest the beacon feed).
 
 ## Research / Decisions (Priority C)
 - Pick lightweight animation helper for list transitions (`auto-animate` vs `motion.dev`).

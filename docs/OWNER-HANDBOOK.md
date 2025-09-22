@@ -1,6 +1,6 @@
 # Owner Quick Start Handbook
 
-_Last updated: 2025-09-19_
+_Last updated: 2025-09-21_
 
 This guide walks through the core day-to-day tasks for running Obsidian Rite Records without touching code. Use `docs/README.md` for the full documentation index when onboarding new owners or assistants.
 
@@ -66,10 +66,16 @@ This guide walks through the core day-to-day tasks for running Obsidian Rite Rec
 
 ## 10. Weekly health checks
 - Run through the dashboard to confirm revenue, low stock, and payouts look correct.
+- Visit `/admin/analytics` for the past week’s traffic, top pages, and referrers (data comes from our own tracker—no Plausible account needed yet).
 - Visit `/status` to ensure required environment variables are set.
 - Optional: run `npm run test:puppeteer` locally or check the latest CI screenshots in `docs/qa-screenshots/`.
 
-## 11. Troubleshooting
+## 11. Using the admin copilot
+- Click the robot icon in the admin header (or press `⌘⇧C` / `Ctrl+Shift+C`).
+- Ask workflow questions (“How do I receive stock?”) or request analytics summaries (“What were top pages this week?”). The assistant cites internal docs so you can verify.
+- When the copilot suggests an automation (e.g., “Create product draft”), click **Review & Run** to confirm the parameters. Draft products stay inactive until you publish them yourself, and every run is logged in the audit trail.
+
+## 12. Troubleshooting
 - Can’t see a product? Ensure the **Active** toggle is on and stock is above zero.
 - Totals look wrong? Verify Stripe keys are set and check recent webhook events.
 - Shipping only shows a generic rate? AusPost keys may be missing; static rates are expected until they’re provided.
