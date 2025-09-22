@@ -28,7 +28,7 @@ Consult `AGENTS.md` for contributor expectations and deployment discipline. Use 
 3. **Admin assistive tooling**
    - [x] Phase 0 — retrieval copilot with doc citations.
    - [x] Phase 1A — product draft creation runs via confirmed assistant actions (audit logged, drafts inactive by default).
-   - [ ] Phase 1B — add inventory adjustments/receive stock tooling with dry-run preview.
+   - [x] Phase 1B — copilot “Receive stock” action live with confirmation modal + audit logging.
    - [ ] Phase 2 — publish n8n webhook catalogue and wire long-running automations (campaign refresh, content ingest) with audit logging.
 4. **Admin dashboard 2.0 follow-ups**
    - [x] Needs fulfilment panel quick-export/filter links (CSV download + animated task list).

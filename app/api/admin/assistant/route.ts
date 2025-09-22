@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { searchAssistantKnowledge } from '@/lib/assistant/knowledge'
+import { assistantActionTypes, buildActionsPrompt } from '@/lib/assistant/actions'
 
 const OPENAI_MODEL = 'gpt-4.1-mini'
 
-const actionTypeEnum = z.enum(['create_product_draft', 'receive_stock'])
+const actionTypeEnum = z.enum(assistantActionTypes)
 
 const assistantActionSchema = z.object({
   type: actionTypeEnum,
@@ -75,6 +76,10 @@ export async function POST(request: NextRequest) {
       {
         role: 'system',
         content: `Context from internal documentation and dashboards:\n\n${contextText}`,
+      },
+      {
+        role: 'system',
+        content: buildActionsPrompt(),
       },
       ...messages.slice(-8),
     ]

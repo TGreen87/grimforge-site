@@ -1,8 +1,10 @@
 'use client'
 
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { Button, Drawer, Form, Input, List, Modal, Space, Spin, Tag, Typography, Divider, message } from 'antd'
+import { Button, Drawer, Form, Input, InputNumber, List, Modal, Space, Spin, Tag, Typography, Divider, message } from 'antd'
 import { SendOutlined, ThunderboltOutlined } from '@ant-design/icons'
+import { assistantActionMap } from '@/lib/assistant/actions'
+import type { AssistantActionType } from '@/lib/assistant/actions'
 
 const { Text, Paragraph } = Typography
 
@@ -27,7 +29,7 @@ interface AdminAssistantDrawerProps {
 }
 
 interface AssistantAction {
-  type: string
+  type: AssistantActionType
   summary: string
   parameters: Record<string, unknown>
 }
@@ -48,6 +50,7 @@ export default function AdminAssistantDrawer({ open, onClose }: AdminAssistantDr
     },
   ])
   const [form] = Form.useForm<{ prompt: string }>()
+  const [actionForm] = Form.useForm<{ variant_id?: string; quantity?: number; notes?: string }>()
   const [loading, setLoading] = useState(false)
   const [pendingAction, setPendingAction] = useState<AssistantAction | null>(null)
   const [actionLoading, setActionLoading] = useState(false)
@@ -66,6 +69,20 @@ export default function AdminAssistantDrawer({ open, onClose }: AdminAssistantDr
     const found = reversed.find((msg) => msg.role === 'assistant' && msg.sources?.length)
     return found?.sources ?? []
   }, [messages])
+
+  useEffect(() => {
+    if (pendingAction?.type === 'receive_stock') {
+      actionForm.setFieldsValue({
+        variant_id: (pendingAction.parameters.variant_id as string | undefined) ?? '',
+        quantity: typeof pendingAction.parameters.quantity === 'number'
+          ? (pendingAction.parameters.quantity as number)
+          : Number(pendingAction.parameters.quantity) || 1,
+        notes: (pendingAction.parameters.notes as string | undefined) ?? '',
+      })
+    } else {
+      actionForm.resetFields()
+    }
+  }, [pendingAction, actionForm])
 
   async function handleSubmit(prompt?: string) {
     const question = prompt ?? form.getFieldValue('prompt')
@@ -121,10 +138,21 @@ export default function AdminAssistantDrawer({ open, onClose }: AdminAssistantDr
   async function executeAction(action: AssistantAction) {
     try {
       setActionLoading(true)
+      let parameters: Record<string, unknown> = action.parameters
+
+      if (action.type === 'receive_stock') {
+        const values = await actionForm.validateFields()
+        parameters = {
+          variant_id: (values.variant_id ?? '').trim(),
+          quantity: Number(values.quantity),
+          ...(values.notes ? { notes: values.notes } : {}),
+        }
+      }
+
       const response = await fetch('/api/admin/assistant/actions', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ type: action.type, parameters: action.parameters }),
+        body: JSON.stringify({ type: action.type, parameters }),
       })
 
       const json = await response.json()
@@ -145,6 +173,7 @@ export default function AdminAssistantDrawer({ open, onClose }: AdminAssistantDr
     } finally {
       setActionLoading(false)
       setPendingAction(null)
+      actionForm.resetFields()
     }
   }
 
@@ -195,12 +224,16 @@ export default function AdminAssistantDrawer({ open, onClose }: AdminAssistantDr
                         <Text strong>{action.summary}</Text>
                         <Divider style={{ margin: '8px 0' }} />
                         <div className="space-y-1 text-xs text-muted-foreground">
-                          {Object.entries(action.parameters || {}).map(([key, value]) => (
-                            <div key={key} className="flex justify-between gap-2">
-                              <span className="uppercase tracking-wide">{key}</span>
-                              <span className="text-right break-all">{String(value)}</span>
-                            </div>
-                          ))}
+                          {Object.entries(action.parameters || {}).map(([key, value]) => {
+                            const definition = assistantActionMap[action.type]?.parameters.find((param) => param.name === key)
+                            const label = definition?.label ?? key
+                            return (
+                              <div key={key} className="flex justify-between gap-2">
+                                <span className="uppercase tracking-wide">{label}</span>
+                                <span className="text-right break-all">{String(value)}</span>
+                              </div>
+                            )
+                          })}
                         </div>
                         <div className="mt-3 text-right">
                           <Button size="small" type="primary" onClick={() => setPendingAction(action)}>
@@ -275,17 +308,52 @@ export default function AdminAssistantDrawer({ open, onClose }: AdminAssistantDr
         {pendingAction && (
           <div className="space-y-3 text-sm">
             <Text strong>{pendingAction.summary}</Text>
-            <div className="space-y-1">
-              {Object.entries(pendingAction.parameters || {}).map(([key, value]) => (
-                <div key={key} className="flex justify-between gap-2">
-                  <span className="uppercase tracking-wide text-xs text-muted-foreground">{key}</span>
-                  <span className="text-right break-all text-sm">{String(value)}</span>
+            <div className="space-y-2">
+              {pendingAction.type === 'receive_stock' ? (
+                <Form form={actionForm} layout="vertical" requiredMark={false}>
+                  <Form.Item
+                    label="Variant ID"
+                    name="variant_id"
+                    rules={[{ required: true, message: 'Variant ID is required' }]}
+                  >
+                    <Input placeholder="UUID of the variant" />
+                  </Form.Item>
+                  <Form.Item
+                    label="Quantity"
+                    name="quantity"
+                    rules={[{ required: true, message: 'Quantity is required' }, { type: 'number', min: 1, message: 'Quantity must be at least 1' }]}
+                  >
+                    <InputNumber min={1} style={{ width: '100%' }} />
+                  </Form.Item>
+                  <Form.Item label="Notes" name="notes">
+                    <Input.TextArea rows={3} placeholder="Optional receiving note" />
+                  </Form.Item>
+                </Form>
+              ) : (
+                <div className="space-y-1">
+                  {Object.entries(pendingAction.parameters || {}).map(([key, value]) => {
+                    const definition = assistantActionMap[pendingAction.type]?.parameters.find((param) => param.name === key)
+                    const label = definition?.label ?? key
+                    return (
+                      <div key={key} className="flex justify-between gap-2">
+                        <span className="uppercase tracking-wide text-xs text-muted-foreground">{label}</span>
+                        <span className="text-right break-all text-sm">{String(value)}</span>
+                      </div>
+                    )
+                  })}
                 </div>
-              ))}
+              )}
             </div>
-            <Paragraph type="secondary" style={{ marginBottom: 0 }}>
-              The copilot will create a draft product with these details and leave it inactive so you can review before publishing.
-            </Paragraph>
+            {pendingAction.type === 'create_product_draft' && (
+              <Paragraph type="secondary" style={{ marginBottom: 0 }}>
+                The copilot will create a draft product with these details and leave it inactive so you can review before publishing.
+              </Paragraph>
+            )}
+            {pendingAction.type === 'receive_stock' && (
+              <Paragraph type="secondary" style={{ marginBottom: 0 }}>
+                Inventory updates are audit logged. Double-check the variant ID and quantity before running.
+              </Paragraph>
+            )}
           </div>
         )}
       </Modal>

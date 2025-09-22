@@ -2,8 +2,10 @@ import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { createClient, createServiceClient } from '@/lib/supabase/server'
 import { TablesInsert } from '@/integrations/supabase/types'
+import { assistantActionTypes } from '@/lib/assistant/actions'
+import { writeAuditLog } from '@/lib/audit-logger'
 
-const actionTypeEnum = z.enum(['create_product_draft'])
+const actionTypeEnum = z.enum(assistantActionTypes)
 
 const createProductDraftSchema = z.object({
   title: z.string().min(1),
@@ -15,6 +17,12 @@ const createProductDraftSchema = z.object({
   tags: z.array(z.string()).optional(),
   image: z.string().url().optional(),
   stock: z.coerce.number().int().min(0).optional(),
+})
+
+const receiveStockSchema = z.object({
+  variant_id: z.string().min(1),
+  quantity: z.coerce.number().int().positive(),
+  notes: z.string().max(500).optional(),
 })
 
 const actionPayloadSchema = z.object({
@@ -142,6 +150,61 @@ async function handleCreateProductDraft(payload: z.infer<typeof createProductDra
   }
 }
 
+async function handleReceiveStock(
+  payload: z.infer<typeof receiveStockSchema>,
+  userId: string | null
+): Promise<{ message: string; variantId: string } | { notFound: true; variantId: string; message: null }> {
+  const supabase = createServiceClient()
+
+  type VariantRecord = {
+    id: string
+    name: string
+    product: { title: string | null } | null
+  }
+
+  const { data: variant, error: variantError } = await supabase
+    .from('variants')
+    .select('id, name, product:products(title)')
+    .eq('id', payload.variant_id)
+    .maybeSingle<VariantRecord>()
+
+  if (variantError) {
+    throw new Error(variantError.message)
+  }
+
+  if (!variant) {
+    return { message: null, variantId: payload.variant_id, notFound: true as const }
+  }
+
+  const { error: rpcError } = await supabase.rpc('receive_stock', {
+    p_variant_id: payload.variant_id,
+    p_quantity: payload.quantity,
+    p_notes: payload.notes ?? null,
+    p_user_id: userId,
+  })
+
+  if (rpcError) {
+    throw new Error(rpcError.message)
+  }
+
+  await writeAuditLog({
+    event_type: 'assistant.inventory.receive',
+    user_id: userId ?? undefined,
+    resource_type: 'variant',
+    resource_id: payload.variant_id,
+    metadata: {
+      quantity: payload.quantity,
+      notes: payload.notes ?? null,
+      assistant: true,
+    },
+  })
+
+  return {
+    message: `Received ${payload.quantity} units for ${variant.product?.title ?? 'product'} — ${variant.name}.`,
+    variantId: payload.variant_id,
+  }
+}
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
@@ -156,6 +219,14 @@ export async function POST(request: NextRequest) {
       case 'create_product_draft': {
         const payload = createProductDraftSchema.parse(parsed.parameters)
         const result = await handleCreateProductDraft(payload, admin.userId)
+        return NextResponse.json({ ok: true, message: result.message, result })
+      }
+      case 'receive_stock': {
+        const payload = receiveStockSchema.parse(parsed.parameters)
+        const result = await handleReceiveStock(payload, admin.userId)
+        if ('notFound' in result) {
+          return NextResponse.json({ error: 'Variant not found' }, { status: 404 })
+        }
         return NextResponse.json({ ok: true, message: result.message, result })
       }
       default:
