@@ -1,9 +1,12 @@
 import { Metadata } from 'next'
+import { seoConfig } from '@/lib/seo/config'
 
 const rawSiteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://obsidianriterecords.com'
 const siteUrl = (() => {
   try { return new URL(rawSiteUrl).toString() } catch { return 'https://obsidianriterecords.com' }
 })()
+
+const hasTwitter = Boolean(seoConfig.social.twitter?.trim())
 
 export function generateProductMetadata({
   name,
@@ -42,12 +45,12 @@ export function generateProductMetadata({
       type: 'website',
       images: image ? [{ url: image }] : [],
     },
-    twitter: {
+    twitter: hasTwitter ? {
       card: 'summary_large_image',
       title: productTitle,
       description: productDescription,
       images: image ? [image] : [],
-    },
+    } : undefined,
   }
 }
 
@@ -83,12 +86,12 @@ export function generateArticleMetadata({
       type: 'article',
       images: image ? [{ url: image }] : [],
     },
-    twitter: {
+    twitter: hasTwitter ? {
       card: 'summary_large_image',
       title,
       description,
       images: image ? [image] : [],
-    },
+    } : undefined,
   }
 }
 
@@ -111,11 +114,11 @@ export function generateSiteMetadata(): Metadata {
       description: 'Australian Black Metal Label specializing in extreme music and dark art',
       siteName: 'Obsidian Rite Records',
     },
-    twitter: {
+    twitter: hasTwitter ? {
       card: 'summary_large_image',
       title: 'Obsidian Rite Records',
       description: 'Australian Black Metal Label specializing in extreme music and dark art',
-    },
+    } : undefined,
     robots: {
       index: true,
       follow: true,
@@ -156,12 +159,12 @@ export function generateMetadata({
       url,
       images: image ? [{ url: image }] : [],
     },
-    twitter: {
+    twitter: hasTwitter ? {
       card: 'summary_large_image',
       title,
       description,
       images: image ? [image] : [],
-    },
+    } : undefined,
     robots: noindex ? {
       index: false,
       follow: false,
@@ -191,11 +194,11 @@ export const defaultMetadata: Metadata = {
     description: 'Australian Black Metal Label specializing in extreme music and dark art',
     siteName: 'Obsidian Rite Records',
   },
-  twitter: {
+  twitter: hasTwitter ? {
     card: 'summary_large_image',
     title: 'Obsidian Rite Records',
     description: 'Australian Black Metal Label specializing in extreme music and dark art',
-  },
+  } : undefined,
   robots: {
     index: true,
     follow: true,

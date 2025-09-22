@@ -13,7 +13,7 @@ describe('SEO Metadata Generation', () => {
       expect(metadata.description).toContain('Obsidian Rite Records')
       expect(metadata.keywords).toContain('black metal')
       expect(metadata.openGraph).toBeDefined()
-      expect(metadata.twitter).toBeDefined()
+      expect(metadata.twitter).toBeUndefined()
       expect(metadata.robots).toBeDefined()
     })
   })
@@ -87,19 +87,6 @@ describe('SEO Metadata Generation', () => {
       expect(metadata.openGraph?.url).toBe('https://example.com/page')
     })
     
-    it('should generate Twitter Card metadata', () => {
-      const metadata = generateMetadata({
-        title: 'Test Page',
-        description: 'Test description',
-        image: 'https://example.com/image.jpg'
-      })
-      
-      expect(metadata.twitter?.card).toBe('summary_large_image')
-      expect(metadata.twitter?.title).toBe('Test Page')
-      expect(metadata.twitter?.description).toBe('Test description')
-      expect(metadata.twitter?.images).toContain('https://example.com/image.jpg')
-    })
-    
     it('should handle noindex properly', () => {
       const metadata = generateMetadata({
         title: 'Private Page',
@@ -150,10 +137,8 @@ describe('SEO Requirements Validation', () => {
     expect(metadata.openGraph?.siteName).toBeDefined()
     expect(metadata.openGraph?.locale).toBe('en_AU')
     
-    // Twitter Cards
-    expect(metadata.twitter?.card).toBeDefined()
-    expect(metadata.twitter?.title).toBeDefined()
-    expect(metadata.twitter?.description).toBeDefined()
+    // Twitter Cards optional
+    expect(metadata.twitter).toBeUndefined()
     
     // Robots
     expect(metadata.robots?.googleBot).toBeDefined()

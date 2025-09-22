@@ -1,4 +1,5 @@
 import { Metadata } from 'next'
+import { seoConfig } from '@/lib/seo/config'
 
 export interface GenerateMetadataParams {
   title: string
@@ -25,6 +26,7 @@ export function generateMetadata({
   keywords,
   noindex = false
 }: GenerateMetadataParams): Metadata {
+  const hasTwitter = Boolean(seoConfig.social.twitter?.trim())
   const siteUrlEnv = process.env.NEXT_PUBLIC_SITE_URL || process.env.SITE_URL_STAGING || 'https://obsidianriterecords.com'
   const safeMetadataBase = (() => {
     try {
@@ -73,13 +75,12 @@ export function generateMetadata({
       locale: 'en_AU',
       type: type as 'website' | 'article'
     },
-    twitter: {
+    twitter: hasTwitter ? {
       card: 'summary_large_image',
       title,
       description,
       images: [finalImage],
-      creator: '@obsidianrite'
-    },
+    } : undefined,
     robots: {
       index: !noindex,
       follow: !noindex,
