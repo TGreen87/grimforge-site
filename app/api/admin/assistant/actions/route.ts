@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
-import { createClient, createServiceClient } from '@/lib/supabase/server'
+import { createServiceClient } from '@/lib/supabase/server'
 import { TablesInsert } from '@/integrations/supabase/types'
 import { assistantActionTypes } from '@/lib/assistant/actions'
 import { writeAuditLog } from '@/lib/audit-logger'
@@ -10,6 +10,8 @@ import { createProductFullPipeline } from '@/lib/assistant/pipelines/products'
 import { draftArticlePipeline, publishArticlePipeline } from '@/lib/assistant/pipelines/articles'
 import { updateCampaignPipeline } from '@/lib/assistant/pipelines/campaigns'
 import { AssistantAttachment } from '@/lib/assistant/types'
+import { createUndoToken } from '@/lib/assistant/undo'
+import { assertAdmin } from '@/lib/assistant/auth'
 
 const actionTypeEnum = z.enum(assistantActionTypes)
 
@@ -109,29 +111,6 @@ function slugify(input: string) {
       .replace(/^-+|-+$/g, '')
       .slice(0, 64) || 'product'
   )
-}
-
-async function assertAdmin(request: NextRequest) {
-  const supabase = createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-
-  if (!user) {
-    return { ok: false as const, error: NextResponse.json({ error: 'Unauthorized' }, { status: 401 }) }
-  }
-
-  const { data: role } = await supabase
-    .from('user_roles')
-    .select('role')
-    .eq('user_id', user.id)
-    .single()
-
-  if (role?.role?.toLowerCase?.() === 'admin') {
-    return { ok: true as const, userId: user.id }
-  }
-
-  return { ok: false as const, error: NextResponse.json({ error: 'Forbidden' }, { status: 403 }) }
 }
 
 async function handleCreateProductDraft(payload: z.infer<typeof createProductDraftSchema>, userId: string | null) {
@@ -504,15 +483,39 @@ export async function POST(request: NextRequest) {
           attachments,
           userId: adminUserId,
         })
+        const { undo: undoPayload, ...resultWithoutUndo } = result
+        let undoToken: { token: string; expiresAt: string } | null = null
+        if (undoPayload) {
+          undoToken = await createUndoToken({
+            actionType: parsed.type,
+            payload: undoPayload,
+            sessionId,
+            userId: adminUserId,
+          })
+          if (sessionId) {
+            await logAssistantEvent({
+              sessionId,
+              userId: adminUserId,
+              eventType: 'action.undo_available',
+              payload: { type: parsed.type, token: undoToken.token, expiresAt: undoToken.expiresAt },
+            })
+          }
+        }
         if (sessionId) {
           await logAssistantEvent({
             sessionId,
             userId: adminUserId,
             eventType: 'action.completed',
-            payload: { type: parsed.type, result },
+            payload: { type: parsed.type, result: resultWithoutUndo },
           })
         }
-        return NextResponse.json({ ok: true, message: result.message, result, sessionId })
+        return NextResponse.json({
+          ok: true,
+          message: result.message,
+          result: resultWithoutUndo,
+          sessionId,
+          undo: undoToken,
+        })
       }
       case 'draft_article': {
         const { attachments, cleaned } = extractAttachments(parsed.parameters)
@@ -522,15 +525,39 @@ export async function POST(request: NextRequest) {
           attachments,
           userId: adminUserId,
         })
+        const { undo: undoPayload, ...resultWithoutUndo } = result
+        let undoToken: { token: string; expiresAt: string } | null = null
+        if (undoPayload) {
+          undoToken = await createUndoToken({
+            actionType: parsed.type,
+            payload: undoPayload,
+            sessionId,
+            userId: adminUserId,
+          })
+          if (sessionId) {
+            await logAssistantEvent({
+              sessionId,
+              userId: adminUserId,
+              eventType: 'action.undo_available',
+              payload: { type: parsed.type, token: undoToken.token, expiresAt: undoToken.expiresAt },
+            })
+          }
+        }
         if (sessionId) {
           await logAssistantEvent({
             sessionId,
             userId: adminUserId,
             eventType: 'action.completed',
-            payload: { type: parsed.type, result },
+            payload: { type: parsed.type, result: resultWithoutUndo },
           })
         }
-        return NextResponse.json({ ok: true, message: result.message, result, sessionId })
+        return NextResponse.json({
+          ok: true,
+          message: result.message,
+          result: resultWithoutUndo,
+          sessionId,
+          undo: undoToken,
+        })
       }
       case 'publish_article': {
         const payload = publishArticleSchema.parse(parsed.parameters)
@@ -540,28 +567,76 @@ export async function POST(request: NextRequest) {
           featured: payload.featured,
           userId: adminUserId,
         })
+        const { undo: undoPayload, ...resultWithoutUndo } = result
+        let undoToken: { token: string; expiresAt: string } | null = null
+        if (undoPayload) {
+          undoToken = await createUndoToken({
+            actionType: parsed.type,
+            payload: undoPayload,
+            sessionId,
+            userId: adminUserId,
+          })
+          if (sessionId) {
+            await logAssistantEvent({
+              sessionId,
+              userId: adminUserId,
+              eventType: 'action.undo_available',
+              payload: { type: parsed.type, token: undoToken.token, expiresAt: undoToken.expiresAt },
+            })
+          }
+        }
         if (sessionId) {
           await logAssistantEvent({
             sessionId,
             userId: adminUserId,
             eventType: 'action.completed',
-            payload: { type: parsed.type, result },
+            payload: { type: parsed.type, result: resultWithoutUndo },
           })
         }
-        return NextResponse.json({ ok: true, message: result.message, result, sessionId })
+        return NextResponse.json({
+          ok: true,
+          message: result.message,
+          result: resultWithoutUndo,
+          sessionId,
+          undo: undoToken,
+        })
       }
       case 'update_campaign': {
         const payload = updateCampaignSchema.parse(parsed.parameters)
         const result = await updateCampaignPipeline({ input: payload, userId: adminUserId })
+        const { undo: undoPayload, ...resultWithoutUndo } = result
+        let undoToken: { token: string; expiresAt: string } | null = null
+        if (undoPayload) {
+          undoToken = await createUndoToken({
+            actionType: parsed.type,
+            payload: undoPayload,
+            sessionId,
+            userId: adminUserId,
+          })
+          if (sessionId) {
+            await logAssistantEvent({
+              sessionId,
+              userId: adminUserId,
+              eventType: 'action.undo_available',
+              payload: { type: parsed.type, token: undoToken.token, expiresAt: undoToken.expiresAt },
+            })
+          }
+        }
         if (sessionId) {
           await logAssistantEvent({
             sessionId,
             userId: adminUserId,
             eventType: 'action.completed',
-            payload: { type: parsed.type, result },
+            payload: { type: parsed.type, result: resultWithoutUndo },
           })
         }
-        return NextResponse.json({ ok: true, message: result.message, result, sessionId })
+        return NextResponse.json({
+          ok: true,
+          message: result.message,
+          result: resultWithoutUndo,
+          sessionId,
+          undo: undoToken,
+        })
       }
       default:
         return NextResponse.json({ error: 'Unsupported action' }, { status: 400 })

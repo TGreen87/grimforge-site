@@ -24,16 +24,16 @@ Consult `AGENTS.md` for contributor expectations and deployment discipline. Use 
    - Prototype collection endpoint + Supabase storage (or direct ESP subscribe) without exposing API keys client-side.
    - Extend QA checklist once sign-up flow is wired.
 3. **Admin assistive tooling**
-   - [x] Phase 0 — retrieval copilot with doc citations.
-   - [x] Phase 1A — product draft creation runs via confirmed assistant actions (audit logged, drafts inactive by default).
-   - [x] Phase 1B — copilot “Receive stock” action live with confirmation modal + audit logging.
-   - [x] Phase 1C — analytics summary + order lookup actions live (`assistant.analytics.summarize`, `assistant.order.lookup`).
-   - [ ] Phase 2 — end-to-end pipelines (no n8n) so the assistant can launch releases solo.
-     - [x] Implement `create_product_full` pipeline (media upload → enrichment → publish + optional hero update).
-     - [x] Implement `draft_article` / `publish_article` pipeline with AI copy + optional imagery.
-     - [x] Ship assistant session logging (sessions, events, upload audit) wired into all assistant endpoints.
-     - [x] Build lightweight `/admin/assistant/logs` viewer on top of the new tables.
-     - [ ] Extend responses with multi-step plan previews + undo hooks for high-impact actions.
+  - [x] Phase 0 — retrieval copilot with doc citations.
+  - [x] Phase 1A — product draft creation runs via confirmed assistant actions (audit logged, drafts inactive by default).
+  - [x] Phase 1B — copilot “Receive stock” action live with confirmation modal + audit logging.
+  - [x] Phase 1C — analytics summary + order lookup actions live (`assistant.analytics.summarize`, `assistant.order.lookup`).
+  - [x] Phase 2 — end-to-end pipelines (no n8n) so the assistant can launch releases solo.
+    - [x] Implement `create_product_full` pipeline (media upload → enrichment → publish + optional hero update).
+    - [x] Implement `draft_article` / `publish_article` pipeline with AI copy + optional imagery.
+    - [x] Ship assistant session logging (sessions, events, upload audit) wired into all assistant endpoints.
+    - [x] Build lightweight `/admin/assistant/logs` viewer on top of the new tables.
+    - [x] Extend responses with multi-step plan previews + undo hooks for high-impact actions.
 4. **Admin dashboard 2.0 follow-ups**
    - [x] Needs fulfilment panel quick-export/filter links (CSV download + animated task list).
    - Alert threshold + Slack webhook wiring (blocked on secrets).

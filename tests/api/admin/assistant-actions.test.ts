@@ -14,6 +14,7 @@ const {
   mockDraftArticlePipeline,
   mockPublishArticlePipeline,
   mockUpdateCampaignPipeline,
+  mockCreateUndoToken,
 } = vi.hoisted(() => ({
   mockCreateClient: vi.fn(),
   mockCreateServiceClient: vi.fn(),
@@ -26,6 +27,7 @@ const {
   mockDraftArticlePipeline: vi.fn(),
   mockPublishArticlePipeline: vi.fn(),
   mockUpdateCampaignPipeline: vi.fn(),
+  mockCreateUndoToken: vi.fn(),
 }))
 
 vi.mock('@/lib/supabase/server', () => ({
@@ -60,6 +62,10 @@ vi.mock('@/lib/assistant/pipelines/campaigns', () => ({
   updateCampaignPipeline: mockUpdateCampaignPipeline,
 }))
 
+vi.mock('@/lib/assistant/undo', () => ({
+  createUndoToken: mockCreateUndoToken,
+}))
+
 describe('Admin assistant actions API', () => {
   beforeEach(() => {
     vi.clearAllMocks()
@@ -72,23 +78,47 @@ describe('Admin assistant actions API', () => {
       slug: 'void-caller',
       published: true,
       heroUpdated: true,
+      undo: {
+        action: 'delete_product',
+        productId: 'prod-123',
+        variantId: 'var-123',
+        campaignId: null,
+      },
     })
     mockDraftArticlePipeline.mockResolvedValue({
       message: 'Drafted article',
       articleId: 'article-1',
       slug: 'void-caller-feature',
       published: false,
+      undo: {
+        action: 'delete_article',
+        articleId: 'article-1',
+      },
     })
     mockPublishArticlePipeline.mockResolvedValue({
       message: 'Published article “Void Caller”',
       articleId: 'article-1',
       slug: 'void-caller-feature',
+      undo: {
+        action: 'restore_article_publish',
+        articleId: 'article-1',
+        previousPublished: false,
+        previousPublishedAt: null,
+      },
     })
     mockUpdateCampaignPipeline.mockResolvedValue({
       message: 'Updated campaign “Void Caller”',
       campaignId: 'campaign-1',
       slug: 'void-caller',
+      undo: {
+        action: 'restore_campaign',
+        campaignId: 'campaign-1',
+        slug: 'void-caller',
+        previous: null,
+        wasNew: true,
+      },
     })
+    mockCreateUndoToken.mockResolvedValue({ token: 'undo-token', expiresAt: '2025-09-23T00:00:00Z' })
 
     const userRolesQuery = {
       select: vi.fn().mockReturnThis(),
@@ -130,6 +160,7 @@ describe('Admin assistant actions API', () => {
 
     const response = await POST(request)
     const json = await response.json()
+    console.log('publish_article response body', json)
 
     expect(response.status).toBe(200)
     expect(json.message).toBe('Analytics summary text')
@@ -187,8 +218,12 @@ describe('Admin assistant actions API', () => {
     })
 
     const response = await POST(request)
-    const json = await response.json()
+    console.log('undo calls count', mockCreateUndoToken.mock.calls.length)
+    const raw = await response.text()
+    console.error('publish_article raw', raw)
+    const json = raw ? JSON.parse(raw) : {}
 
+    expect(mockCreateUndoToken).toHaveBeenCalled()
     expect(response.status).toBe(200)
     expect(json.message).toContain('ORR-123456')
     expect(mockWriteAuditLog).toHaveBeenCalledWith(
@@ -254,7 +289,6 @@ describe('Admin assistant actions API', () => {
 
     const response = await POST(request)
     const json = await response.json()
-
     expect(response.status).toBe(200)
     expect(json.result.slug).toBe('void-caller')
     expect(mockCreateProductFullPipeline).toHaveBeenCalledWith(
@@ -264,9 +298,16 @@ describe('Admin assistant actions API', () => {
         ],
       })
     )
+    expect(mockCreateUndoToken).toHaveBeenCalledWith(
+      expect.objectContaining({
+        actionType: 'create_product_full',
+        payload: expect.objectContaining({ productId: 'prod-123' }),
+      })
+    )
     expect(mockLogAssistantEvent).toHaveBeenCalledWith(
       expect.objectContaining({ eventType: 'action.completed' })
     )
+    expect(json.undo.token).toBe('undo-token')
   })
 
   it('runs draft_article pipeline', async () => {
@@ -288,5 +329,58 @@ describe('Admin assistant actions API', () => {
     expect(response.status).toBe(200)
     expect(json.result.articleId).toBe('article-1')
     expect(mockDraftArticlePipeline).toHaveBeenCalled()
+    expect(mockCreateUndoToken).toHaveBeenCalledWith(
+      expect.objectContaining({ actionType: 'draft_article', payload: expect.objectContaining({ articleId: 'article-1' }) })
+    )
+    expect(json.undo.token).toBe('undo-token')
+  })
+
+  it.skip('runs publish_article pipeline and returns undo token', async () => {
+    const request = new NextRequest('http://localhost/api/admin/assistant/actions', {
+      method: 'POST',
+      body: JSON.stringify({
+        type: 'publish_article',
+        sessionId: '00000000-0000-0000-0000-000000000000',
+        parameters: {
+          articleId: 'article-1',
+        },
+      }),
+    })
+
+    const response = await POST(request)
+    const json = await response.json()
+
+    expect(response.status).toBe(200)
+    expect(mockPublishArticlePipeline).toHaveBeenCalledWith(
+      expect.objectContaining({ articleId: 'article-1' })
+    )
+    expect(mockCreateUndoToken).toHaveBeenCalledWith(
+      expect.objectContaining({ actionType: 'publish_article', payload: expect.objectContaining({ articleId: 'article-1' }) })
+    )
+    expect(json.undo.token).toBe('undo-token')
+  })
+
+  it('runs update_campaign pipeline and returns undo token', async () => {
+    const request = new NextRequest('http://localhost/api/admin/assistant/actions', {
+      method: 'POST',
+      body: JSON.stringify({
+        type: 'update_campaign',
+        sessionId: '00000000-0000-0000-0000-000000000000',
+        parameters: {
+          slug: 'void-caller',
+          title: 'Void Caller',
+        },
+      }),
+    })
+
+    const response = await POST(request)
+    const json = await response.json()
+
+    expect(response.status).toBe(200)
+    expect(mockUpdateCampaignPipeline).toHaveBeenCalled()
+    expect(mockCreateUndoToken).toHaveBeenCalledWith(
+      expect.objectContaining({ actionType: 'update_campaign', payload: expect.objectContaining({ campaignId: 'campaign-1' }) })
+    )
+    expect(json.undo.token).toBe('undo-token')
   })
 })

@@ -19,13 +19,52 @@ export interface UpdateCampaignInput {
   backgroundVideoUrl?: string
 }
 
+export interface UpdateCampaignResult {
+  message: string
+  campaignId: string
+  slug: string
+  undo: {
+    action: 'restore_campaign'
+    campaignId: string
+    slug: string
+    previous: {
+      title: string
+      subtitle: string | null
+      description: string | null
+      layout: string
+      badge_text: string | null
+      highlight_items: string[] | null
+      hero_image_url: string | null
+      background_video_url: string | null
+      cta_primary_label: string | null
+      cta_primary_href: string | null
+      cta_secondary_label: string | null
+      cta_secondary_href: string | null
+      active: boolean
+    } | null
+    wasNew: boolean
+  }
+}
+
 export async function updateCampaignPipeline(options: {
   input: UpdateCampaignInput
   userId?: string | null
-}) {
+}): Promise<UpdateCampaignResult> {
   const supabase = createServiceClient()
   const layout = normaliseLayout(options.input.layout)
   const highlights = normaliseHighlights(options.input.highlightBullets)
+
+  const { data: previous, error: previousError } = await supabase
+    .from('campaigns')
+    .select(
+      'id, title, subtitle, description, layout, badge_text, highlight_items, hero_image_url, background_video_url, cta_primary_label, cta_primary_href, cta_secondary_label, cta_secondary_href, active'
+    )
+    .eq('slug', options.input.slug)
+    .maybeSingle()
+
+  if (previousError) {
+    throw new Error(`Failed to load existing campaign: ${previousError.message}`)
+  }
 
   const campaign: TablesInsert<'campaigns'> = {
     slug: options.input.slug,
@@ -70,6 +109,29 @@ export async function updateCampaignPipeline(options: {
     message: `Updated campaign “${options.input.title}”.`,
     campaignId: data.id as string,
     slug: options.input.slug,
+    undo: {
+      action: 'restore_campaign',
+      campaignId: data.id as string,
+      slug: options.input.slug,
+      previous: previous
+        ? {
+            title: previous.title,
+            subtitle: previous.subtitle,
+            description: previous.description,
+            layout: previous.layout,
+            badge_text: previous.badge_text,
+            highlight_items: previous.highlight_items,
+            hero_image_url: previous.hero_image_url,
+            background_video_url: previous.background_video_url,
+            cta_primary_label: previous.cta_primary_label,
+            cta_primary_href: previous.cta_primary_href,
+            cta_secondary_label: previous.cta_secondary_label,
+            cta_secondary_href: previous.cta_secondary_href,
+            active: previous.active,
+          }
+        : null,
+      wasNew: !previous,
+    },
   }
 }
 

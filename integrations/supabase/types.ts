@@ -258,6 +258,52 @@ export type Database = {
         }
         Relationships: []
       }
+      assistant_action_undos: {
+        Row: {
+          action_type: string
+          created_at: string
+          created_by: string | null
+          expires_at: string
+          id: string
+          payload: Json
+          session_id: string | null
+          undone_at: string | null
+        }
+        Insert: {
+          action_type: string
+          created_at?: string
+          created_by?: string | null
+          expires_at: string
+          id?: string
+          payload?: Json
+          session_id?: string | null
+          undone_at?: string | null
+        }
+        Update: {
+          action_type?: string
+          created_at?: string
+          created_by?: string | null
+          expires_at?: string
+          id?: string
+          payload?: Json
+          session_id?: string | null
+          undone_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "assistant_action_undos_session_id_fkey"
+            columns: ["session_id"]
+            referencedRelation: "assistant_sessions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "assistant_action_undos_created_by_fkey"
+            columns: ["created_by"]
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
       assistant_session_events: {
         Row: {
           actor_user_id: string | null

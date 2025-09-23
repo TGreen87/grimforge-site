@@ -55,6 +55,12 @@ export interface CreateProductFullResult {
   slug: string
   published: boolean
   heroUpdated: boolean
+  undo: {
+    action: 'delete_product'
+    productId: string
+    variantId: string
+    campaignId?: string | null
+  }
 }
 
 export async function createProductFullPipeline(options: {
@@ -232,6 +238,12 @@ export async function createProductFullPipeline(options: {
     slug,
     published: publish,
     heroUpdated,
+    undo: {
+      action: 'delete_product',
+      productId: product.id,
+      variantId: variant.id,
+      campaignId: campaignId ?? null,
+    },
   }
 }
 

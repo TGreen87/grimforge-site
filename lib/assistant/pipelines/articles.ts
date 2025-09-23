@@ -34,6 +34,22 @@ export interface DraftArticleResult {
   articleId: string
   slug: string
   published: boolean
+  undo: {
+    action: 'delete_article'
+    articleId: string
+  }
+}
+
+export interface PublishArticleResult {
+  message: string
+  articleId: string
+  slug: string
+  undo: {
+    action: 'restore_article_publish'
+    articleId: string
+    previousPublished: boolean
+    previousPublishedAt: string | null
+  } | null
 }
 
 export async function draftArticlePipeline(options: {
@@ -115,6 +131,10 @@ export async function draftArticlePipeline(options: {
     articleId: data.id as string,
     slug,
     published,
+    undo: {
+      action: 'delete_article',
+      articleId: data.id as string,
+    },
   }
 }
 
@@ -123,25 +143,53 @@ export async function publishArticlePipeline(options: {
   slug?: string
   featured?: boolean
   userId?: string | null
-}) {
+}): Promise<PublishArticleResult> {
   const supabase = createServiceClient()
   const identifier = options.articleId || options.slug
   if (!identifier) {
     throw new Error('Provide an articleId or slug to publish the article')
   }
 
-  let query = supabase.from('articles').update({
-    published: true,
-    published_at: new Date().toISOString(),
-  })
+  let fetchQuery = supabase
+    .from('articles')
+    .select('id, title, slug, published, published_at')
 
   if (options.articleId) {
-    query = query.eq('id', options.articleId)
+    fetchQuery = fetchQuery.eq('id', options.articleId)
   } else if (options.slug) {
-    query = query.eq('slug', options.slug)
+    fetchQuery = fetchQuery.eq('slug', options.slug)
   }
 
-  const { data, error } = await query.select('id, title, slug').single()
+  const { data: existing, error: fetchError } = await fetchQuery.single()
+  if (fetchError) {
+    throw new Error(`Failed to locate article: ${fetchError.message}`)
+  }
+
+  if (existing.published) {
+    return {
+      message: `Article “${existing.title}” is already published.`,
+      articleId: existing.id,
+      slug: existing.slug,
+      undo: null,
+    }
+  }
+
+  const now = new Date().toISOString()
+
+  let updateQuery = supabase
+    .from('articles')
+    .update({
+      published: true,
+      published_at: now,
+    })
+
+  if (options.articleId) {
+    updateQuery = updateQuery.eq('id', options.articleId)
+  } else if (options.slug) {
+    updateQuery = updateQuery.eq('slug', options.slug)
+  }
+
+  const { data, error } = await updateQuery.select('id, title, slug').single()
   if (error) {
     throw new Error(`Failed to publish article: ${error.message}`)
   }
@@ -160,6 +208,12 @@ export async function publishArticlePipeline(options: {
     message: `Published article “${data.title}”.`,
     articleId: data.id as string,
     slug: data.slug,
+    undo: {
+      action: 'restore_article_publish',
+      articleId: data.id as string,
+      previousPublished: existing.published,
+      previousPublishedAt: existing.published_at,
+    },
   }
 }
 

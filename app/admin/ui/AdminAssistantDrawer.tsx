@@ -1,11 +1,12 @@
 'use client'
 
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { Button, Collapse, Drawer, Form, Input, InputNumber, List, Modal, Space, Spin, Switch, Tag, Typography, Divider, Upload, message } from 'antd'
+import { Alert, Button, Collapse, Drawer, Form, Input, InputNumber, List, Modal, Space, Spin, Switch, Tag, Typography, Divider, Upload, message } from 'antd'
 import type { UploadFile, RcFile } from 'antd/es/upload/interface'
 import { InboxOutlined, SendOutlined, ThunderboltOutlined } from '@ant-design/icons'
 import { assistantActionMap } from '@/lib/assistant/actions'
 import type { AssistantActionType } from '@/lib/assistant/actions'
+import { buildActionPlan } from '@/lib/assistant/plans'
 
 const { Text, Paragraph } = Typography
 const { Panel } = Collapse
@@ -57,6 +58,12 @@ interface AssistantAction {
   parameters: Record<string, unknown>
 }
 
+interface UndoOption {
+  token: string
+  actionType: AssistantActionType
+  expiresAt: string
+}
+
 const SUGGESTED_PROMPTS = [
   'How many page views did we get this week?',
   'Walk me through adding a limited vinyl release.',
@@ -81,6 +88,8 @@ export default function AdminAssistantDrawer({ open, onClose }: AdminAssistantDr
   const [uploads, setUploads] = useState<AssistantAttachment[]>([])
   const [uploadFileList, setUploadFileList] = useState<UploadFile[]>([])
   const [uploading, setUploading] = useState(false)
+  const [undoOptions, setUndoOptions] = useState<UndoOption[]>([])
+  const [undoLoadingToken, setUndoLoadingToken] = useState<string | null>(null)
   const listRef = useRef<HTMLDivElement | null>(null)
   const sessionIdRef = useRef<string>(typeof crypto !== 'undefined' && 'randomUUID' in crypto ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(36).slice(2)}`)
 
@@ -188,6 +197,15 @@ export default function AdminAssistantDrawer({ open, onClose }: AdminAssistantDr
       const reason = error instanceof Error ? error.message : 'Failed to delete attachment'
       message.error(reason)
     }
+  }
+
+  function formatExpiry(expiresAt: string) {
+    const date = new Date(expiresAt)
+    if (Number.isNaN(date.getTime())) return expiresAt
+    return new Intl.DateTimeFormat(undefined, {
+      hour: 'numeric',
+      minute: '2-digit',
+    }).format(date)
   }
 
   function buildStructuredContext(prompt: string) {
@@ -375,6 +393,16 @@ export default function AdminAssistantDrawer({ open, onClose }: AdminAssistantDr
           { role: 'assistant', content: json.message },
         ])
       }
+      if (json?.undo?.token) {
+        setUndoOptions((current) => [
+          ...current.filter((item) => item.token !== json.undo.token),
+          {
+            token: json.undo.token,
+            actionType: action.type,
+            expiresAt: json.undo.expiresAt,
+          },
+        ])
+      }
     } catch (error) {
       const reason = error instanceof Error ? error.message : 'Unknown error'
       message.error(reason)
@@ -382,6 +410,42 @@ export default function AdminAssistantDrawer({ open, onClose }: AdminAssistantDr
       setActionLoading(false)
       setPendingAction(null)
       actionForm.resetFields()
+    }
+  }
+
+  async function handleUndo(option: UndoOption) {
+    try {
+      setUndoLoadingToken(option.token)
+      const response = await fetch('/api/admin/assistant/actions/undo', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token: option.token }),
+      })
+      const text = await response.text()
+      let json: any = null
+      if (text) {
+        try {
+          json = JSON.parse(text)
+        } catch (_) {
+          json = null
+        }
+      }
+      if (!response.ok) {
+        throw new Error(json?.error || `Undo failed (${response.status})`)
+      }
+      setUndoOptions((current) => current.filter((item) => item.token !== option.token))
+      message.success(json?.message || 'Action undone')
+      if (json?.message) {
+        setMessages((current) => [
+          ...current,
+          { role: 'assistant', content: json.message },
+        ])
+      }
+    } catch (error) {
+      const reason = error instanceof Error ? error.message : 'Failed to undo action'
+      message.error(reason)
+    } finally {
+      setUndoLoadingToken(null)
     }
   }
 
@@ -427,13 +491,15 @@ export default function AdminAssistantDrawer({ open, onClose }: AdminAssistantDr
                 <Paragraph style={{ marginBottom: 0, whiteSpace: 'pre-wrap' }}>{item.content}</Paragraph>
                 {item.actions?.length ? (
                   <div className="mt-3 space-y-3">
-                    {item.actions.map((action) => (
-                      <div key={`${action.type}-${action.summary}`} className="rounded-md border border-border bg-[#0f1624] p-3">
-                        <Text strong>{action.summary}</Text>
-                        <Divider style={{ margin: '8px 0' }} />
-                        <div className="space-y-1 text-xs text-muted-foreground">
-                          {Object.entries(action.parameters || {}).map(([key, value]) => {
-                            const definition = assistantActionMap[action.type]?.parameters.find((param) => param.name === key)
+                    {item.actions.map((action) => {
+                      const plan = buildActionPlan(action.type, action.parameters || {})
+                      return (
+                        <div key={`${action.type}-${action.summary}`} className="rounded-md border border-border bg-[#0f1624] p-3">
+                          <Text strong>{action.summary}</Text>
+                          <Divider style={{ margin: '8px 0' }} />
+                          <div className="space-y-1 text-xs text-muted-foreground">
+                            {Object.entries(action.parameters || {}).map(([key, value]) => {
+                              const definition = assistantActionMap[action.type]?.parameters.find((param) => param.name === key)
                             const label = definition?.label ?? key
                             return (
                               <div key={key} className="flex justify-between gap-2">
@@ -441,15 +507,31 @@ export default function AdminAssistantDrawer({ open, onClose }: AdminAssistantDr
                                 <span className="text-right break-all">{String(value)}</span>
                               </div>
                             )
-                          })}
+                            })}
+                          </div>
+                          {plan ? (
+                            <div className="mt-2 space-y-1 text-xs text-muted-foreground">
+                              <Text strong>Plan preview · Risk {plan.riskLevel}</Text>
+                              <ol className="list-decimal list-inside space-y-1">
+                                {plan.steps.map((step) => (
+                                  <li key={step.title}>{step.detail}</li>
+                                ))}
+                              </ol>
+                              {plan.riskNote ? (
+                                <Paragraph type="secondary" style={{ marginBottom: 0 }}>
+                                  {plan.riskNote}
+                                </Paragraph>
+                              ) : null}
+                            </div>
+                          ) : null}
+                          <div className="mt-3 text-right">
+                            <Button size="small" type="primary" onClick={() => setPendingAction(action)}>
+                              Review & Run
+                            </Button>
+                          </div>
                         </div>
-                        <div className="mt-3 text-right">
-                          <Button size="small" type="primary" onClick={() => setPendingAction(action)}>
-                            Review & Run
-                          </Button>
-                        </div>
-                      </div>
-                    ))}
+                      )
+                    })}
                   </div>
                 ) : null}
               </div>
@@ -457,6 +539,37 @@ export default function AdminAssistantDrawer({ open, onClose }: AdminAssistantDr
           )}
         />
       </div>
+
+      {undoOptions.length ? (
+        <div className="space-y-2">
+          {undoOptions.map((option) => {
+            const definition = assistantActionMap[option.actionType]
+            return (
+              <Alert
+                key={option.token}
+                type="warning"
+                showIcon
+                closable
+                onClose={() => setUndoOptions((current) => current.filter((item) => item.token !== option.token))}
+                message={`Undo ${definition?.label ?? option.actionType}`}
+                description={
+                  <Space direction="vertical" size={4} style={{ width: '100%' }}>
+                    <Text type="secondary">Expires around {formatExpiry(option.expiresAt)}.</Text>
+                    <Button
+                      size="small"
+                      onClick={() => handleUndo(option)}
+                      loading={undoLoadingToken === option.token}
+                      type="primary"
+                    >
+                      Undo
+                    </Button>
+                  </Space>
+                }
+              />
+            )
+          })}
+        </div>
+      ) : null}
 
       <Form form={form} onFinish={() => handleSubmit()} layout="vertical" requiredMark={false}>
         <Form.Item name="prompt" label={null} style={{ marginBottom: 12 }}>
@@ -577,6 +690,25 @@ export default function AdminAssistantDrawer({ open, onClose }: AdminAssistantDr
         {pendingAction && (
           <div className="space-y-3 text-sm">
             <Text strong>{pendingAction.summary}</Text>
+            {(() => {
+              const plan = buildActionPlan(pendingAction.type, pendingAction.parameters || {})
+              if (!plan) return null
+              return (
+                <div className="space-y-1">
+                  <Text type="secondary">Plan ({plan.steps.length} steps, risk {plan.riskLevel})</Text>
+                  <ol className="list-decimal list-inside space-y-1 text-xs text-muted-foreground">
+                    {plan.steps.map((step) => (
+                      <li key={step.title}>{step.detail}</li>
+                    ))}
+                  </ol>
+                  {plan.riskNote ? (
+                    <Paragraph type="secondary" style={{ marginBottom: 0 }}>
+                      {plan.riskNote}
+                    </Paragraph>
+                  ) : null}
+                </div>
+              )
+            })()}
             <div className="space-y-2">
               {pendingAction.type === 'receive_stock' ? (
                 <Form form={actionForm} layout="vertical" requiredMark={false}>

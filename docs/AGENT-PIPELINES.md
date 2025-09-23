@@ -75,7 +75,8 @@ Purpose: Define the conversational flows and technical orchestration required fo
 - **Validation**: All assistant APIs enforce admin auth before OpenAI/DB calls; missing essentials (price, brief) short-circuit with actionable errors.
 - **Sessions**: `assistant_sessions`, `assistant_session_events`, and `assistant_uploads` persist chat history, actions, and media for audit.
 - **Attachments**: UI uploads pass `sessionId`; server records Storage path + size for compliance.
-- **Undo / Rollback**: Campaign updates and publishes use existing admin UI for reversions; future enhancement to expose “undo last action”.
+- **Plan Previews**: The assistant drawer now shows multi-step plans (risk + undo notes) before any high-impact action runs.
+- **Undo / Rollback**: Product/article/campaign actions issue time-boxed undo tokens surfaced in the drawer; undoing deletes the generated assets or restores the previous state.
 - **Telemetry**: Session logging now live; `/admin/assistant/logs` viewer planned to surface events.
 - **Documentation**: Keep this spec, `docs/ADMIN-WORKFLOWS.md`, and QA scripts synced when prompts or pipelines evolve.
 
