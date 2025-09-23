@@ -266,6 +266,7 @@ export default function AdminAssistantDrawer({ open, onClose }: AdminAssistantDr
     try {
       const response = await fetch('/api/admin/assistant', {
         method: 'POST',
+        credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           messages: [...messages, { role: 'user', content: question.trim() }].map(({ role, content }) => ({ role, content })),
@@ -365,6 +366,7 @@ export default function AdminAssistantDrawer({ open, onClose }: AdminAssistantDr
 
       const response = await fetch('/api/admin/assistant/actions', {
         method: 'POST',
+        credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ type: action.type, parameters, sessionId: sessionIdRef.current }),
       })
@@ -422,6 +424,7 @@ export default function AdminAssistantDrawer({ open, onClose }: AdminAssistantDr
       setUndoLoadingToken(option.token)
       const response = await fetch('/api/admin/assistant/actions/undo', {
         method: 'POST',
+        credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ token: option.token }),
       })
