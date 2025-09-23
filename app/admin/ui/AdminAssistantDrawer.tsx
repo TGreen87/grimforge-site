@@ -273,24 +273,25 @@ export default function AdminAssistantDrawer({ open, onClose }: AdminAssistantDr
         }),
       })
 
-      if (!response.ok) {
-        const text = await response.text()
-        let message = `Request failed with ${response.status}`
+      const raw = await response.text()
+      let parsed: any = null
+      if (raw) {
         try {
-          const payload = JSON.parse(text)
-          if (payload?.sessionId) {
-            sessionIdRef.current = payload.sessionId
-          }
-          if (payload?.error) {
-            message = payload.error
-          }
-        } catch (_) {
-          // ignore parse error, fall back to default message
+          parsed = JSON.parse(raw)
+        } catch (error) {
+          console.error('Failed to parse assistant response', error)
         }
-        throw new Error(message)
       }
 
-      const data = (await response.json()) as { message: string; sources?: AssistantSource[]; actions?: AssistantAction[]; sessionId?: string }
+      if (!response.ok) {
+        const errorMessage = parsed?.error || `Request failed with ${response.status}`
+        if (parsed?.sessionId) {
+          sessionIdRef.current = parsed.sessionId
+        }
+        throw new Error(errorMessage)
+      }
+
+      const data = parsed as { message: string; sources?: AssistantSource[]; actions?: AssistantAction[]; sessionId?: string }
       if (data.sessionId) {
         sessionIdRef.current = data.sessionId
       }
@@ -309,7 +310,10 @@ export default function AdminAssistantDrawer({ open, onClose }: AdminAssistantDr
         const updated = [...current]
         updated[updated.length - 1] = {
           role: 'assistant',
-          content: 'I hit an error trying to answer that. Double-check your network and try again.',
+          content:
+            error instanceof Error
+              ? `I hit an error trying to answer that: ${error.message}`
+              : 'I hit an error trying to answer that. Double-check your network and try again.',
         }
         return updated
       })
@@ -370,8 +374,8 @@ export default function AdminAssistantDrawer({ open, onClose }: AdminAssistantDr
       if (text) {
         try {
           json = JSON.parse(text)
-        } catch (_) {
-          json = null
+        } catch (error) {
+          console.error('Failed to parse assistant action response', error)
         }
       }
 
