@@ -1,12 +1,35 @@
 'use client'
 
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { Button, Drawer, Form, Input, InputNumber, List, Modal, Space, Spin, Tag, Typography, Divider, message } from 'antd'
-import { SendOutlined, ThunderboltOutlined } from '@ant-design/icons'
+import { Button, Collapse, Drawer, Form, Input, InputNumber, List, Modal, Space, Spin, Switch, Tag, Typography, Divider, Upload, message } from 'antd'
+import type { UploadFile, RcFile } from 'antd/es/upload/interface'
+import { InboxOutlined, SendOutlined, ThunderboltOutlined } from '@ant-design/icons'
 import { assistantActionMap } from '@/lib/assistant/actions'
 import type { AssistantActionType } from '@/lib/assistant/actions'
 
 const { Text, Paragraph } = Typography
+const { Panel } = Collapse
+
+interface AssistantAttachment {
+  uid: string
+  name: string
+  size: number
+  type: string
+  url: string
+  storagePath: string
+}
+
+interface ContextFormValues {
+  productTitle?: string
+  format?: string
+  price?: number
+  stock?: number
+  publishImmediately?: boolean
+  featureOnHero?: boolean
+  articleWordCount?: number
+  articlePublish?: boolean
+  articleTags?: string
+}
 
 interface AssistantSource {
   id: string
@@ -50,10 +73,14 @@ export default function AdminAssistantDrawer({ open, onClose }: AdminAssistantDr
     },
   ])
   const [form] = Form.useForm<{ prompt: string }>()
-  const [actionForm] = Form.useForm<{ variant_id?: string; quantity?: number; notes?: string }>()
+  const [contextForm] = Form.useForm<ContextFormValues>()
+  const [actionForm] = Form.useForm<Record<string, unknown>>()
   const [loading, setLoading] = useState(false)
   const [pendingAction, setPendingAction] = useState<AssistantAction | null>(null)
   const [actionLoading, setActionLoading] = useState(false)
+  const [uploads, setUploads] = useState<AssistantAttachment[]>([])
+  const [uploadFileList, setUploadFileList] = useState<UploadFile[]>([])
+  const [uploading, setUploading] = useState(false)
   const listRef = useRef<HTMLDivElement | null>(null)
 
   useEffect(() => {
@@ -74,18 +101,138 @@ export default function AdminAssistantDrawer({ open, onClose }: AdminAssistantDr
     if (pendingAction?.type === 'receive_stock') {
       actionForm.setFieldsValue({
         variant_id: (pendingAction.parameters.variant_id as string | undefined) ?? '',
-        quantity: typeof pendingAction.parameters.quantity === 'number'
-          ? (pendingAction.parameters.quantity as number)
-          : Number(pendingAction.parameters.quantity) || 1,
+        quantity:
+          typeof pendingAction.parameters.quantity === 'number'
+            ? pendingAction.parameters.quantity
+            : Number(pendingAction.parameters.quantity) || 1,
         notes: (pendingAction.parameters.notes as string | undefined) ?? '',
+      })
+    } else if (pendingAction?.type === 'lookup_order_status') {
+      actionForm.setFieldsValue({
+        order_number: (pendingAction.parameters.order_number as string | undefined) ?? '',
+        email: (pendingAction.parameters.email as string | undefined) ?? '',
       })
     } else {
       actionForm.resetFields()
     }
   }, [pendingAction, actionForm])
 
+  const uploadToServer = async (file: RcFile) => {
+    setUploading(true)
+    let tempUid = ''
+    try {
+      tempUid = `${Date.now()}-${file.uid}`
+      setUploadFileList((current) => [
+        ...current,
+        {
+          uid: tempUid,
+          name: file.name,
+          size: file.size,
+          type: file.type,
+          status: 'uploading',
+        },
+      ])
+      const formData = new FormData()
+      formData.append('file', file)
+      formData.append('intent', pendingAction?.type ?? 'general')
+      const response = await fetch('/api/admin/assistant/uploads', {
+        method: 'POST',
+        body: formData,
+      })
+
+      if (!response.ok) {
+        const errorText = await response.text()
+        throw new Error(errorText || `Upload failed (${response.status})`)
+      }
+
+      const data = (await response.json()) as { url: string; path: string }
+      const attachment: AssistantAttachment = {
+        uid: tempUid,
+        name: file.name,
+        size: file.size,
+        type: file.type,
+        url: data.url,
+        storagePath: data.path,
+      }
+      setUploads((current) => [...current.filter((item) => item.uid !== attachment.uid), attachment])
+      setUploadFileList((current) => current.map((item) => (item.uid === attachment.uid ? { ...item, status: 'done', url: attachment.url } : item)))
+      message.success(`${file.name} uploaded`)
+    } catch (error) {
+      const reason = error instanceof Error ? error.message : 'Upload failed'
+      message.error(reason)
+      setUploadFileList((current) => current.filter((item) => item.uid !== tempUid))
+    } finally {
+      setUploading(false)
+    }
+  }
+
+  const removeAttachment = async (file: UploadFile) => {
+    const target = uploads.find((item) => item.uid === file.uid)
+    setUploadFileList((current) => current.filter((item) => item.uid !== file.uid))
+    setUploads((current) => current.filter((item) => item.uid !== file.uid))
+
+    if (!target) {
+      return
+    }
+
+    try {
+      const response = await fetch(`/api/admin/assistant/uploads?path=${encodeURIComponent(target.storagePath)}`, {
+        method: 'DELETE',
+      })
+      if (!response.ok) {
+        throw new Error(await response.text())
+      }
+    } catch (error) {
+      const reason = error instanceof Error ? error.message : 'Failed to delete attachment'
+      message.error(reason)
+    }
+  }
+
+  function buildStructuredContext(prompt: string) {
+    const contextValues = contextForm.getFieldsValue()
+    const lines: string[] = []
+
+    if (contextValues.productTitle) {
+      lines.push(`Product title: ${contextValues.productTitle}`)
+    }
+    if (contextValues.format) {
+      lines.push(`Format: ${contextValues.format}`)
+    }
+    if (typeof contextValues.price === 'number') {
+      lines.push(`Target price: ${contextValues.price}`)
+    }
+    if (typeof contextValues.stock === 'number') {
+      lines.push(`Initial stock: ${contextValues.stock}`)
+    }
+    if (typeof contextValues.publishImmediately === 'boolean') {
+      lines.push(`Publish immediately: ${contextValues.publishImmediately ? 'yes' : 'no'}`)
+    }
+    if (typeof contextValues.featureOnHero === 'boolean') {
+      lines.push(`Feature on hero: ${contextValues.featureOnHero ? 'yes' : 'no'}`)
+    }
+    if (typeof contextValues.articleWordCount === 'number') {
+      lines.push(`Article word target: ${contextValues.articleWordCount}`)
+    }
+    if (typeof contextValues.articlePublish === 'boolean') {
+      lines.push(`Publish article after draft: ${contextValues.articlePublish ? 'yes' : 'no'}`)
+    }
+    if (contextValues.articleTags) {
+      lines.push(`Preferred article tags: ${contextValues.articleTags}`)
+    }
+    if (uploads.length) {
+      lines.push(`Attachments: ${uploads.map((file) => file.name).join(', ')}`)
+    }
+
+    if (!lines.length) {
+      return prompt.trim()
+    }
+
+    return `${prompt.trim()}\n\n[Structured Context]\n${lines.join('\n')}`
+  }
+
   async function handleSubmit(prompt?: string) {
-    const question = prompt ?? form.getFieldValue('prompt')
+    const questionInput = prompt ?? form.getFieldValue('prompt')
+    const question = buildStructuredContext(questionInput || '')
     if (!question?.trim()) return
 
     setMessages((current) => [
@@ -142,10 +289,36 @@ export default function AdminAssistantDrawer({ open, onClose }: AdminAssistantDr
 
       if (action.type === 'receive_stock') {
         const values = await actionForm.validateFields()
+        const variantId = typeof values.variant_id === 'string' ? values.variant_id.trim() : ''
+        const quantity = Number(values.quantity)
         parameters = {
-          variant_id: (values.variant_id ?? '').trim(),
-          quantity: Number(values.quantity),
+          variant_id: variantId,
+          quantity,
           ...(values.notes ? { notes: values.notes } : {}),
+        }
+      } else if (action.type === 'lookup_order_status') {
+        const values = await actionForm.validateFields()
+        const orderNumber = typeof values.order_number === 'string' ? values.order_number.trim() : ''
+        const email = typeof values.email === 'string' ? values.email.trim() : ''
+        if (!orderNumber && !email) {
+          throw new Error('Provide an order number or customer email')
+        }
+        parameters = {
+          ...(orderNumber ? { order_number: orderNumber } : {}),
+          ...(email ? { email } : {}),
+        }
+      }
+
+      if (uploads.length && ['create_product_full', 'draft_article', 'publish_article'].includes(action.type)) {
+        parameters = {
+          ...parameters,
+          __attachments: uploads.map((item) => ({
+            name: item.name,
+            url: item.url,
+            type: item.type,
+            storagePath: item.storagePath,
+            size: item.size,
+          })),
         }
       }
 
@@ -263,6 +436,67 @@ export default function AdminAssistantDrawer({ open, onClose }: AdminAssistantDr
             }}
           />
         </Form.Item>
+        <Collapse ghost style={{ marginBottom: 12 }}>
+          <Panel header="Add structured context (optional)" key="context">
+            <Form form={contextForm} layout="vertical" initialValues={{ publishImmediately: true, featureOnHero: false, articleWordCount: 400, articlePublish: false }}>
+              <div className="grid gap-3 md:grid-cols-2">
+                <Form.Item label="Product Title" name="productTitle">
+                  <Input placeholder="Leave blank to let the assistant infer" autoComplete="off" />
+                </Form.Item>
+                <Form.Item label="Format" name="format">
+                  <Input placeholder="Vinyl, Cassette, CD…" autoComplete="off" />
+                </Form.Item>
+                <Form.Item label="Target Price (AUD)" name="price">
+                  <InputNumber min={0} step={0.5} style={{ width: '100%' }} placeholder="e.g. 42" />
+                </Form.Item>
+                <Form.Item label="Initial Stock" name="stock">
+                  <InputNumber min={0} style={{ width: '100%' }} placeholder="e.g. 200" />
+                </Form.Item>
+                <Form.Item label="Publish Product Immediately" name="publishImmediately" valuePropName="checked">
+                  <Switch />
+                </Form.Item>
+                <Form.Item label="Feature on Hero" name="featureOnHero" valuePropName="checked">
+                  <Switch />
+                </Form.Item>
+                <Form.Item label="Article Word Target" name="articleWordCount">
+                  <InputNumber min={120} max={1200} style={{ width: '100%' }} placeholder="e.g. 400" />
+                </Form.Item>
+                <Form.Item label="Publish Article on Save" name="articlePublish" valuePropName="checked">
+                  <Switch />
+                </Form.Item>
+              </div>
+              <Form.Item label="Preferred Article Tags (comma separated)" name="articleTags">
+                <Input placeholder="black metal, release news" autoComplete="off" />
+              </Form.Item>
+            </Form>
+            <Upload.Dragger
+              name="assistant-upload"
+              multiple
+              fileList={uploadFileList}
+              beforeUpload={() => false}
+              onRemove={(file) => {
+                removeAttachment(file)
+                return false
+              }}
+              onChange={async ({ file }) => {
+                if (file.status !== 'uploading' && file.originFileObj) {
+                  await uploadToServer(file.originFileObj)
+                }
+              }}
+              disabled={uploading}
+              accept="image/*,audio/*"
+            >
+              <p className="ant-upload-drag-icon">
+                <InboxOutlined />
+              </p>
+              <p className="ant-upload-text">Drag & drop media files or click to browse.</p>
+              <p className="ant-upload-hint">Files upload immediately and will be attached to the next assistant action.</p>
+            </Upload.Dragger>
+            <div className="mt-3 flex justify-end gap-2">
+              <Button size="small" onClick={() => { contextForm.resetFields(); setUploads([]); setUploadFileList([]) }}>Reset context</Button>
+            </div>
+          </Panel>
+        </Collapse>
         <div className="flex items-center justify-between">
           <span>
             {loading ? (
@@ -321,7 +555,10 @@ export default function AdminAssistantDrawer({ open, onClose }: AdminAssistantDr
                   <Form.Item
                     label="Quantity"
                     name="quantity"
-                    rules={[{ required: true, message: 'Quantity is required' }, { type: 'number', min: 1, message: 'Quantity must be at least 1' }]}
+                    rules={[
+                      { required: true, message: 'Quantity is required' },
+                      { type: 'number', min: 1, message: 'Quantity must be at least 1' },
+                    ]}
                   >
                     <InputNumber min={1} style={{ width: '100%' }} />
                   </Form.Item>
@@ -329,15 +566,28 @@ export default function AdminAssistantDrawer({ open, onClose }: AdminAssistantDr
                     <Input.TextArea rows={3} placeholder="Optional receiving note" />
                   </Form.Item>
                 </Form>
+              ) : pendingAction.type === 'lookup_order_status' ? (
+                <Form form={actionForm} layout="vertical" requiredMark={false}>
+                  <Form.Item label="Order Number" name="order_number">
+                    <Input placeholder="e.g. ORR-123456" autoComplete="off" />
+                  </Form.Item>
+                  <Form.Item label="Customer Email" name="email">
+                    <Input type="email" placeholder="email@example.com" autoComplete="off" />
+                  </Form.Item>
+                  <Paragraph type="secondary" style={{ marginBottom: 0 }}>
+                    Provide an order number or email (both allowed). We’ll use the most specific value available.
+                  </Paragraph>
+                </Form>
               ) : (
                 <div className="space-y-1">
                   {Object.entries(pendingAction.parameters || {}).map(([key, value]) => {
                     const definition = assistantActionMap[pendingAction.type]?.parameters.find((param) => param.name === key)
                     const label = definition?.label ?? key
+                    const displayValue = String(value ?? '').trim() || '—'
                     return (
                       <div key={key} className="flex justify-between gap-2">
                         <span className="uppercase tracking-wide text-xs text-muted-foreground">{label}</span>
-                        <span className="text-right break-all text-sm">{String(value)}</span>
+                        <span className="text-right break-all text-sm">{displayValue}</span>
                       </div>
                     )
                   })}
@@ -352,6 +602,11 @@ export default function AdminAssistantDrawer({ open, onClose }: AdminAssistantDr
             {pendingAction.type === 'receive_stock' && (
               <Paragraph type="secondary" style={{ marginBottom: 0 }}>
                 Inventory updates are audit logged. Double-check the variant ID and quantity before running.
+              </Paragraph>
+            )}
+            {pendingAction.type === 'lookup_order_status' && (
+              <Paragraph type="secondary" style={{ marginBottom: 0 }}>
+                Order lookups use service credentials and are logged in the audit trail.
               </Paragraph>
             )}
           </div>

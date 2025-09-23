@@ -1,6 +1,6 @@
 # Branch Deploy QA Checklist (dev)
 
-Last modified: 2025-09-20
+Last modified: 2025-09-23
 
 Use this checklist to verify the dev Branch Deploy before promoting to main. Reference `docs/README.md` for related launch docs.
 
@@ -90,6 +90,12 @@ Tip: Use a temporary QA admin account (email/password) for branch testing, or lo
 ## Admin — Customers & Articles
 - Customers: table/cards; orders/addresses counts; EmptyState when zero.
 - Articles: table/cards; Published/Draft chip; create/edit/show render; EmptyState when zero.
+
+## Admin — Assistant
+- Copilot drawer opens (`⌘⇧C`/`Ctrl+Shift+C`), renders structured context panel, and can reset context without errors.
+- File uploads succeed (toast + attachment listed); confirm asset appears in Supabase Storage `assistant-media` bucket.
+- Assistant replies cite sources and offer the latest suggested actions (analytics summary, order lookup) without server errors.
+- Audit logs for assistant actions present (`assistant.analytics.summarize`, `assistant.order.lookup`, upload audit once pipelines ship).
 
 ## Admin — Forms & Copy
 - Products create/edit grouped: Basics; Format & Pricing; Inventory; Media & Metadata; Publishing. Helpers for URL (link) and SKU.

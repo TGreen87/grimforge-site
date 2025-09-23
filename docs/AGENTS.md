@@ -1,6 +1,6 @@
 # Documentation Maintenance Guide
 
-_Last updated: 2025-09-20_
+_Last updated: 2025-09-23_
 
 This note explains how to keep each file in the `docs/` directory current. Pair with `docs/README.md` for a high-level map of the documentation set. When significant work lands, update the relevant section(s) below and commit to `dev` so the history stays synchronized with the branch deploy.
 
@@ -8,6 +8,7 @@ This note explains how to keep each file in the `docs/` directory current. Pair 
 - **AGENTS.md (repo root)** — Primary project playbook for future Codex sessions. Update whenever workflow rules, QA process, or tooling assumptions change.
 - **docs/AGENTS.md (this file)** — Checklist for maintaining the documentation set. Extend it as new docs are added.
 - **docs/SITE-VISUALS-RFC.md** — Roadmap for storefront visual/UX enhancements. Reference when planning public-site work.
+- **docs/AGENT-PIPELINES.md** — Copilot orchestration guide (product/article/hero pipelines). Update alongside assistant code changes.
 - **Campaign hero** updates (layout variants, badges, bullets) live in `docs/SITE-VISUALS-RFC.md` and admin workflows—update both whenever hero behaviour changes.
 - **Dashboard revenue goal** lives in `docs/ADMIN-WORKFLOWS.md` + `docs/ADMIN-VISUALS-RFC.md`; update those when altering progress logic or settings flows.
 - **Product detail gallery/sticky buy module** is tracked in `docs/SITE-VISUALS-RFC.md` and QA checklist—refresh both after UX changes.
@@ -20,7 +21,7 @@ This note explains how to keep each file in the `docs/` directory current. Pair 
 - **ADMIN-VISUALS-RFC.md** — RFC for the ongoing admin visual overhaul. Keep status bullets in sync with implemented tokens/layout changes.
 - **IMPLEMENTATION-PLAN.md** — Long-term roadmap broken into phases. Mark completion and adjust scope whenever features ship or priorities shift.
 - **NEXT-STEPS.md** — Immediate backlog snapshot. Refresh after each working block (especially “Immediate Next Steps”).
-- **SESSION-*.md** — Session logs (currently `SESSION-2025-09-14.md`). Add a new dated file when major working sessions occur; capture decisions and context.
+- **SESSION-*.md** — Session logs (latest `SESSION-2025-09-23.md`). Add a new dated file when major working sessions occur; capture decisions and context.
 
 ## Environment & Ops
 - **ENV-QUICKSTART.md** — Runtime/build env requirements for Netlify + local dev. Update when secrets, optional services (AusPost, Stripe), or verification steps change.

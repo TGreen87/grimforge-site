@@ -1,6 +1,6 @@
 ## Continuation Prompt (New Chat)
 
-_Last updated: 2025-09-20_
+_Last updated: 2025-09-23_
 
 Paste the following into a fresh Codex session whenever you need to resume work on grimforge-site with MCP tools enabled.
 
@@ -8,6 +8,7 @@ Paste the following into a fresh Codex session whenever you need to resume work 
 
 **Context Snapshot**
 - Documentation map lives in `docs/README.md`; start there to orient before coding.
+- Assistant pipelines/specs live in `docs/AGENT-PIPELINES.md`; review before modifying copilot actions.
 - Repo: `grimforge-site` — Next.js 15 App Router storefront with Refine/AntD admin.
 - Working branch: `dev` (single-branch workflow, see `AGENTS.md`).
 - Branch deploy: https://dev--obsidianriterecords.netlify.app (treat as QA surface).
@@ -27,9 +28,10 @@ Paste the following into a fresh Codex session whenever you need to resume work 
 7. Validate checkout sheet: multi-step flow, wallet row remains disabled without a Stripe publishable key, and totals recalc correctly.
 8. Verify storytelling surfaces: `/admin/story` CRUD works, storefront hides timeline/testimonials/newsletter when tables are empty, and shows real content when populated.
 9. Confirm homepage Journal renders featured + secondary articles when Supabase has published entries (fallback copy otherwise).
-10. Download scoped CSVs from the needs fulfilment panel exports when counts >0 (awaiting fulfilment, low stock, pending payments).
-11. Run `npm run audit:a11y` to capture Lighthouse accessibility reports for home + admin dashboards.
-12. Update task trackers (`docs/NEXT-STEPS.md`, latest `docs/SESSION-YYYY-MM-DD.md`) with findings.
+10. Exercise the admin copilot: add structured context, upload a sample asset, and confirm the assistant responds with citations and logs (no destructive actions in preview).
+11. Download scoped CSVs from the needs fulfilment panel exports when counts >0 (awaiting fulfilment, low stock, pending payments).
+12. Run `npm run audit:a11y` to capture Lighthouse accessibility reports for home + admin dashboards.
+13. Update task trackers (`docs/NEXT-STEPS.md`, latest `docs/SESSION-YYYY-MM-DD.md`) with findings.
 
 **Playbook**
 1. **Tool readiness** — Ensure Supabase + Puppeteer MCP servers are running; request restart if unavailable.
@@ -48,6 +50,7 @@ Paste the following into a fresh Codex session whenever you need to resume work 
    - Visit `/admin/story`; add/remove timeline/testimonial rows as needed and ensure the storefront reflects changes after refresh.
    - Use the needs fulfilment export icons to download scoped CSV snapshots when counts are non-zero; note filenames.
    - Run `npm run audit:a11y` (uses Lighthouse with the bundled Chromium) and archive the generated JSON outputs in `docs/qa-screenshots/`.
+   - Open the copilot drawer, populate structured context, upload a sample asset, and ensure uploads land in Supabase (`assistant-media`) with confirmation toast.
 4. **Product slug** — Load `/products/test-vinyl-dark-rituals`; ensure hydration (price + CTA); screenshot `product.png`.
 5. **Optional flows**
    - Checkout smoke: capture shipping modal (`checkout-shipping.png`) and Stripe redirect (`stripe.png`).

@@ -48,6 +48,19 @@ This directory contains SQL scripts for managing your Grimforge admin system.
 -- ✓ Stock movement records
 ```
 
+### 4. `assistant-sync.ts`
+**Purpose**: Refresh the admin copilot knowledge base embeddings from the project docs.
+**When to use**: After updating documentation that the assistant should cite or before deploys where you want pre-seeded embeddings.
+**How to run**:
+
+```bash
+# Ensure SUPABASE_SERVICE_ROLE_KEY, NEXT_PUBLIC_SUPABASE_URL, and OPENAI_API_KEY are set
+npm run assistant:sync            # incremental refresh (skips unchanged docs)
+npm run assistant:sync -- --force # force re-embed all sources
+```
+
+The script invokes the same embedding pipeline used at runtime and prints progress/timing to stdout.
+
 ## How to Run Scripts
 
 ### Method 1: Supabase Dashboard (Recommended)

@@ -14,6 +14,7 @@ See `docs/README.md` for the full documentation index and session logs.
 - `npm run type-check`, `npm run lint`, `npm test` – Baseline gates before any push.
 - `npm run build && npm start` – Production build smoke; run before promoting `dev → main`.
 - `npm run test:puppeteer` – Netlify smoke (homepage, catalog, product, checkout shell, admin login) with screenshots in `docs/qa-screenshots/`.
+- `npm run assistant:sync` – Refresh copilot embeddings after updating docs the assistant relies on (see `docs/AGENT-PIPELINES.md`).
 - `npx playwright test e2e/tests/smoke.spec.ts` – Deeper storefront coverage when investigating regressions.
 
 ## Coding Style & Naming Conventions

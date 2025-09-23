@@ -11,6 +11,7 @@ const KNOWLEDGE_SOURCES = [
   { id: 'next-steps', file: 'docs/NEXT-STEPS.md', title: 'Next Steps' },
   { id: 'qa-checklist', file: 'docs/QA-CHECKLIST.md', title: 'QA Checklist' },
   { id: 'admin-rfc', file: 'docs/ADMIN-VISUALS-RFC.md', title: 'Admin Visuals RFC' },
+  { id: 'agent-pipelines', file: 'docs/AGENT-PIPELINES.md', title: 'Assistant Pipelines Spec' },
 ]
 
 interface KnowledgeChunk {
@@ -98,54 +99,61 @@ declare global {
   var __assistantKnowledgePromise: Promise<void> | undefined
 }
 
-export async function ensureAssistantKnowledge() {
-  if (globalThis.__assistantKnowledgePromise) {
+async function buildKnowledgePromise() {
+  const supabase = createServiceClient()
+
+  for (const source of KNOWLEDGE_SOURCES) {
+    const { checksum, chunks } = await loadFile(source.file)
+
+    const { data: existing } = await supabase
+      .from('assistant_documents')
+      .select('metadata')
+      .eq('source_path', source.file)
+      .limit(1)
+
+    const currentChecksum = existing?.[0]?.metadata?.checksum
+
+    if (currentChecksum === checksum) {
+      continue
+    }
+
+    await supabase.from('assistant_documents').delete().eq('source_path', source.file)
+
+    const embeddings = await embedTexts(chunks.map((chunk) => chunk.content))
+
+    const rows = chunks.map((chunk, index) => ({
+      source_path: source.file,
+      chunk_index: index,
+      title: source.title,
+      content: chunk.content,
+      metadata: {
+        checksum,
+        sourceId: source.id,
+        title: source.title,
+      },
+      embedding: embeddings[index],
+      token_count: chunk.tokenCount,
+    }))
+
+    if (rows.length) {
+      await supabase.from('assistant_documents').upsert(rows, {
+        onConflict: 'source_path,chunk_index',
+      })
+    }
+  }
+}
+
+export async function ensureAssistantKnowledge(options?: { force?: boolean }) {
+  if (!options?.force && globalThis.__assistantKnowledgePromise) {
     return globalThis.__assistantKnowledgePromise
   }
 
-  globalThis.__assistantKnowledgePromise = (async () => {
-    const supabase = createServiceClient()
+  if (options?.force) {
+    await buildKnowledgePromise()
+    return
+  }
 
-    for (const source of KNOWLEDGE_SOURCES) {
-      const { checksum, chunks } = await loadFile(source.file)
-
-      const { data: existing } = await supabase
-        .from('assistant_documents')
-        .select('metadata')
-        .eq('source_path', source.file)
-        .limit(1)
-
-      const currentChecksum = existing?.[0]?.metadata?.checksum
-
-      if (currentChecksum === checksum) {
-        continue
-      }
-
-      await supabase.from('assistant_documents').delete().eq('source_path', source.file)
-
-      const embeddings = await embedTexts(chunks.map((chunk) => chunk.content))
-
-      const rows = chunks.map((chunk, index) => ({
-        source_path: source.file,
-        chunk_index: index,
-        title: source.title,
-        content: chunk.content,
-        metadata: {
-          checksum,
-          sourceId: source.id,
-          title: source.title,
-        },
-        embedding: embeddings[index],
-        token_count: chunk.tokenCount,
-      }))
-
-      if (rows.length) {
-        await supabase.from('assistant_documents').upsert(rows, {
-          onConflict: 'source_path,chunk_index',
-        })
-      }
-    }
-  })()
+  globalThis.__assistantKnowledgePromise = buildKnowledgePromise()
 
   return globalThis.__assistantKnowledgePromise
 }

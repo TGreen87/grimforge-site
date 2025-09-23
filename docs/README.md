@@ -1,6 +1,6 @@
 # Documentation Index
 
-Last modified: 2025-09-22
+Last modified: 2025-09-23
 
 Use this index as the starting point before touching code or deployments. Pair it with [../AGENTS.md](../AGENTS.md) for contributor rules.
 
@@ -16,6 +16,7 @@ Use this index as the starting point before touching code or deployments. Pair i
 - [`SUPABASE-SEED.md`](SUPABASE-SEED.md) – Commands + SQL snippets for seeding test data.
 - [`SHIPPING-AUSPOST.md`](SHIPPING-AUSPOST.md) – AusPost integration setup and fallback logic.
 - [`ADMIN-WORKFLOWS.md`](ADMIN-WORKFLOWS.md) – Day-to-day admin tasks, bulk actions, fulfilment flows.
+- [`AGENT-PIPELINES.md`](AGENT-PIPELINES.md) – Assistant orchestration specs (product/article pipelines, media ingestion).
 
 ## Design & RFCs
 - [`SITE-VISUALS-RFC.md`](SITE-VISUALS-RFC.md) – Storefront visual refresh specs (campaign hero, storytelling, Journal blocks).
@@ -23,10 +24,10 @@ Use this index as the starting point before touching code or deployments. Pair i
 - [`CONTINUE-PROMPT.md`](CONTINUE-PROMPT.md) – Session handoff primer for agents.
 
 ## Session Logs
-Latest work session notes live under `docs/SESSION-YYYY-MM-DD.md`. Check the most recent entry before resuming a thread.
+Latest work session notes live under `docs/SESSION-YYYY-MM-DD.md` (most recent: `docs/SESSION-2025-09-23.md`). Check the latest entry before resuming a thread.
 
 ## Automation & QA Artifacts
 - [`qa-screenshots/`](qa-screenshots/) – Puppeteer smoke outputs keyed by timestamp.
-- [`scripts/`](../scripts/) – Local automation helpers referenced throughout docs.
+- [`scripts/`](../scripts/) – Local automation helpers (`npm run assistant:sync` to refresh copilot embeddings; `node scripts/check-env.mjs` before deploys).
 
 Keep this index updated whenever new documentation lands.

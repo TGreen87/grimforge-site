@@ -1,4 +1,4 @@
-export const assistantActionTypes = ['create_product_draft', 'receive_stock'] as const
+export const assistantActionTypes = ['create_product_draft', 'receive_stock', 'summarize_analytics', 'lookup_order_status'] as const
 export type AssistantActionType = (typeof assistantActionTypes)[number]
 
 export interface AssistantActionParameter {
@@ -42,6 +42,24 @@ export const assistantActions: AssistantActionDefinition[] = [
       { name: 'variant_id', label: 'Variant ID', description: 'UUID of the variant to receive stock for', required: true, type: 'string' },
       { name: 'quantity', label: 'Quantity', description: 'Units to receive (must be positive)', required: true, type: 'number' },
       { name: 'notes', label: 'Notes', description: 'Optional receiving note (supplier, batch, etc.)', required: false, type: 'string' },
+    ],
+  },
+  {
+    type: 'summarize_analytics',
+    label: 'Summarize Analytics',
+    summary: 'Pulls traffic and event highlights for the selected time range.',
+    parameters: [
+      { name: 'range', label: 'Range', description: 'Time window (24h, 7d, 30d). Defaults to 7d.', required: false, type: 'string', example: '7d' },
+      { name: 'pathname', label: 'Path Filter', description: 'Optional pathname to scope analytics to (e.g. /products).', required: false, type: 'string' },
+    ],
+  },
+  {
+    type: 'lookup_order_status',
+    label: 'Lookup Order Status',
+    summary: 'Finds the latest order details using an order number or customer email.',
+    parameters: [
+      { name: 'order_number', label: 'Order Number', description: 'Exact order number (e.g. ORR-123456).', required: false, type: 'string' },
+      { name: 'email', label: 'Customer Email', description: 'Customer email address.', required: false, type: 'string' },
     ],
   },
 ]

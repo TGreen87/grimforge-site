@@ -1,20 +1,18 @@
 # Next Steps (Dev Branch)
 
-Last modified: 2025-09-22
+Last modified: 2025-09-23
 
 This backlog captures the active workstreams after the storefront storytelling cleanup and Journal integration. Ship everything on `dev`; promote to `main` only after the full QA loop completes.
 
 Consult `AGENTS.md` for contributor expectations and deployment discipline. Use `docs/README.md` for the documentation index.
 
-## Snapshot — 2025-09-21
-- Storytelling surfaces (timeline, testimonials, newsletter CTA) now ship empty by default; storefront hides them until genuine content is added.
-- Journal section pulls the latest published Supabase articles (no placeholder cards) with featured + secondary layout.
-- Heading typography switched to Marcellus for better legibility while retaining gothic styling tokens.
-- Preorder email capture is disabled until the marketing stack is ready (input + button rendered read-only).
-- Puppeteer smoke remains green; lint still carries historic `any`/hook warnings (no regressions introduced).
-- Lighthouse accessibility audit now automated via `npm run audit:a11y`; homepage scores 1.00, admin dashboard currently at 0.82 pending UI contrast/label tweaks.
-- First-party analytics beacon (`/api/analytics/ingest`) now logs page views + metadata into Supabase; `/admin/analytics` visualises the last ~7 days without third-party trackers.
-- Admin Copilot drawer (⌘⇧C) answers workflow questions using embedded project docs; responses cite sources for quick verification.
+## Snapshot — 2025-09-23
+- Storytelling surfaces still hide until Supabase tables contain real content; ready for owner copy drop.
+- Journal section continues to pull live Supabase articles with featured + secondary layout and friendly fallback messaging.
+- Campaign hero feature flag remains opt-in—Classic/Split/Minimal layouts, badges, and motion controls verified.
+- Admin copilot now collects structured context, supports direct media uploads, and prepares for full product/article pipelines.
+- `npm run audit:a11y` covers home + dashboard (home 1.00, dashboard pending contrast fixes); lint debt persists in admin code.
+- Puppeteer smoke remains green; assistant upload endpoint audited, ready for pipeline orchestration.
 
 ## Immediate Execution Queue (Priority A)
 1. **Storytelling content population**
@@ -29,7 +27,12 @@ Consult `AGENTS.md` for contributor expectations and deployment discipline. Use 
    - [x] Phase 0 — retrieval copilot with doc citations.
    - [x] Phase 1A — product draft creation runs via confirmed assistant actions (audit logged, drafts inactive by default).
    - [x] Phase 1B — copilot “Receive stock” action live with confirmation modal + audit logging.
-   - [ ] Phase 2 — publish n8n webhook catalogue and wire long-running automations (campaign refresh, content ingest) with audit logging.
+   - [x] Phase 1C — analytics summary + order lookup actions live (`assistant.analytics.summarize`, `assistant.order.lookup`).
+   - [ ] Phase 2 — end-to-end pipelines (no n8n) so the assistant can launch releases solo.
+     - [ ] Implement `create_product_full` pipeline (media upload → enrichment → publish + optional hero update).
+     - [ ] Implement `draft_article` / `publish_article` pipeline with AI copy + optional imagery.
+     - [ ] Build assistant session logging + lightweight `/admin/assistant/logs` viewer.
+     - [ ] Extend responses with multi-step plan previews + undo hooks for high-impact actions.
 4. **Admin dashboard 2.0 follow-ups**
    - [x] Needs fulfilment panel quick-export/filter links (CSV download + animated task list).
    - Alert threshold + Slack webhook wiring (blocked on secrets).
@@ -67,10 +70,14 @@ Consult `AGENTS.md` for contributor expectations and deployment discipline. Use 
 - [ ] Evaluate Playwright + axe integration to complement Lighthouse in automated QA.
 - [x] Automate accessibility scan via `npm run audit:a11y` (homepage + admin dashboard Lighthouse JSON reports).
 - [ ] Reduce ESLint `no-explicit-any` debt — storefront product detail & article metadata now typed (2025-09-22); bring admin dashboards/contexts in line next.
+- [ ] Add Vitest coverage for assistant upload endpoint & future pipeline orchestrators.
+- [ ] Add Playwright/puppeteer smoke covering “upload media → publish product” once pipeline lands.
 
 ## Documentation & Ops
-- [x] Update `docs/AGENTS.md`, `docs/README.md`, and `docs/QA-CHECKLIST.md` for storytelling cleanup + Journal behaviour.
+- [x] Capture assistant pipeline specs (`docs/AGENT-PIPELINES.md`) and update workflows to mention structured context panel.
+- [ ] Keep `docs/AGENT-PIPELINES.md` in sync as `create_product_full` / `draft_article` ship (note model prompts, fallbacks).
 - [ ] Capture screenshots of the new Journal layout once real articles are published.
 - [ ] Refresh `docs/PRODUCTION-LAUNCH-CHECKLIST.md` after ESP integration lands.
+- [ ] Log assistant pipeline milestones in the next session log + QA checklist once orchestration lands.
 
 Keep this doc updated as tasks complete (`[x]`) or plans shift.

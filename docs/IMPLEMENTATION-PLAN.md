@@ -209,6 +209,23 @@ Status:
   - Third-party services documented (env vars, rollback) in `docs/ENV-QUICKSTART.md` + relevant RFCs.
   - Ops alerts tested via staging events; analytics dashboards (first-party + optional external) configured.
 
+### Phase 15 — Admin Copilot Pipelines (No n8n)
+- Goals: allow the assistant to publish releases, articles, and hero updates end-to-end from a single conversation.
+- Tasks:
+  - Implement media ingestion helper + Supabase Storage bucket (`assistant-media`) with audit logging.
+  - Build `create_product_full` pipeline: media upload → enrichment (title/tags/copy) → product/variant/inventory inserts → optional campaign spotlight → activation summary.
+  - Build `draft_article` / `publish_article` pipeline: AI-generated markdown, optional cover art upload, tag suggestions, featured flag updates.
+  - Extend assistant responses with structured plan previews, follow-up suggestions, and undo hooks.
+  - Capture assistant sessions (inputs, outputs, timings, errors) in Supabase; create `/admin/assistant/logs` view.
+- Acceptance:
+  - Owner can upload a record photo + short brief and see the product live (with audit trail) without leaving the chat.
+  - Articles can be drafted/published with consistent brand voice and optional imagery via assistant.
+  - Campaign hero can be updated from chat (preview link provided) with safety confirmations.
+  - Assistant sessions observable in admin with retry/error visibility; docs/QA scripts updated accordingly.
+- Status:
+  - Structured context panel + media upload endpoint shipped (2025-09-23).
+  - Pipelines, session logging, and undo flows pending implementation.
+
 ## Rollback
 - Netlify: reset Node to previous major if a runtime regression appears; rebuild branch.
 - App: feature toggles for bulk tools; revert specific commits on `dev` to stabilize.

@@ -4,6 +4,7 @@ import { createClient, createServiceClient } from '@/lib/supabase/server'
 import { TablesInsert } from '@/integrations/supabase/types'
 import { assistantActionTypes } from '@/lib/assistant/actions'
 import { writeAuditLog } from '@/lib/audit-logger'
+import { formatAnalyticsSummary, getAnalyticsSummary } from '@/lib/analytics/overview'
 
 const actionTypeEnum = z.enum(assistantActionTypes)
 
@@ -24,6 +25,21 @@ const receiveStockSchema = z.object({
   quantity: z.coerce.number().int().positive(),
   notes: z.string().max(500).optional(),
 })
+
+const summarizeAnalyticsSchema = z.object({
+  range: z.enum(['24h', '7d', '30d']).optional(),
+  pathname: z.string().min(1).optional(),
+})
+
+const lookupOrderSchema = z
+  .object({
+    order_number: z.string().min(3).optional(),
+    email: z.string().email().optional(),
+  })
+  .refine((value) => Boolean(value.order_number?.trim() || value.email?.trim()), {
+    message: 'Provide an order number or customer email',
+    path: ['order_number'],
+  })
 
 const actionPayloadSchema = z.object({
   type: actionTypeEnum,
@@ -205,6 +221,119 @@ async function handleReceiveStock(
   }
 }
 
+async function handleSummarizeAnalytics(payload: z.infer<typeof summarizeAnalyticsSchema>, userId: string | null) {
+  const summary = await getAnalyticsSummary({
+    range: payload.range,
+    pathname: payload.pathname,
+  })
+
+  await writeAuditLog({
+    event_type: 'assistant.analytics.summarize',
+    user_id: userId ?? undefined,
+    metadata: {
+      range: summary.range,
+      pathname: payload.pathname ?? null,
+      assistant: true,
+    },
+  })
+
+  const message = formatAnalyticsSummary(summary)
+
+  return {
+    message,
+    summary,
+  }
+}
+
+async function handleLookupOrderStatus(payload: z.infer<typeof lookupOrderSchema>, userId: string | null) {
+  const supabase = createServiceClient()
+  const trimmedOrder = payload.order_number?.trim()
+  const trimmedEmail = payload.email?.trim().toLowerCase()
+
+  let query = supabase
+    .from('orders')
+    .select(
+      `id, order_number, email, status, payment_status, subtotal, shipping, total, currency, created_at, metadata,
+       customer:customers(first_name, last_name),
+       order_items:order_items(quantity, price, total, product_name, variant_name)
+      `
+    )
+
+  if (trimmedOrder) {
+    query = query.eq('order_number', trimmedOrder).limit(1)
+  } else if (trimmedEmail) {
+    query = query.eq('email', trimmedEmail).order('created_at', { ascending: false }).limit(1)
+  }
+
+  const { data: order, error } = await query.maybeSingle<{
+    id: string
+    order_number: string | null
+    email: string
+    status: string
+    payment_status: string | null
+    subtotal: number | null
+    shipping: number | null
+    total: number
+    currency: string | null
+    created_at: string
+    metadata: Record<string, unknown> | null
+    customer: { first_name: string | null; last_name: string | null } | null
+    order_items: Array<{ quantity: number; price: number; total: number; product_name: string | null; variant_name: string | null }>
+  }>()
+
+  if (error) {
+    throw new Error(error.message)
+  }
+
+  if (!order) {
+    return { message: null, notFound: true as const }
+  }
+
+  const orderNumber = order.order_number ?? order.id
+  const currency = (order.currency || 'AUD').toUpperCase()
+  const createdAt = new Date(order.created_at).toLocaleString()
+  const items = Array.isArray(order.order_items) ? order.order_items.slice(0, 3) : []
+  const itemSummary = items
+    .map((item) => `${item.quantity} × ${item.product_name ?? 'Item'}${item.variant_name ? ` (${item.variant_name})` : ''}`)
+    .join('; ')
+  const customerName = order.customer
+    ? [order.customer.first_name, order.customer.last_name].filter(Boolean).join(' ') || null
+    : null
+
+  const messageParts: string[] = []
+  messageParts.push(`Order ${orderNumber} is ${order.status.toLowerCase()} with payment status ${order.payment_status ?? 'unknown'}.`)
+  messageParts.push(`Total: ${currency} ${order.total.toFixed(2)} (placed ${createdAt}).`)
+  if (customerName) {
+    messageParts.push(`Customer: ${customerName} <${order.email}>.`)
+  } else {
+    messageParts.push(`Customer email: ${order.email}.`)
+  }
+  if (itemSummary) {
+    messageParts.push(`Key items: ${itemSummary}.`)
+    if (order.order_items.length > items.length) {
+      messageParts.push(`+${order.order_items.length - items.length} more items.`)
+    }
+  }
+
+  await writeAuditLog({
+    event_type: 'assistant.order.lookup',
+    user_id: userId ?? undefined,
+    resource_type: 'order',
+    resource_id: order.id,
+    metadata: {
+      order_number: orderNumber,
+      email: order.email,
+      assistant: true,
+      looked_up_via: trimmedOrder ? 'order_number' : 'email',
+    },
+  })
+
+  return {
+    message: messageParts.join(' '),
+    order,
+  }
+}
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
@@ -226,6 +355,19 @@ export async function POST(request: NextRequest) {
         const result = await handleReceiveStock(payload, admin.userId)
         if ('notFound' in result) {
           return NextResponse.json({ error: 'Variant not found' }, { status: 404 })
+        }
+        return NextResponse.json({ ok: true, message: result.message, result })
+      }
+      case 'summarize_analytics': {
+        const payload = summarizeAnalyticsSchema.parse(parsed.parameters)
+        const result = await handleSummarizeAnalytics(payload, admin.userId)
+        return NextResponse.json({ ok: true, message: result.message, result })
+      }
+      case 'lookup_order_status': {
+        const payload = lookupOrderSchema.parse(parsed.parameters)
+        const result = await handleLookupOrderStatus(payload, admin.userId)
+        if ('notFound' in result) {
+          return NextResponse.json({ error: 'Order not found' }, { status: 404 })
         }
         return NextResponse.json({ ok: true, message: result.message, result })
       }

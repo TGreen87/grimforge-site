@@ -1,6 +1,6 @@
 # Admin Workflows & Terminology
 
-_Last updated: 2025-09-20_
+_Last updated: 2025-09-23_
 
 This guide explains the key concepts in the admin and the typical flows. Use `docs/README.md` for the full documentation index.
 
@@ -59,6 +59,9 @@ This guide explains the key concepts in the admin and the typical flows. Use `do
 ### Analytics & Copilot
 - **Analytics**: `/admin/analytics` summarises page views and total events over selectable windows (24h/7d/30d), highlights top pages/referrers, and streams recent events. Filter by path, export CSV, and keep an eye on the “Internal Hits” card for admin-only traffic. Data is sourced from the first-party beacon (`/api/analytics/ingest`).
 - **Copilot**: Open the assistant via the robot button in the header (or shortcut `⌘⇧C`/`Ctrl+Shift+C`). Ask about workflows, rollout plans, or current analytics; the bot cites internal docs for quick verification. The assistant lives entirely server-side—no external dashboard needed.
+- **Structured context panel**: Expand the “Add structured context” drawer to pre-fill format, price, stock, hero toggle, and article targets before you chat. Attach record photos or audio clips—the assistant uploads them to Supabase Storage and keeps a log for follow-up actions.
+- **Analytics summary action**: Approve the “Summarize analytics” suggestion to get a digest for the last 24h/7d/30d (optional path filter). The copilot replies with total sessions, internal hits, and the top page/referrer, and logs the run as `assistant.analytics.summarize`.
+- **Order lookup action**: Provide an order number or customer email in the confirmation modal to retrieve the latest order status, totals, and headline line items. Lookups are logged as `assistant.order.lookup` for auditing.
 - **Receive stock via Copilot**: When the assistant suggests a stock receipt, review the variant ID and quantity in the confirmation modal, tweak if required, then run it. The action calls the same Supabase RPC used in the admin UI and records an audit log (`assistant.inventory.receive`).
 - **Run confirmed actions**: When the copilot suggests a supported action (e.g., “Create product draft”), review the parameters, then hit “Review & Run”. The system executes with service-role credentials, logs to `audit_logs`, and leaves outputs inactive until you explicitly publish.
 
