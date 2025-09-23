@@ -1,4 +1,13 @@
-export const assistantActionTypes = ['create_product_draft', 'receive_stock', 'summarize_analytics', 'lookup_order_status'] as const
+export const assistantActionTypes = [
+  'create_product_draft',
+  'receive_stock',
+  'summarize_analytics',
+  'lookup_order_status',
+  'create_product_full',
+  'draft_article',
+  'publish_article',
+  'update_campaign',
+] as const
 export type AssistantActionType = (typeof assistantActionTypes)[number]
 
 export interface AssistantActionParameter {
@@ -60,6 +69,69 @@ export const assistantActions: AssistantActionDefinition[] = [
     parameters: [
       { name: 'order_number', label: 'Order Number', description: 'Exact order number (e.g. ORR-123456).', required: false, type: 'string' },
       { name: 'email', label: 'Customer Email', description: 'Customer email address.', required: false, type: 'string' },
+    ],
+  },
+  {
+    type: 'create_product_full',
+    label: 'Create & Publish Product',
+    summary: 'Generates copy, uploads media, and publishes a full product (with optional hero update).',
+    parameters: [
+      { name: 'brief', label: 'Brief', description: 'Short description or notes about the release.', required: false, type: 'string' },
+      { name: 'title', label: 'Title', description: 'Product title if already known.', required: false, type: 'string' },
+      { name: 'artist', label: 'Artist', description: 'Artist or project name.', required: false, type: 'string' },
+      { name: 'format', label: 'Format', description: 'Product format (Vinyl, Cassette, etc.).', required: false, type: 'string' },
+      { name: 'price', label: 'Price (AUD)', description: 'Final retail price in AUD.', required: false, type: 'number' },
+      { name: 'stock', label: 'Initial Stock', description: 'Initial on-hand quantity to allocate.', required: false, type: 'number' },
+      { name: 'publish', label: 'Publish Immediately', description: 'Set true to make the product active after creation.', required: false, type: 'boolean' },
+      { name: 'featureOnHero', label: 'Feature on Hero', description: 'Set true to update the storefront hero campaign.', required: false, type: 'boolean' },
+      { name: 'heroLayout', label: 'Hero Layout', description: 'Hero layout to use (classic, split, minimal).', required: false, type: 'string' },
+      { name: 'heroSubtitle', label: 'Hero Subtitle', description: 'Optional hero subtitle copy.', required: false, type: 'string' },
+      { name: 'heroBadge', label: 'Hero Badge', description: 'Optional badge text for the hero.', required: false, type: 'string' },
+      { name: 'heroHighlights', label: 'Hero Highlights', description: 'Comma-separated hero highlight bullets.', required: false, type: 'string' },
+      { name: 'tags', label: 'Tags', description: 'Comma-separated product tags.', required: false, type: 'string' },
+    ],
+  },
+  {
+    type: 'draft_article',
+    label: 'Draft Article',
+    summary: 'Creates a new Journal article draft with generated copy and optional cover art.',
+    parameters: [
+      { name: 'brief', label: 'Brief', description: 'Summary of the article and key talking points.', required: true, type: 'string' },
+      { name: 'title', label: 'Title', description: 'Preferred title (overridden if blank).', required: false, type: 'string' },
+      { name: 'wordCount', label: 'Word Count', description: 'Approximate word target (default 400).', required: false, type: 'number' },
+      { name: 'publish', label: 'Publish Immediately', description: 'Set true to publish after drafting.', required: false, type: 'boolean' },
+      { name: 'featured', label: 'Mark as Featured', description: 'Set true to promote to the featured slot.', required: false, type: 'boolean' },
+      { name: 'tags', label: 'Suggested Tags', description: 'Comma-separated themes or topics.', required: false, type: 'string' },
+      { name: 'productSlug', label: 'Associated Product Slug', description: 'Product slug to reference within the article.', required: false, type: 'string' },
+    ],
+  },
+  {
+    type: 'publish_article',
+    label: 'Publish Article',
+    summary: 'Publishes an existing draft article and optionally promotes it.',
+    parameters: [
+      { name: 'articleId', label: 'Article ID', description: 'UUID of the article to publish.', required: false, type: 'string' },
+      { name: 'slug', label: 'Article Slug', description: 'Slug of the article to publish.', required: false, type: 'string' },
+      { name: 'featured', label: 'Mark as Featured', description: 'Set true to promote to the featured slot.', required: false, type: 'boolean' },
+    ],
+  },
+  {
+    type: 'update_campaign',
+    label: 'Update Storefront Hero',
+    summary: 'Updates the storefront campaign hero with new copy, media, and links.',
+    parameters: [
+      { name: 'slug', label: 'Campaign Slug', description: 'Slug for the campaign (existing or new).', required: true, type: 'string' },
+      { name: 'title', label: 'Title', description: 'Hero headline text.', required: true, type: 'string' },
+      { name: 'subtitle', label: 'Subtitle', description: 'Secondary line under the title.', required: false, type: 'string' },
+      { name: 'description', label: 'Description', description: 'Long-form hero description.', required: false, type: 'string' },
+      { name: 'layout', label: 'Layout', description: 'Hero layout (classic, split, minimal).', required: false, type: 'string' },
+      { name: 'badgeText', label: 'Badge Text', description: 'Optional badge displayed above the title.', required: false, type: 'string' },
+      { name: 'highlightBullets', label: 'Highlight Bullets', description: 'Comma-separated highlight bullets.', required: false, type: 'string' },
+      { name: 'ctaPrimaryLabel', label: 'Primary CTA Label', description: 'Text for the primary CTA button.', required: false, type: 'string' },
+      { name: 'ctaPrimaryHref', label: 'Primary CTA Link', description: 'URL for the primary CTA button.', required: false, type: 'string' },
+      { name: 'ctaSecondaryLabel', label: 'Secondary CTA Label', description: 'Text for the secondary CTA button.', required: false, type: 'string' },
+      { name: 'ctaSecondaryHref', label: 'Secondary CTA Link', description: 'URL for the secondary CTA button.', required: false, type: 'string' },
+      { name: 'activate', label: 'Activate Campaign', description: 'Set true to make this campaign live immediately.', required: false, type: 'boolean' },
     ],
   },
 ]

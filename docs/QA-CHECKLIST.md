@@ -95,7 +95,11 @@ Tip: Use a temporary QA admin account (email/password) for branch testing, or lo
 - Copilot drawer opens (`⌘⇧C`/`Ctrl+Shift+C`), renders structured context panel, and can reset context without errors.
 - File uploads succeed (toast + attachment listed); confirm asset appears in Supabase Storage `assistant-media` bucket.
 - Assistant replies cite sources and offer the latest suggested actions (analytics summary, order lookup) without server errors.
-- Audit logs for assistant actions present (`assistant.analytics.summarize`, `assistant.order.lookup`, upload audit once pipelines ship).
+- Run “Create & publish product” against a throwaway slug: product/variant/inventory rows appear, optional hero update toggles, and audit logs (`assistant.product.full_create`) plus session events exist. Remove the product afterwards.
+- Run “Draft article” with a short brief: article saved (draft by default), slug returned, and audit log `assistant.article.create` present. Optionally run “Publish article” to confirm publish toggle.
+- Campaign update action rewrites hero data (title/subtitle/highlights) and sets active flag when requested.
+- Session logs present in `assistant_sessions`/`assistant_session_events` for the runs above; each upload recorded in `assistant_uploads`.
+- Audit logs for assistant actions present (`assistant.analytics.summarize`, `assistant.order.lookup`, `assistant.inventory.receive`, etc.).
 
 ## Admin — Forms & Copy
 - Products create/edit grouped: Basics; Format & Pricing; Inventory; Media & Metadata; Publishing. Helpers for URL (link) and SKU.

@@ -82,6 +82,7 @@ export default function AdminAssistantDrawer({ open, onClose }: AdminAssistantDr
   const [uploadFileList, setUploadFileList] = useState<UploadFile[]>([])
   const [uploading, setUploading] = useState(false)
   const listRef = useRef<HTMLDivElement | null>(null)
+  const sessionIdRef = useRef<string>(typeof crypto !== 'undefined' && 'randomUUID' in crypto ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(36).slice(2)}`)
 
   useEffect(() => {
     if (!open) return
@@ -135,6 +136,7 @@ export default function AdminAssistantDrawer({ open, onClose }: AdminAssistantDr
       const formData = new FormData()
       formData.append('file', file)
       formData.append('intent', pendingAction?.type ?? 'general')
+      formData.append('sessionId', sessionIdRef.current)
       const response = await fetch('/api/admin/assistant/uploads', {
         method: 'POST',
         body: formData,
@@ -249,14 +251,31 @@ export default function AdminAssistantDrawer({ open, onClose }: AdminAssistantDr
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           messages: [...messages, { role: 'user', content: question.trim() }].map(({ role, content }) => ({ role, content })),
+          sessionId: sessionIdRef.current,
         }),
       })
 
       if (!response.ok) {
-        throw new Error(`Request failed with ${response.status}`)
+        const text = await response.text()
+        let message = `Request failed with ${response.status}`
+        try {
+          const payload = JSON.parse(text)
+          if (payload?.sessionId) {
+            sessionIdRef.current = payload.sessionId
+          }
+          if (payload?.error) {
+            message = payload.error
+          }
+        } catch (_) {
+          // ignore parse error, fall back to default message
+        }
+        throw new Error(message)
       }
 
-      const data = (await response.json()) as { message: string; sources?: AssistantSource[]; actions?: AssistantAction[] }
+      const data = (await response.json()) as { message: string; sources?: AssistantSource[]; actions?: AssistantAction[]; sessionId?: string }
+      if (data.sessionId) {
+        sessionIdRef.current = data.sessionId
+      }
       setMessages((current) => {
         const updated = [...current]
         updated[updated.length - 1] = {
@@ -325,12 +344,28 @@ export default function AdminAssistantDrawer({ open, onClose }: AdminAssistantDr
       const response = await fetch('/api/admin/assistant/actions', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ type: action.type, parameters }),
+        body: JSON.stringify({ type: action.type, parameters, sessionId: sessionIdRef.current }),
       })
 
-      const json = await response.json()
+      const text = await response.text()
+      let json: any = null
+      if (text) {
+        try {
+          json = JSON.parse(text)
+        } catch (_) {
+          json = null
+        }
+      }
+
       if (!response.ok) {
-        throw new Error(json?.error || 'Failed to run action')
+        if (json?.sessionId) {
+          sessionIdRef.current = json.sessionId
+        }
+        throw new Error(json?.error || `Failed to run action (${response.status})`)
+      }
+
+      if (json?.sessionId) {
+        sessionIdRef.current = json.sessionId
       }
 
       message.success(json?.message || 'Action completed')

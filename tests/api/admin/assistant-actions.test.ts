@@ -8,12 +8,24 @@ const {
   mockWriteAuditLog,
   mockGetAnalyticsSummary,
   mockFormatAnalyticsSummary,
+  mockEnsureAssistantSession,
+  mockLogAssistantEvent,
+  mockCreateProductFullPipeline,
+  mockDraftArticlePipeline,
+  mockPublishArticlePipeline,
+  mockUpdateCampaignPipeline,
 } = vi.hoisted(() => ({
   mockCreateClient: vi.fn(),
   mockCreateServiceClient: vi.fn(),
   mockWriteAuditLog: vi.fn(),
   mockGetAnalyticsSummary: vi.fn(),
   mockFormatAnalyticsSummary: vi.fn(),
+  mockEnsureAssistantSession: vi.fn(),
+  mockLogAssistantEvent: vi.fn(),
+  mockCreateProductFullPipeline: vi.fn(),
+  mockDraftArticlePipeline: vi.fn(),
+  mockPublishArticlePipeline: vi.fn(),
+  mockUpdateCampaignPipeline: vi.fn(),
 }))
 
 vi.mock('@/lib/supabase/server', () => ({
@@ -30,9 +42,53 @@ vi.mock('@/lib/analytics/overview', () => ({
   formatAnalyticsSummary: mockFormatAnalyticsSummary,
 }))
 
+vi.mock('@/lib/assistant/sessions', () => ({
+  ensureAssistantSession: mockEnsureAssistantSession,
+  logAssistantEvent: mockLogAssistantEvent,
+}))
+
+vi.mock('@/lib/assistant/pipelines/products', () => ({
+  createProductFullPipeline: mockCreateProductFullPipeline,
+}))
+
+vi.mock('@/lib/assistant/pipelines/articles', () => ({
+  draftArticlePipeline: mockDraftArticlePipeline,
+  publishArticlePipeline: mockPublishArticlePipeline,
+}))
+
+vi.mock('@/lib/assistant/pipelines/campaigns', () => ({
+  updateCampaignPipeline: mockUpdateCampaignPipeline,
+}))
+
 describe('Admin assistant actions API', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    mockEnsureAssistantSession.mockResolvedValue(undefined)
+    mockLogAssistantEvent.mockResolvedValue(undefined)
+    mockCreateProductFullPipeline.mockResolvedValue({
+      message: 'Created release',
+      productId: 'prod-123',
+      variantId: 'var-123',
+      slug: 'void-caller',
+      published: true,
+      heroUpdated: true,
+    })
+    mockDraftArticlePipeline.mockResolvedValue({
+      message: 'Drafted article',
+      articleId: 'article-1',
+      slug: 'void-caller-feature',
+      published: false,
+    })
+    mockPublishArticlePipeline.mockResolvedValue({
+      message: 'Published article “Void Caller”',
+      articleId: 'article-1',
+      slug: 'void-caller-feature',
+    })
+    mockUpdateCampaignPipeline.mockResolvedValue({
+      message: 'Updated campaign “Void Caller”',
+      campaignId: 'campaign-1',
+      slug: 'void-caller',
+    })
 
     const userRolesQuery = {
       select: vi.fn().mockReturnThis(),
@@ -65,7 +121,11 @@ describe('Admin assistant actions API', () => {
 
     const request = new NextRequest('http://localhost/api/admin/assistant/actions', {
       method: 'POST',
-      body: JSON.stringify({ type: 'summarize_analytics', parameters: { range: '7d' } }),
+      body: JSON.stringify({
+        type: 'summarize_analytics',
+        parameters: { range: '7d' },
+        sessionId: '00000000-0000-0000-0000-000000000000',
+      }),
     })
 
     const response = await POST(request)
@@ -76,6 +136,10 @@ describe('Admin assistant actions API', () => {
     expect(mockGetAnalyticsSummary).toHaveBeenCalledWith({ range: '7d', pathname: undefined })
     expect(mockWriteAuditLog).toHaveBeenCalledWith(
       expect.objectContaining({ event_type: 'assistant.analytics.summarize' })
+    )
+    expect(mockEnsureAssistantSession).toHaveBeenCalled()
+    expect(mockLogAssistantEvent).toHaveBeenCalledWith(
+      expect.objectContaining({ eventType: 'action.completed' })
     )
   })
 
@@ -118,6 +182,7 @@ describe('Admin assistant actions API', () => {
       body: JSON.stringify({
         type: 'lookup_order_status',
         parameters: { email: 'fan@example.com' },
+        sessionId: '00000000-0000-0000-0000-000000000000',
       }),
     })
 
@@ -128,6 +193,10 @@ describe('Admin assistant actions API', () => {
     expect(json.message).toContain('ORR-123456')
     expect(mockWriteAuditLog).toHaveBeenCalledWith(
       expect.objectContaining({ event_type: 'assistant.order.lookup' })
+    )
+    expect(mockEnsureAssistantSession).toHaveBeenCalled()
+    expect(mockLogAssistantEvent).toHaveBeenCalledWith(
+      expect.objectContaining({ eventType: 'action.completed' })
     )
   })
 
@@ -151,6 +220,7 @@ describe('Admin assistant actions API', () => {
       body: JSON.stringify({
         type: 'lookup_order_status',
         parameters: { order_number: 'ORR-999999' },
+        sessionId: '00000000-0000-0000-0000-000000000000',
       }),
     })
 
@@ -159,5 +229,64 @@ describe('Admin assistant actions API', () => {
 
     expect(response.status).toBe(404)
     expect(json.error).toBe('Order not found')
+    expect(mockEnsureAssistantSession).toHaveBeenCalled()
+    expect(mockLogAssistantEvent).toHaveBeenCalledWith(
+      expect.objectContaining({ eventType: 'action.failed' })
+    )
+  })
+
+  it('runs create_product_full pipeline with attachments', async () => {
+    const request = new NextRequest('http://localhost/api/admin/assistant/actions', {
+      method: 'POST',
+      body: JSON.stringify({
+        type: 'create_product_full',
+        sessionId: '00000000-0000-0000-0000-000000000000',
+        parameters: {
+          brief: 'Void Caller pressing, 200 copies at $42',
+          price: 42,
+          publish: true,
+          __attachments: [
+            { name: 'void-caller.jpg', url: 'https://cdn/void.jpg', type: 'image/jpeg' },
+          ],
+        },
+      }),
+    })
+
+    const response = await POST(request)
+    const json = await response.json()
+
+    expect(response.status).toBe(200)
+    expect(json.result.slug).toBe('void-caller')
+    expect(mockCreateProductFullPipeline).toHaveBeenCalledWith(
+      expect.objectContaining({
+        attachments: [
+          expect.objectContaining({ url: 'https://cdn/void.jpg' }),
+        ],
+      })
+    )
+    expect(mockLogAssistantEvent).toHaveBeenCalledWith(
+      expect.objectContaining({ eventType: 'action.completed' })
+    )
+  })
+
+  it('runs draft_article pipeline', async () => {
+    const request = new NextRequest('http://localhost/api/admin/assistant/actions', {
+      method: 'POST',
+      body: JSON.stringify({
+        type: 'draft_article',
+        sessionId: '00000000-0000-0000-0000-000000000000',
+        parameters: {
+          brief: 'Write a 400 word feature about Void Caller pressing',
+          __attachments: [],
+        },
+      }),
+    })
+
+    const response = await POST(request)
+    const json = await response.json()
+
+    expect(response.status).toBe(200)
+    expect(json.result.articleId).toBe('article-1')
+    expect(mockDraftArticlePipeline).toHaveBeenCalled()
   })
 })

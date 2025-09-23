@@ -258,6 +258,198 @@ export type Database = {
         }
         Relationships: []
       }
+      assistant_session_events: {
+        Row: {
+          actor_user_id: string | null
+          event_type: string
+          id: string
+          occurred_at: string
+          payload: Json
+          session_id: string
+        }
+        Insert: {
+          actor_user_id?: string | null
+          event_type: string
+          id?: string
+          occurred_at?: string
+          payload?: Json
+          session_id: string
+        }
+        Update: {
+          actor_user_id?: string | null
+          event_type?: string
+          id?: string
+          occurred_at?: string
+          payload?: Json
+          session_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "assistant_session_events_session_id_fkey"
+            columns: ["session_id"]
+            referencedRelation: "assistant_sessions"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      assistant_sessions: {
+        Row: {
+          created_at: string
+          id: string
+          last_event_at: string
+          metadata: Json
+          status: string
+          title: string | null
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          last_event_at?: string
+          metadata?: Json
+          status?: string
+          title?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          last_event_at?: string
+          metadata?: Json
+          status?: string
+          title?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "assistant_sessions_user_id_fkey"
+            columns: ["user_id"]
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      assistant_uploads: {
+        Row: {
+          file_name: string
+          id: string
+          mime_type: string | null
+          session_id: string | null
+          size_bytes: number
+          storage_path: string
+          uploaded_at: string
+          uploaded_by: string | null
+        }
+        Insert: {
+          file_name: string
+          id?: string
+          mime_type?: string | null
+          session_id?: string | null
+          size_bytes: number
+          storage_path: string
+          uploaded_at?: string
+          uploaded_by?: string | null
+        }
+        Update: {
+          file_name?: string
+          id?: string
+          mime_type?: string | null
+          session_id?: string | null
+          size_bytes?: number
+          storage_path?: string
+          uploaded_at?: string
+          uploaded_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "assistant_uploads_session_id_fkey"
+            columns: ["session_id"]
+            referencedRelation: "assistant_sessions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "assistant_uploads_uploaded_by_fkey"
+            columns: ["uploaded_by"]
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      campaigns: {
+        Row: {
+          active: boolean
+          audio_preview_url: string | null
+          background_video_url: string | null
+          badge_text: string | null
+          created_at: string
+          cta_primary_href: string | null
+          cta_primary_label: string | null
+          cta_secondary_href: string | null
+          cta_secondary_label: string | null
+          description: string | null
+          ends_at: string | null
+          highlight_items: string[] | null
+          hero_image_url: string | null
+          id: string
+          layout: string
+          slug: string
+          sort_order: number
+          starts_at: string | null
+          subtitle: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          audio_preview_url?: string | null
+          background_video_url?: string | null
+          badge_text?: string | null
+          created_at?: string
+          cta_primary_href?: string | null
+          cta_primary_label?: string | null
+          cta_secondary_href?: string | null
+          cta_secondary_label?: string | null
+          description?: string | null
+          ends_at?: string | null
+          highlight_items?: string[] | null
+          hero_image_url?: string | null
+          id?: string
+          layout?: string
+          slug: string
+          sort_order?: number
+          starts_at?: string | null
+          subtitle?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          audio_preview_url?: string | null
+          background_video_url?: string | null
+          badge_text?: string | null
+          created_at?: string
+          cta_primary_href?: string | null
+          cta_primary_label?: string | null
+          cta_secondary_href?: string | null
+          cta_secondary_label?: string | null
+          description?: string | null
+          ends_at?: string | null
+          highlight_items?: string[] | null
+          hero_image_url?: string | null
+          id?: string
+          layout?: string
+          slug?: string
+          sort_order?: number
+          starts_at?: string | null
+          subtitle?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       variants: {
         Row: {
           active: boolean

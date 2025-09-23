@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient, createServiceClient } from '@/lib/supabase/server'
+import { recordAssistantUpload } from '@/lib/assistant/sessions'
 
 const BUCKET_NAME = 'assistant-media'
 
@@ -47,6 +48,7 @@ export async function POST(request: NextRequest) {
   const formData = await request.formData()
   const file = formData.get('file')
   const intent = (formData.get('intent') as string | null) ?? 'general'
+  const sessionId = (formData.get('sessionId') as string | null) ?? null
   const intentSafe = intent.replace(/[^a-zA-Z0-9_-]/g, '-').toLowerCase() || 'general'
 
   if (!(file instanceof File)) {
@@ -74,6 +76,19 @@ export async function POST(request: NextRequest) {
 
   const { data: publicUrlData } = supabase.storage.from(BUCKET_NAME).getPublicUrl(path)
 
+  try {
+    await recordAssistantUpload({
+      storagePath: path,
+      fileName: file.name,
+      sizeBytes: file.size,
+      mimeType: file.type || null,
+      sessionId,
+      userId: admin.userId,
+    })
+  } catch (error) {
+    console.error('Failed to persist assistant upload audit', error)
+  }
+
   return NextResponse.json({
     url: publicUrlData?.publicUrl ?? '',
     path: path,
@@ -96,6 +111,12 @@ export async function DELETE(request: NextRequest) {
   const { error } = await supabase.storage.from(BUCKET_NAME).remove([path])
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 })
+  }
+
+  try {
+    await supabase.from('assistant_uploads').delete().eq('storage_path', path)
+  } catch (auditError) {
+    console.error('Failed to delete assistant upload record', auditError)
   }
 
   return NextResponse.json({ ok: true })

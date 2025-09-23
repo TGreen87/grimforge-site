@@ -29,9 +29,10 @@ Consult `AGENTS.md` for contributor expectations and deployment discipline. Use 
    - [x] Phase 1B — copilot “Receive stock” action live with confirmation modal + audit logging.
    - [x] Phase 1C — analytics summary + order lookup actions live (`assistant.analytics.summarize`, `assistant.order.lookup`).
    - [ ] Phase 2 — end-to-end pipelines (no n8n) so the assistant can launch releases solo.
-     - [ ] Implement `create_product_full` pipeline (media upload → enrichment → publish + optional hero update).
-     - [ ] Implement `draft_article` / `publish_article` pipeline with AI copy + optional imagery.
-     - [ ] Build assistant session logging + lightweight `/admin/assistant/logs` viewer.
+     - [x] Implement `create_product_full` pipeline (media upload → enrichment → publish + optional hero update).
+     - [x] Implement `draft_article` / `publish_article` pipeline with AI copy + optional imagery.
+     - [x] Ship assistant session logging (sessions, events, upload audit) wired into all assistant endpoints.
+     - [ ] Build lightweight `/admin/assistant/logs` viewer on top of the new tables.
      - [ ] Extend responses with multi-step plan previews + undo hooks for high-impact actions.
 4. **Admin dashboard 2.0 follow-ups**
    - [x] Needs fulfilment panel quick-export/filter links (CSV download + animated task list).
@@ -75,7 +76,7 @@ Consult `AGENTS.md` for contributor expectations and deployment discipline. Use 
 
 ## Documentation & Ops
 - [x] Capture assistant pipeline specs (`docs/AGENT-PIPELINES.md`) and update workflows to mention structured context panel.
-- [ ] Keep `docs/AGENT-PIPELINES.md` in sync as `create_product_full` / `draft_article` ship (note model prompts, fallbacks).
+- [x] Keep `docs/AGENT-PIPELINES.md` in sync as `create_product_full` / `draft_article` ship (note model prompts, fallbacks).
 - [ ] Capture screenshots of the new Journal layout once real articles are published.
 - [ ] Refresh `docs/PRODUCTION-LAUNCH-CHECKLIST.md` after ESP integration lands.
 - [ ] Log assistant pipeline milestones in the next session log + QA checklist once orchestration lands.

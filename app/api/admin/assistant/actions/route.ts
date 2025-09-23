@@ -5,6 +5,11 @@ import { TablesInsert } from '@/integrations/supabase/types'
 import { assistantActionTypes } from '@/lib/assistant/actions'
 import { writeAuditLog } from '@/lib/audit-logger'
 import { formatAnalyticsSummary, getAnalyticsSummary } from '@/lib/analytics/overview'
+import { ensureAssistantSession, logAssistantEvent } from '@/lib/assistant/sessions'
+import { createProductFullPipeline } from '@/lib/assistant/pipelines/products'
+import { draftArticlePipeline, publishArticlePipeline } from '@/lib/assistant/pipelines/articles'
+import { updateCampaignPipeline } from '@/lib/assistant/pipelines/campaigns'
+import { AssistantAttachment } from '@/lib/assistant/types'
 
 const actionTypeEnum = z.enum(assistantActionTypes)
 
@@ -44,6 +49,56 @@ const lookupOrderSchema = z
 const actionPayloadSchema = z.object({
   type: actionTypeEnum,
   parameters: z.record(z.any()).default({}),
+  sessionId: z.string().uuid().optional(),
+})
+
+const createProductFullSchema = z.object({
+  brief: z.string().optional(),
+  title: z.string().optional(),
+  artist: z.string().optional(),
+  format: z.string().optional(),
+  price: z.coerce.number().positive().optional(),
+  stock: z.coerce.number().int().min(0).optional(),
+  publish: z.boolean().optional(),
+  featureOnHero: z.boolean().optional(),
+  heroLayout: z.string().optional(),
+  heroSubtitle: z.string().optional(),
+  heroBadge: z.string().optional(),
+  heroHighlights: z.string().optional(),
+  tags: z.string().optional(),
+})
+
+const draftArticleSchema = z.object({
+  brief: z.string().min(8),
+  title: z.string().optional(),
+  wordCount: z.coerce.number().optional(),
+  publish: z.boolean().optional(),
+  featured: z.boolean().optional(),
+  tags: z.string().optional(),
+  productSlug: z.string().optional(),
+})
+
+const publishArticleSchema = z.object({
+  articleId: z.string().uuid().optional(),
+  slug: z.string().optional(),
+  featured: z.boolean().optional(),
+})
+
+const updateCampaignSchema = z.object({
+  slug: z.string().min(2),
+  title: z.string().min(3),
+  subtitle: z.string().optional(),
+  description: z.string().optional(),
+  layout: z.string().optional(),
+  badgeText: z.string().optional(),
+  highlightBullets: z.string().optional(),
+  ctaPrimaryLabel: z.string().optional(),
+  ctaPrimaryHref: z.string().optional(),
+  ctaSecondaryLabel: z.string().optional(),
+  ctaSecondaryHref: z.string().optional(),
+  activate: z.boolean().optional(),
+  imageUrl: z.string().url().optional(),
+  backgroundVideoUrl: z.string().url().optional(),
 })
 
 function slugify(input: string) {
@@ -335,41 +390,178 @@ async function handleLookupOrderStatus(payload: z.infer<typeof lookupOrderSchema
 }
 
 export async function POST(request: NextRequest) {
+  let sessionId: string | null = null
+  let adminUserId: string | null = null
+  let parsed: z.infer<typeof actionPayloadSchema> | null = null
+  let rawBody: unknown
   try {
-    const body = await request.json()
-    const parsed = actionPayloadSchema.parse(body)
+    rawBody = await request.json()
+    parsed = actionPayloadSchema.parse(rawBody)
 
     const admin = await assertAdmin(request)
     if (!admin.ok) {
       return admin.error
+    }
+    adminUserId = admin.userId
+
+    sessionId = parsed.sessionId ?? null
+    if (sessionId) {
+      await ensureAssistantSession({ sessionId, userId: adminUserId })
     }
 
     switch (parsed.type) {
       case 'create_product_draft': {
         const payload = createProductDraftSchema.parse(parsed.parameters)
         const result = await handleCreateProductDraft(payload, admin.userId)
+        if (sessionId) {
+          await logAssistantEvent({
+            sessionId,
+            userId: adminUserId,
+            eventType: 'action.completed',
+            payload: {
+              type: parsed.type,
+              result,
+            },
+          })
+        }
         return NextResponse.json({ ok: true, message: result.message, result })
       }
       case 'receive_stock': {
         const payload = receiveStockSchema.parse(parsed.parameters)
         const result = await handleReceiveStock(payload, admin.userId)
         if ('notFound' in result) {
+          if (sessionId) {
+            await logAssistantEvent({
+              sessionId,
+              userId: adminUserId,
+              eventType: 'action.failed',
+              payload: { type: parsed.type, error: 'Variant not found', parameters: payload },
+            })
+          }
           return NextResponse.json({ error: 'Variant not found' }, { status: 404 })
+        }
+        if (sessionId) {
+          await logAssistantEvent({
+            sessionId,
+            userId: adminUserId,
+            eventType: 'action.completed',
+            payload: {
+              type: parsed.type,
+              result,
+            },
+          })
         }
         return NextResponse.json({ ok: true, message: result.message, result })
       }
       case 'summarize_analytics': {
         const payload = summarizeAnalyticsSchema.parse(parsed.parameters)
         const result = await handleSummarizeAnalytics(payload, admin.userId)
+        if (sessionId) {
+          await logAssistantEvent({
+            sessionId,
+            userId: adminUserId,
+            eventType: 'action.completed',
+            payload: {
+              type: parsed.type,
+              result,
+            },
+          })
+        }
         return NextResponse.json({ ok: true, message: result.message, result })
       }
       case 'lookup_order_status': {
         const payload = lookupOrderSchema.parse(parsed.parameters)
         const result = await handleLookupOrderStatus(payload, admin.userId)
         if ('notFound' in result) {
+          if (sessionId) {
+            await logAssistantEvent({
+              sessionId,
+              userId: adminUserId,
+              eventType: 'action.failed',
+              payload: { type: parsed.type, error: 'Order not found', parameters: payload },
+            })
+          }
           return NextResponse.json({ error: 'Order not found' }, { status: 404 })
         }
+        if (sessionId) {
+          await logAssistantEvent({
+            sessionId,
+            userId: adminUserId,
+            eventType: 'action.completed',
+            payload: {
+              type: parsed.type,
+              result,
+            },
+          })
+        }
         return NextResponse.json({ ok: true, message: result.message, result })
+      }
+      case 'create_product_full': {
+        const { attachments, cleaned } = extractAttachments(parsed.parameters)
+        const payload = createProductFullSchema.parse(cleaned)
+        const result = await createProductFullPipeline({
+          input: payload,
+          attachments,
+          userId: adminUserId,
+        })
+        if (sessionId) {
+          await logAssistantEvent({
+            sessionId,
+            userId: adminUserId,
+            eventType: 'action.completed',
+            payload: { type: parsed.type, result },
+          })
+        }
+        return NextResponse.json({ ok: true, message: result.message, result, sessionId })
+      }
+      case 'draft_article': {
+        const { attachments, cleaned } = extractAttachments(parsed.parameters)
+        const payload = draftArticleSchema.parse(cleaned)
+        const result = await draftArticlePipeline({
+          input: payload,
+          attachments,
+          userId: adminUserId,
+        })
+        if (sessionId) {
+          await logAssistantEvent({
+            sessionId,
+            userId: adminUserId,
+            eventType: 'action.completed',
+            payload: { type: parsed.type, result },
+          })
+        }
+        return NextResponse.json({ ok: true, message: result.message, result, sessionId })
+      }
+      case 'publish_article': {
+        const payload = publishArticleSchema.parse(parsed.parameters)
+        const result = await publishArticlePipeline({
+          articleId: payload.articleId,
+          slug: payload.slug,
+          featured: payload.featured,
+          userId: adminUserId,
+        })
+        if (sessionId) {
+          await logAssistantEvent({
+            sessionId,
+            userId: adminUserId,
+            eventType: 'action.completed',
+            payload: { type: parsed.type, result },
+          })
+        }
+        return NextResponse.json({ ok: true, message: result.message, result, sessionId })
+      }
+      case 'update_campaign': {
+        const payload = updateCampaignSchema.parse(parsed.parameters)
+        const result = await updateCampaignPipeline({ input: payload, userId: adminUserId })
+        if (sessionId) {
+          await logAssistantEvent({
+            sessionId,
+            userId: adminUserId,
+            eventType: 'action.completed',
+            payload: { type: parsed.type, result },
+          })
+        }
+        return NextResponse.json({ ok: true, message: result.message, result, sessionId })
       }
       default:
         return NextResponse.json({ error: 'Unsupported action' }, { status: 400 })
@@ -377,6 +569,47 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('Assistant action failed', error)
     const message = error instanceof Error ? error.message : 'Unexpected error'
-    return NextResponse.json({ error: message }, { status: 500 })
+    if (sessionId) {
+      try {
+        await logAssistantEvent({
+          sessionId,
+          userId: adminUserId ?? null,
+          eventType: 'action.failed',
+          payload: { type: parsed?.type ?? (typeof rawBody === 'object' && rawBody ? (rawBody as any).type : undefined), error: message },
+        })
+      } catch (logError) {
+        console.error('Failed to log assistant action error', logError)
+      }
+    }
+    return NextResponse.json({ error: message, sessionId: sessionId ?? undefined }, { status: 500 })
+  }
+}
+
+function extractAttachments(parameters: Record<string, unknown>): { attachments: AssistantAttachment[]; cleaned: Record<string, unknown> } {
+  const { __attachments, ...rest } = parameters as Record<string, unknown> & { __attachments?: unknown }
+  const attachments: AssistantAttachment[] = []
+
+  if (Array.isArray(__attachments)) {
+    for (const raw of __attachments) {
+      const normalised = normaliseAttachment(raw)
+      if (normalised) {
+        attachments.push(normalised)
+      }
+    }
+  }
+
+  return { attachments, cleaned: rest }
+}
+
+function normaliseAttachment(raw: unknown): AssistantAttachment | null {
+  if (!raw || typeof raw !== 'object') return null
+  const candidate = raw as Record<string, unknown>
+  if (typeof candidate.url !== 'string') return null
+  return {
+    name: typeof candidate.name === 'string' ? candidate.name : 'attachment',
+    url: candidate.url,
+    type: typeof candidate.type === 'string' ? candidate.type : null,
+    storagePath: typeof candidate.storagePath === 'string' ? candidate.storagePath : null,
+    size: typeof candidate.size === 'number' ? candidate.size : null,
   }
 }
