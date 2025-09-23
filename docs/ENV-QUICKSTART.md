@@ -30,6 +30,8 @@ Key references
 - `NEXT_PUBLIC_ENABLE_ADMIN_BULK` — Feature flag for admin bulk tooling
 - `NEXT_PUBLIC_FEATURE_HERO_CAMPAIGN` — Feature flag for the campaign-driven storefront hero (set to `1` to enable)
 - `SLACK_OPS_WEBHOOK` (future) — if populated, Slack notifications for fulfilment alerts can be toggled in admin settings
+- `ASSISTANT_PIPELINE_MODEL` — Override enrichment model used for product/article pipelines (default `gpt-4.1-mini`; set to an available GPT-5 model when enabled).
+- `ASSISTANT_CHAT_MODEL` — Override conversational model used by `/api/admin/assistant` (default `gpt-4.1-mini`).
 
 ## Where to set them
 - Netlify Site settings → Environment variables → add at “All deploy contexts”, so Branch Deploys inherit them.

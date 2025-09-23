@@ -6,7 +6,7 @@ import { assistantActionTypes, buildActionsPrompt } from '@/lib/assistant/action
 import { ensureAssistantSession, logAssistantEvent } from '@/lib/assistant/sessions'
 import { assertAdmin } from '@/lib/assistant/auth'
 
-const OPENAI_MODEL = 'gpt-4.1-mini'
+const OPENAI_MODEL = process.env.ASSISTANT_CHAT_MODEL || 'gpt-4.1-mini'
 
 const actionTypeEnum = z.enum(assistantActionTypes)
 
