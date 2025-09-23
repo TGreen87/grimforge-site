@@ -21,7 +21,7 @@ This note explains how to keep each file in the `docs/` directory current. Pair 
 - **ADMIN-VISUALS-RFC.md** — RFC for the ongoing admin visual overhaul. Keep status bullets in sync with implemented tokens/layout changes.
 - **IMPLEMENTATION-PLAN.md** — Long-term roadmap broken into phases. Mark completion and adjust scope whenever features ship or priorities shift.
 - **NEXT-STEPS.md** — Immediate backlog snapshot. Refresh after each working block (especially “Immediate Next Steps”).
-- **SESSION-*.md** — Session logs (latest `SESSION-2025-09-23.md`). Add a new dated file when major working sessions occur; capture decisions and context.
+- **SESSION-*.md** — Session logs (latest `SESSION-2025-09-23.md`). Add a new dated file when major working sessions occur; capture decisions and context. Older notes now live under `docs/archive/<year-month>/` to keep the root tidy.
 
 ## Environment & Ops
 - **ENV-QUICKSTART.md** — Runtime/build env requirements for Netlify + local dev. Update when secrets, optional services (AusPost, Stripe), or verification steps change.
