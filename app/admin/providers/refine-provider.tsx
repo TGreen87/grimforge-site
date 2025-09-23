@@ -19,7 +19,8 @@ import {
   NotificationOutlined,
   SettingOutlined,
   BookOutlined,
-  LineChartOutlined
+  LineChartOutlined,
+  ThunderboltOutlined
 } from "@ant-design/icons";
 import "@refinedev/antd/dist/reset.css";
 
@@ -77,6 +78,14 @@ const resources = [
     meta: {
       label: "Analytics",
       icon: <LineChartOutlined />,
+    },
+  },
+  {
+    name: "assistant_sessions",
+    list: "/admin/assistant/logs",
+    meta: {
+      label: "Assistant Logs",
+      icon: <ThunderboltOutlined />,
     },
   },
   {

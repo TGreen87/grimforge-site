@@ -185,6 +185,37 @@ export interface CampaignRevision {
   created_at: string;
 }
 
+export interface AssistantSession {
+  id: string;
+  user_id?: string | null;
+  status: 'active' | 'completed' | 'failed' | string;
+  title?: string | null;
+  metadata?: Record<string, unknown> | null;
+  last_event_at: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface AssistantSessionEvent {
+  id: string;
+  session_id: string;
+  event_type: string;
+  payload?: Record<string, unknown> | null;
+  actor_user_id?: string | null;
+  occurred_at: string;
+}
+
+export interface AssistantUpload {
+  id: string;
+  storage_path: string;
+  file_name: string;
+  size_bytes: number;
+  mime_type?: string | null;
+  session_id?: string | null;
+  uploaded_by?: string | null;
+  uploaded_at: string;
+}
+
 // Form types for create/edit operations
 export interface ProductFormValues {
   slug?: string;

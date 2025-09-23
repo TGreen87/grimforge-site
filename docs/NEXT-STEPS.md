@@ -32,7 +32,7 @@ Consult `AGENTS.md` for contributor expectations and deployment discipline. Use 
      - [x] Implement `create_product_full` pipeline (media upload → enrichment → publish + optional hero update).
      - [x] Implement `draft_article` / `publish_article` pipeline with AI copy + optional imagery.
      - [x] Ship assistant session logging (sessions, events, upload audit) wired into all assistant endpoints.
-     - [ ] Build lightweight `/admin/assistant/logs` viewer on top of the new tables.
+     - [x] Build lightweight `/admin/assistant/logs` viewer on top of the new tables.
      - [ ] Extend responses with multi-step plan previews + undo hooks for high-impact actions.
 4. **Admin dashboard 2.0 follow-ups**
    - [x] Needs fulfilment panel quick-export/filter links (CSV download + animated task list).

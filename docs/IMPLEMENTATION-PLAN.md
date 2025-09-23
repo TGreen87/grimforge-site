@@ -227,7 +227,8 @@ Status:
   - ✅ Full product pipeline live (`create_product_full`) with hero spotlight integration and audit trail (2025-09-23).
   - ✅ Article drafting/publishing pipeline live with markdown generation and audit logging (2025-09-23).
   - ✅ Assistant session + event logging (including upload audit) wired into all assistant endpoints.
-  - 🚧 Undo hooks and `/admin/assistant/logs` viewer still pending.
+  - ✅ `/admin/assistant/logs` viewer surfaces sessions, events, and attachments (2025-09-23).
+  - 🚧 Undo hooks and plan preview UX still pending.
 
 ## Rollback
 - Netlify: reset Node to previous major if a runtime regression appears; rebuild branch.
