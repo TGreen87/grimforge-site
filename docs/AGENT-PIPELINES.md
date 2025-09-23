@@ -1,6 +1,6 @@
 # Admin Copilot Pipelines
 
-_Last updated: 2025-09-23_
+_Last updated: 2025-09-23 (plan previews + undo tokens)_
 
 Purpose: Define the conversational flows and technical orchestration required for the assistant to execute end‑to‑end admin tasks (no n8n dependency). These pipelines guide implementation of new assistant actions and supporting services.
 
@@ -73,15 +73,14 @@ Purpose: Define the conversational flows and technical orchestration required fo
 
 ## Cross-Cutting Considerations
 - **Validation**: All assistant APIs enforce admin auth before OpenAI/DB calls; missing essentials (price, brief) short-circuit with actionable errors.
-- **Sessions**: `assistant_sessions`, `assistant_session_events`, and `assistant_uploads` persist chat history, actions, and media for audit.
+- **Sessions**: `assistant_sessions`, `assistant_session_events`, `assistant_uploads`, and `assistant_action_undos` persist chat history, actions, media, and undo availability for audit.
 - **Attachments**: UI uploads pass `sessionId`; server records Storage path + size for compliance.
-- **Plan Previews**: The assistant drawer now shows multi-step plans (risk + undo notes) before any high-impact action runs.
-- **Undo / Rollback**: Product/article/campaign actions issue time-boxed undo tokens surfaced in the drawer; undoing deletes the generated assets or restores the previous state.
-- **Telemetry**: Session logging now live; `/admin/assistant/logs` viewer planned to surface events.
-- **Documentation**: Keep this spec, `docs/ADMIN-WORKFLOWS.md`, and QA scripts synced when prompts or pipelines evolve.
+- **Plan Previews**: The assistant drawer shows multi-step plans (risk + undo notes) before any high-impact action runs. Update `lib/assistant/plans.ts` plus QA docs when steps change.
+- **Undo / Rollback**: Product/article/campaign actions issue time-boxed undo tokens (`assistant_action_undos`) surfaced in the drawer; undoing deletes generated assets or restores the previous state. Extend `/api/admin/assistant/actions/undo` whenever new pipelines appear.
+- **Telemetry**: Session logging is live; `/admin/assistant/logs` surfaces the feed for verification.
+- **Documentation**: Keep this spec, `docs/ADMIN-WORKFLOWS.md`, and QA scripts in sync with prompt/plan/undo behaviour.
 
 ## Next Steps (Implementation Order)
-1. Add assistant session viewer UI under `/admin/assistant/logs` (leveraging new tables).
-2. Expose undo/rollback helpers for high-impact actions (product activation, campaign replacement).
-3. Expand QA automation (Puppeteer/Vitest) to cover pipeline happy paths end-to-end.
-4. Document owner workflows around the new assistant capabilities (admin handbook + videos pending).
+1. Re-enable Vitest suites for assistant undo once shared mocks/env are restored; add assertions for plan preview text and undo expiry messaging.
+2. Expand QA automation (Puppeteer/Vitest) to cover pipeline happy paths end-to-end, including upload → run → undo.
+3. Document owner workflows (admin handbook + videos) that illustrate reviewing plans and using undo tokens.

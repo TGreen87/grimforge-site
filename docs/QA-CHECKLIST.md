@@ -98,6 +98,8 @@ Tip: Use a temporary QA admin account (email/password) for branch testing, or lo
 - Run “Create & publish product” against a throwaway slug: product/variant/inventory rows appear, optional hero update toggles, and audit logs (`assistant.product.full_create`) plus session events exist. Remove the product afterwards.
 - Run “Draft article” with a short brief: article saved (draft by default), slug returned, and audit log `assistant.article.create` present. Optionally run “Publish article” to confirm publish toggle.
 - Campaign update action rewrites hero data (title/subtitle/highlights) and sets active flag when requested.
+- Suggested actions display a plan preview (multi-step list + risk label) before “Review & Run”; confirm the copy matches expectations.
+- After executing a high-impact action, undo toast appears with expiry; trigger `/api/admin/assistant/actions/undo` to verify the rollback deletes temporary records or restores previous campaign state.
 - Session logs page (`/admin/assistant/logs`) lists recent sessions, events timeline, and attachments; data matches `assistant_sessions`, `assistant_session_events`, and `assistant_uploads` entries.
 - Audit logs for assistant actions present (`assistant.analytics.summarize`, `assistant.order.lookup`, `assistant.inventory.receive`, etc.).
 

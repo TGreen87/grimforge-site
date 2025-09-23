@@ -73,6 +73,7 @@ Consult `AGENTS.md` for contributor expectations and deployment discipline. Use 
 - [ ] Reduce ESLint `no-explicit-any` debt — storefront product detail & article metadata now typed (2025-09-22); bring admin dashboards/contexts in line next.
 - [ ] Add Vitest coverage for assistant upload endpoint & future pipeline orchestrators.
 - [ ] Add Playwright/puppeteer smoke covering “upload media → publish product” once pipeline lands.
+- [ ] Re-enable assistant undo Vitest suites (currently skipped) once checkout/Stripe mocks are restored; add assertions for plan preview copy + undo expiry.
 
 ## Documentation & Ops
 - [x] Capture assistant pipeline specs (`docs/AGENT-PIPELINES.md`) and update workflows to mention structured context panel.

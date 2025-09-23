@@ -16,7 +16,7 @@ Use this index as the starting point before touching code or deployments. Pair i
 - [`SUPABASE-SEED.md`](SUPABASE-SEED.md) – Commands + SQL snippets for seeding test data.
 - [`SHIPPING-AUSPOST.md`](SHIPPING-AUSPOST.md) – AusPost integration setup and fallback logic.
 - [`ADMIN-WORKFLOWS.md`](ADMIN-WORKFLOWS.md) – Day-to-day admin tasks, bulk actions, fulfilment flows.
-- [`AGENT-PIPELINES.md`](AGENT-PIPELINES.md) – Assistant orchestration specs (product/article pipelines, media ingestion).
+- [`AGENT-PIPELINES.md`](AGENT-PIPELINES.md) – Assistant orchestration specs (product/article pipelines, media ingestion, plan previews, undo tokens).
 
 ## Design & RFCs
 - [`SITE-VISUALS-RFC.md`](SITE-VISUALS-RFC.md) – Storefront visual refresh specs (campaign hero, storytelling, Journal blocks).
