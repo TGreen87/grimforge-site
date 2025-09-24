@@ -412,6 +412,13 @@ export default function AdminAssistantDrawer({ open, onClose }: AdminAssistantDr
     } catch (error) {
       const reason = error instanceof Error ? error.message : 'Unknown error'
       message.error(reason)
+      setMessages((current) => [
+        ...current,
+        {
+          role: 'assistant',
+          content: reason,
+        },
+      ])
     } finally {
       setActionLoading(false)
       setPendingAction(null)
