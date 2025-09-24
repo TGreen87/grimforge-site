@@ -32,6 +32,9 @@ Key references
 - `SLACK_OPS_WEBHOOK` (future) — if populated, Slack notifications for fulfilment alerts can be toggled in admin settings
 - `ASSISTANT_PIPELINE_MODEL` — Override enrichment model used for product/article pipelines (default `gpt-4.1-mini`; set to an available GPT-5 model when enabled).
 - `ASSISTANT_CHAT_MODEL` — Override conversational model used by `/api/admin/assistant` (default `gpt-4.1-mini`).
+- `ASSISTANT_CHAT_SYSTEM_PROMPT` — Optional override for the copilot’s system prompt (defaults to a friendly owner-facing brief).
+- `ASSISTANT_PRODUCT_SYSTEM_PROMPT` — Optional override for product copy generation tone/content.
+- `ASSISTANT_ARTICLE_SYSTEM_PROMPT` — Optional override for article drafting tone/content.
 
 ## Where to set them
 - Netlify Site settings → Environment variables → add at “All deploy contexts”, so Branch Deploys inherit them.

@@ -19,6 +19,10 @@ const ARTICLE_SCHEMA_DESCRIPTION = `{
   "tags": string array (max 6 entries)
 }`
 
+const ARTICLE_SYSTEM_PROMPT =
+  process.env.ASSISTANT_ARTICLE_SYSTEM_PROMPT ||
+  'You are the in-house writer for Obsidian Rite Records. Craft atmospheric yet clear label updates that celebrate underground releases. Keep copy grounded in the provided brief, highlight sensory production details, and end with an inviting call-to-action.'
+
 export interface DraftArticleInput {
   brief: string
   title?: string
@@ -73,9 +77,7 @@ export async function draftArticlePipeline(options: {
   ].filter(Boolean).join('\n')
 
   const article = await callOpenAIJson({
-    systemPrompt:
-      'You are the in-house writer for Obsidian Rite Records. Compose atmospheric but informative updates for releases and label news. ' +
-      'Avoid cliché metal tropes; focus on sensory detail and production notes.',
+    systemPrompt: ARTICLE_SYSTEM_PROMPT,
     userPrompt,
     schema: ARTICLE_SCHEMA,
     schemaDescription: ARTICLE_SCHEMA_DESCRIPTION,

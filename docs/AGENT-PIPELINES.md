@@ -79,7 +79,7 @@ Purpose: Define the conversational flows and technical orchestration required fo
 - **Undo / Rollback**: Product/article/campaign actions issue time-boxed undo tokens (`assistant_action_undos`) surfaced in the drawer; undoing deletes generated assets or restores the previous state. Extend `/api/admin/assistant/actions/undo` whenever new pipelines appear.
 - **Telemetry**: Session logging is live; `/admin/assistant/logs` surfaces the feed for verification.
 - **Documentation**: Keep this spec, `docs/ADMIN-WORKFLOWS.md`, and QA scripts in sync with prompt/plan/undo behaviour.
-- **Models**: Chat completions use `ASSISTANT_CHAT_MODEL` (default `gpt-4.1-mini`); pipeline enrichment uses `ASSISTANT_PIPELINE_MODEL` (default `gpt-4.1-mini`). Update env vars when switching to newer OpenAI models (e.g., GPT‑5).
+- **Models & Prompts**: Chat completions use `ASSISTANT_CHAT_MODEL` (default `gpt-4.1-mini`) and respect `ASSISTANT_CHAT_SYSTEM_PROMPT`. Pipelines use `ASSISTANT_PIPELINE_MODEL` plus optional `ASSISTANT_PRODUCT_SYSTEM_PROMPT` / `ASSISTANT_ARTICLE_SYSTEM_PROMPT`. Override these env vars when switching to GPT‑5 (Codex) or tailoring tone.
 
 ## Next Steps (Implementation Order)
 1. Re-enable Vitest suites for assistant undo once shared mocks/env are restored; add assertions for plan preview text and undo expiry messaging.

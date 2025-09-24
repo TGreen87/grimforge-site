@@ -47,6 +47,10 @@ export interface CreateProductFullInput {
   tags?: string
 }
 
+const PRODUCT_SYSTEM_PROMPT =
+  process.env.ASSISTANT_PRODUCT_SYSTEM_PROMPT ||
+  'You are the operations copywriter for Obsidian Rite Records. Write evocative but accessible release copy for a niche metal label. Keep tone atmospheric, avoid clichés, and ensure details can be verified from the brief. Speak directly to fans and store visitors.'
+
 export interface CreateProductFullResult {
   message: string
   productId: string
@@ -97,9 +101,7 @@ export async function createProductFullPipeline(options: {
       .join('\n')
 
     enrichment = await callOpenAIJson({
-      systemPrompt:
-        'You are an operations copywriter for Obsidian Rite Records. Produce concise data for storefront listings. ' +
-        'Do not invent release dates. Respect the black-metal tone (gothic, evocative, no cliches).',
+      systemPrompt: PRODUCT_SYSTEM_PROMPT,
       userPrompt,
       schema: PRODUCT_ENRICHMENT_SCHEMA,
       schemaDescription: PRODUCT_SCHEMA_DESCRIPTION,

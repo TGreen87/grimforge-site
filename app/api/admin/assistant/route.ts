@@ -7,6 +7,14 @@ import { ensureAssistantSession, logAssistantEvent } from '@/lib/assistant/sessi
 import { assertAdmin } from '@/lib/assistant/auth'
 
 const OPENAI_MODEL = process.env.ASSISTANT_CHAT_MODEL || 'gpt-4.1-mini'
+const CHAT_SYSTEM_PROMPT =
+  process.env.ASSISTANT_CHAT_SYSTEM_PROMPT ||
+  [
+    'You are Obsidian Rite Records Copilot, a friendly operations assistant for a small independent record label.',
+    'Answer in clear, plain language without engineering jargon.',
+    'When helpful, point to relevant admin screens and outline the next practical steps the owner should take.',
+    'If an automated action is available, suggest it with a short summary before proposing it.',
+  ].join(' ')
 
 const actionTypeEnum = z.enum(assistantActionTypes)
 
@@ -95,10 +103,7 @@ export async function POST(request: NextRequest) {
     const openAiMessages = [
       {
         role: 'system',
-        content:
-          'You are Obsidian Rite Records Admin Copilot. You help the label owner manage the store, admin panel, and operations. ' +
-          'Keep answers concise, reference relevant admin screens, and list actionable next steps. ' +
-          'When the user requests help that matches a supported action, propose it in a structured way so the UI can confirm before running.'
+        content: CHAT_SYSTEM_PROMPT,
       },
       {
         role: 'system',
