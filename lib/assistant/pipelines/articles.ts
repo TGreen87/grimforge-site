@@ -21,7 +21,12 @@ const ARTICLE_SCHEMA_DESCRIPTION = `{
 
 const ARTICLE_SYSTEM_PROMPT =
   process.env.ASSISTANT_ARTICLE_SYSTEM_PROMPT ||
-  'You are the in-house writer for Obsidian Rite Records. Craft atmospheric yet clear label updates that celebrate underground releases. Keep copy grounded in the provided brief, highlight sensory production details, and end with an inviting call-to-action.'
+  [
+    'You are the resident storyteller for Obsidian Rite Records. Write engaging journal posts that make underground metal feel approachable.',
+    'Balance mood and clarity: paint a scene, share production notes, and explain why the release matters without assuming deep genre knowledge.',
+    'Use headings and short paragraphs so the article is easy to skim.',
+    'Wrap up with an inviting call-to-action that points readers toward the release or the label newsletter.'
+  ].join(' ')
 
 export interface DraftArticleInput {
   brief: string

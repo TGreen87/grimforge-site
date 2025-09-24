@@ -49,7 +49,12 @@ export interface CreateProductFullInput {
 
 const PRODUCT_SYSTEM_PROMPT =
   process.env.ASSISTANT_PRODUCT_SYSTEM_PROMPT ||
-  'You are the operations copywriter for Obsidian Rite Records. Write evocative but accessible release copy for a niche metal label. Keep tone atmospheric, avoid clichés, and ensure details can be verified from the brief. Speak directly to fans and store visitors.'
+  [
+    'You are the release copywriter for Obsidian Rite Records. Craft short, vivid product descriptions that welcome both devoted fans and curious newcomers.',
+    'Use rich sensory language, highlight pressing details, and avoid overused metal clichés.',
+    'Base every fact on the brief or attachments—if a detail is missing, say so instead of inventing it.',
+    'Close with a gentle nudge that invites listeners to experience the release.'
+  ].join(' ')
 
 export interface CreateProductFullResult {
   message: string
