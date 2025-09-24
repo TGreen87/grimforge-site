@@ -478,11 +478,22 @@ export async function POST(request: NextRequest) {
       case 'create_product_full': {
         const { attachments, cleaned } = extractAttachments(parsed.parameters)
         const payload = createProductFullSchema.parse(cleaned)
-        const result = await createProductFullPipeline({
-          input: payload,
-          attachments,
-          userId: adminUserId,
-        })
+        let result
+        try {
+          result = await createProductFullPipeline({
+            input: payload,
+            attachments,
+            userId: adminUserId,
+          })
+        } catch (error) {
+          if (error instanceof Error) {
+            const friendly = normaliseCreateProductError(error.message)
+            if (friendly) {
+              return NextResponse.json({ error: friendly, sessionId: sessionId ?? undefined }, { status: 400 })
+            }
+          }
+          throw error
+        }
         const { undo: undoPayload, ...resultWithoutUndo } = result
         let undoToken: { token: string; expiresAt: string } | null = null
         if (undoPayload) {
@@ -687,4 +698,18 @@ function normaliseAttachment(raw: unknown): AssistantAttachment | null {
     storagePath: typeof candidate.storagePath === 'string' ? candidate.storagePath : null,
     size: typeof candidate.size === 'number' ? candidate.size : null,
   }
+}
+
+function normaliseCreateProductError(message: string): string | null {
+  const lower = message.toLowerCase()
+  if (lower.includes('price is required')) {
+    return 'I need a price to list this release. What should we charge (in AUD)?'
+  }
+  if (lower.includes('could not determine title') || lower.includes('determine title and artist')) {
+    return 'I need both the title and the artist to create this product. Can you share those?'
+  }
+  if (lower.includes('description to populate')) {
+    return 'Give me a short brief or description so I can write the storefront copy.'
+  }
+  return null
 }

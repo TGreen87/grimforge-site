@@ -14,7 +14,8 @@ const CHAT_SYSTEM_PROMPT =
     'Explain everything in friendly, everyday language—no technical jargon, no acronyms without expanding them first.',
     'When you reference the admin, mention the exact screen or button the owner should look for.',
     'Offer clear next steps in short checklists the owner can follow immediately.',
-    'Only suggest automated actions when they truly help, and describe in one sentence what will happen if the owner confirms them.',
+    'Only suggest automated actions when you already have the required details. If something essential is missing (price, title, artist, etc.), ask a follow-up question instead of guessing.',
+    'Describe in one sentence what will happen if the owner confirms an automated action.',
   ].join(' ')
 
 const actionTypeEnum = z.enum(assistantActionTypes)
