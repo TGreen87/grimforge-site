@@ -35,6 +35,9 @@ Key references
 - `ASSISTANT_CHAT_SYSTEM_PROMPT` — Optional override for the copilot’s system prompt (defaults to a friendly owner-facing brief).
 - `ASSISTANT_PRODUCT_SYSTEM_PROMPT` — Optional override for product copy generation tone/content.
 - `ASSISTANT_ARTICLE_SYSTEM_PROMPT` — Optional override for article drafting tone/content.
+- `ASSISTANT_ADMIN_TOKEN` — Secret key that authorises `/api/admin/assistant` (chat, actions, uploads) without relying on Supabase cookies. Supply it via `Authorization: Bearer <token>` or `x-assistant-api-key`.
+- `ASSISTANT_ALLOW_PREVIEW` — Set to `1` to bypass Supabase auth on any host (otherwise only Netlify branch deploys are implicitly trusted).
+- `ASSISTANT_ALLOW_LOCALHOST` — Defaults to `0` in this repo so the shared `dev` branch stays locked down. Raise to `1` only if you intentionally run trusted local builds.
 
 ## Where to set them
 - Netlify Site settings → Environment variables → add at “All deploy contexts”, so Branch Deploys inherit them.

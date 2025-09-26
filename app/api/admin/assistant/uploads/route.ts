@@ -1,31 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient, createServiceClient } from '@/lib/supabase/server'
+import { createServiceClient } from '@/lib/supabase/server'
 import { recordAssistantUpload } from '@/lib/assistant/sessions'
+import { assertAdmin } from '@/lib/assistant/auth'
 
 const BUCKET_NAME = 'assistant-media'
-
-async function assertAdmin(request: NextRequest) {
-  const supabase = createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-
-  if (!user) {
-    return { ok: false as const, error: NextResponse.json({ error: 'Unauthorized' }, { status: 401 }) }
-  }
-
-  const { data: role } = await supabase
-    .from('user_roles')
-    .select('role')
-    .eq('user_id', user.id)
-    .maybeSingle()
-
-  if ((role?.role ?? '').toLowerCase() === 'admin') {
-    return { ok: true as const, userId: user.id }
-  }
-
-  return { ok: false as const, error: NextResponse.json({ error: 'Forbidden' }, { status: 403 }) }
-}
 
 async function ensureBucket() {
   const supabase = createServiceClient()

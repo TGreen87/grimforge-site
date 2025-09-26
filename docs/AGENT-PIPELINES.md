@@ -73,6 +73,7 @@ Purpose: Define the conversational flows and technical orchestration required fo
 
 ## Cross-Cutting Considerations
 - **Validation**: All assistant APIs enforce admin auth before OpenAI/DB calls; missing essentials (price, brief) short-circuit with actionable errors.
+- **Auth Modes**: Supabase admin sessions remain the primary gate. For automation or device flows, set `ASSISTANT_ADMIN_TOKEN` and send it via `Authorization: Bearer <token>` (or `x-assistant-api-key`) to unlock chat, actions, and uploads without a browser session. Netlify previews and localhost in dev also bypass auth when `ASSISTANT_ALLOW_PREVIEW` / `ASSISTANT_ALLOW_LOCALHOST` are enabled.
 - **Sessions**: `assistant_sessions`, `assistant_session_events`, `assistant_uploads`, and `assistant_action_undos` persist chat history, actions, media, and undo availability for audit.
 - **Attachments**: UI uploads pass `sessionId`; server records Storage path + size for compliance.
 - **Plan Previews**: The assistant drawer shows multi-step plans (risk + undo notes) before any high-impact action runs. Update `lib/assistant/plans.ts` plus QA docs when steps change.
