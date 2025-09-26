@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { TextEncoder as NodeTextEncoder } from 'util'
 import { createClient } from '@/lib/supabase/server'
 
 const ADMIN_FALLBACK_TOKEN = (process.env.ASSISTANT_ADMIN_TOKEN || process.env.ASSISTANT_API_KEY || '').trim()
@@ -35,7 +36,8 @@ export function extractAssistantToken(headers: Headers) {
 }
 
 function timingSafeCompare(expected: string, provided: string) {
-  const encoder = new TextEncoder()
+  const Encoder = typeof TextEncoder !== 'undefined' ? TextEncoder : NodeTextEncoder
+  const encoder = new Encoder()
   const expectedBytes = encoder.encode(expected)
   const providedBytes = encoder.encode(provided)
 
