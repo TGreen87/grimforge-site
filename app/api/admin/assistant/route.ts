@@ -42,6 +42,56 @@ const requestSchema = z.object({
   sessionId: z.string().uuid().optional(),
 })
 
+function toResponsesInput(messages: Array<{ role: string; content: string }>) {
+  return messages.map((message) => ({
+    role: message.role,
+    content: [
+      {
+        type: 'input_text' as const,
+        text: message.content,
+      },
+    ],
+  }))
+}
+
+function extractResponsesText(json: any) {
+  const outputs = Array.isArray(json?.output) ? json.output : []
+  for (const output of outputs) {
+    const contentItems = Array.isArray(output?.content) ? output.content : []
+    const match = contentItems.find((item: any) => item?.type === 'output_text' && typeof item?.text === 'string')
+    if (match?.text) {
+      return match.text.trim()
+    }
+  }
+  return ''
+}
+
+const assistantResponseSchemaName = 'AssistantResponse'
+
+const assistantResponseSchemaDefinition = {
+  type: 'object',
+  required: ['reply'],
+  properties: {
+    reply: { type: 'string' },
+    actions: {
+      type: 'array',
+      items: {
+        type: 'object',
+        required: ['type', 'summary', 'parameters'],
+        properties: {
+          type: {
+            type: 'string',
+            enum: actionTypeEnum.options,
+          },
+          summary: { type: 'string' },
+          parameters: { type: 'object', additionalProperties: true },
+        },
+      },
+    },
+  },
+  additionalProperties: false,
+} as const
+
 function buildContextSnippet(docs: Awaited<ReturnType<typeof searchAssistantKnowledge>>) {
   return docs
     .map((doc, index) => {
@@ -118,76 +168,114 @@ export async function POST(request: NextRequest) {
       ...messages.slice(-8),
     ]
 
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+    const basePayload = {
+      model: OPENAI_MODEL,
+      temperature: 0.2,
+      response_format: {
+        type: 'json_schema',
+        json_schema: {
+          name: assistantResponseSchemaName,
+          schema: assistantResponseSchemaDefinition,
+        },
+      },
+    }
+
+    const responsesBasePayload = {
+      model: OPENAI_MODEL,
+      temperature: 0.2,
+    }
+
+    let parsedResponse: z.infer<typeof assistantResponseSchema> | null = null
+    let responseSource: 'chat' | 'responses' = 'chat'
+
+    const chatResponse = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${apiKey}`,
       },
       body: JSON.stringify({
-        model: OPENAI_MODEL,
+        ...basePayload,
         messages: openAiMessages,
-        temperature: 0.2,
-        response_format: {
-          type: 'json_schema',
-          json_schema: {
-            name: 'AssistantResponse',
-            schema: {
-              type: 'object',
-              required: ['reply'],
-              properties: {
-                reply: { type: 'string' },
-                actions: {
-                  type: 'array',
-                  items: {
-                    type: 'object',
-                    required: ['type', 'summary', 'parameters'],
-                    properties: {
-                      type: {
-                        type: 'string',
-                        enum: actionTypeEnum.options,
-                      },
-                      summary: { type: 'string' },
-                      parameters: { type: 'object', additionalProperties: true },
-                    },
-                  },
-                },
-              },
-              additionalProperties: false,
-            },
-          },
-        },
       }),
     })
 
-    if (!response.ok) {
-      const error = await response.text()
-      console.error('Assistant call failed', error)
+    let errorPayload: any = null
+
+    if (chatResponse.ok) {
+      const completion = (await chatResponse.json()) as {
+        choices: Array<{ message: { content: string } }>
+      }
+      const rawContent = completion.choices[0]?.message?.content?.trim()
+      if (rawContent) {
+        try {
+          parsedResponse = assistantResponseSchema.parse(JSON.parse(rawContent))
+        } catch {
+          parsedResponse = { reply: rawContent, actions: [] }
+        }
+      }
+    } else {
+      try {
+        errorPayload = await chatResponse.json()
+      } catch {
+        errorPayload = { error: { message: await chatResponse.text() } }
+      }
+    }
+
+    if (!parsedResponse) {
+      const message: string = errorPayload?.error?.message ?? ''
+      const requiresResponses =
+        chatResponse.status === 404 && typeof message === 'string' && message.includes('v1/responses')
+
+      if (requiresResponses) {
+        responseSource = 'responses'
+        const responsesResponse = await fetch('https://api.openai.com/v1/responses', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${apiKey}`,
+          },
+          body: JSON.stringify({
+            ...responsesBasePayload,
+            input: toResponsesInput(openAiMessages),
+          }),
+        })
+
+        if (responsesResponse.ok) {
+          const fallbackJson = await responsesResponse.json()
+          const rawText = extractResponsesText(fallbackJson)
+          if (rawText) {
+            try {
+              parsedResponse = assistantResponseSchema.parse(JSON.parse(rawText))
+            } catch {
+              parsedResponse = { reply: rawText, actions: [] }
+            }
+            errorPayload = null
+          } else {
+            errorPayload = {
+              error: { message: 'Responses API returned no output text' },
+            }
+          }
+        } else {
+          try {
+            errorPayload = await responsesResponse.json()
+          } catch {
+            errorPayload = { error: { message: await responsesResponse.text() } }
+          }
+        }
+      }
+    }
+
+    if (!parsedResponse) {
+      const errorMessage = errorPayload?.error?.message || 'Assistant request failed'
+      console.error('Assistant call failed', errorPayload)
       await logAssistantEvent({
         sessionId,
         userId: adminUserId,
         eventType: 'error',
-        payload: { scope: 'openai', message: error || 'Assistant request failed' },
+        payload: { scope: 'openai', message: errorMessage },
       })
-      return NextResponse.json({ error: 'Assistant request failed', sessionId }, { status: 500 })
-    }
-
-    const completion = (await response.json()) as {
-      choices: Array<{ message: { content: string } }>
-    }
-
-    const rawContent = completion.choices[0]?.message?.content?.trim()
-
-    if (!rawContent) {
-      return NextResponse.json({ error: 'No response generated' }, { status: 500 })
-    }
-
-    let parsedResponse: z.infer<typeof assistantResponseSchema>
-
-    try {
-      parsedResponse = assistantResponseSchema.parse(JSON.parse(rawContent))
-    } catch {
-      parsedResponse = { reply: rawContent, actions: [] }
+      return NextResponse.json({ error: errorMessage, sessionId }, { status: 500 })
     }
 
     await logAssistantEvent({
@@ -198,6 +286,7 @@ export async function POST(request: NextRequest) {
         content: parsedResponse.reply,
         actions: parsedResponse.actions ?? [],
         sources: knowledge,
+        metadata: { responseSource },
       },
     })
 
