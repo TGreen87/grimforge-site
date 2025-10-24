@@ -1,6 +1,8 @@
 # Australia Post Shipping (Scaffold)
 
-_Last updated: 2025-09-19_
+_Last updated: 2025-10-24_
+
+**Current approach:** We are relying solely on Stripe’s static shipping rates (Standard/Express) defined in `lib/stripe.ts`. Keep this guide for future reference—if AusPost credentials are absent (our current configuration), the fallback described below powers the live checkout.
 
 This repo includes a safe scaffold for quoting Australia Post rates and passing a selected option into Stripe Checkout. See `docs/README.md` for related integration guides. It degrades gracefully to static Stripe rates when AusPost env is not configured.
 

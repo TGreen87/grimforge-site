@@ -1,34 +1,33 @@
 # Next Steps (Dev Branch)
 
-Last modified: 2025-09-24
+Last modified: 2025-10-24
 
 This backlog captures the active workstreams after the storefront storytelling cleanup and Journal integration. Ship everything on `dev`; promote to `main` only after the full QA loop completes.
 
 Consult `AGENTS.md` for contributor expectations and deployment discipline. Use `docs/README.md` for the documentation index.
 
-## Snapshot — 2025-09-24
-- Storefront storytelling blocks remain data-driven; timelines/testimonials/newsletter stay hidden until real copy lands.
-- Journal grid renders published Supabase articles with friendly fallback messaging when empty.
-- Campaign hero system (Classic/Split/Minimal) is stable but still feature-flagged; motion/reduced-motion behaviour verified.
-- Admin copilot infrastructure (sessions, undo tokens, plan previews) is in place, but OpenAI/Supabase credentials must be restored before the assistant can run. Copilot work is paused while we focus on launch readiness.
-- Branch deploy currently lacks `SUPABASE_SERVICE_ROLE_KEY`/`SUPABASE_URL` and fresh OPENAI credentials; `/admin/assistant` fails until the envs are set and `dev` is redeployed.
-- Lint (`npm run lint`) and test (`npm test`) remain red due to long-standing admin typings and Stripe/checkout mocks; we must stabilise these before launch.
-- Latest UI/doc updates (Sept 24) are pending a branch deploy; ensure Netlify rebuilds after env fixes.
+## Snapshot — 2025-10-24
+- Netlify Branch Deploys (`dev`, `main`) respond 200; `/status` on `dev` shows Supabase URL/anon/service keys present under Node 22. Keep relying on deploys for QA instead of local builds.
+- Admin login loop on production is resolved (2025-10-24); both `dev` and `main` allow owner sign-in. Leave the QA checklist preflight in place for regression detection.
+- Copilot infrastructure is live, but OpenAI credentials/actions still need a full smoke on `dev` before giving the owner the green light.
+- Checkout currently uses Stripe’s built-in shipping options (Standard/Express) defined in `lib/stripe.ts`; AusPost API remains optional until we revisit live quoting.
+- Local `npm run build`, `npm run lint`, and `npm test` continue to fail (SWC crash, admin `no-explicit-any`, Stripe/AusPost mocks). Document outcomes when you touch them, but default to remote validation.
+- Storytelling surfaces and Journal behave as expected with Supabase data; continue hiding sections when tables are empty.
 
 ## Immediate Execution Queue (Priority A)
-1. **Environment + Deploy Fix (blocker)**
-   - Set `SUPABASE_URL`/`NEXT_PUBLIC_SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `OPENAI_API_KEY`, `ASSISTANT_CHAT_MODEL`, `ASSISTANT_PIPELINE_MODEL`, and prompt overrides in Netlify (match `.env.local`).
-   - Redeploy the `dev` branch once envs are present; confirm `/status` and `/admin/assistant` respond without 401/500.
-   - Optional: add `ASSISTANT_ALLOW_PREVIEW=1` for branch deploys.
-2. **Launch Readiness Sweep**
-   - Populate production-ready storytelling content (timeline/testimonials/newsletter) and capture fresh storefront/admin screenshots.
-   - Finalise ESP selection and wire newsletter signup (if decision made); otherwise hide CTA copy.
-   - Run `npm run audit:a11y` + Puppeteer smoke and attach results to docs.
-3. **Test & Lint Stabilisation**
-   - Restore Stripe/checkout/webhook Vitest mocks so `npm test` passes.
-   - Address admin `no-explicit-any` lint debt or add targeted typing fixes; goal is a clean `npm run lint` before launch.
-   - Re-enable assistant undo specs once mocks are stable.
-4. **UI Polish for Launch**
+1. **Assistant smoke on deploy**
+   - Confirm OpenAI env vars (`OPENAI_API_KEY`, `ASSISTANT_CHAT_MODEL`, `ASSISTANT_PIPELINE_MODEL`) exist in Netlify; redeploy `dev` if they were recently updated.
+   - On the live branch deploy, open the copilot drawer, upload a sample asset, run a low-risk action (analytics summary), and verify undo tokens/write logs succeed.
+   - Log outcomes and any blockers in the latest session file.
+2. **Launch readiness sweep**
+   - Populate storytelling content in Supabase (timeline/testimonials/newsletter) and capture updated storefront/admin screenshots directly from the branch deploy.
+    - Choose ESP approach for newsletter CTA; hide the CTA until ready.
+   - Run remote smoke via Puppeteer (`BASE_URL=` branch URL) or manual checks and archive results in `docs/qa-screenshots/`.
+3. **Test & lint stabilisation**
+   - Plan targeted fixes for admin `no-explicit-any` debt and Stripe/AusPost mocks so that `npm run lint` / `npm test` can pass when we bring them back online.
+   - Document each attempt (command + failure summary) in the session log until suites are green.
+   - Once mocks are stable, re-enable the assistant undo specs.
+4. **UI polish for launch**
    - Dashboard: surface automation status (lint/test/env badges) and recent changes panel.
    - Campaign editor: add live preview/diff to help owners verify hero copy before publishing.
    - Storytelling admin: add drag-and-drop ordering and richer empty states.
@@ -53,7 +52,7 @@ Consult `AGENTS.md` for contributor expectations and deployment discipline. Use 
 
 ## Dependencies & Blockers
 - Stripe publishable key: required to enable wallet buttons in checkout.
-- AusPost API credentials: required for live label generation + accurate shipping ETA copy.
+- AusPost API credentials: optional—Stripe static rates are the default until we opt back into AusPost.
 - ESP/API keys: required to enable newsletter opt-in and remove read-only inputs.
 - Slack webhook + alert thresholds: required to finish dashboard automation slice.
 

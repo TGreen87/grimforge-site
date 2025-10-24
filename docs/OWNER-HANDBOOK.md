@@ -1,6 +1,6 @@
 # Owner Quick Start Handbook
 
-_Last updated: 2025-09-22_
+_Last updated: 2025-10-24_
 
 This guide walks through the core day-to-day tasks for running Obsidian Rite Records without touching code. Use `docs/README.md` for the full documentation index when onboarding new owners or assistants.
 
@@ -68,7 +68,7 @@ This guide walks through the core day-to-day tasks for running Obsidian Rite Rec
 - Run through the dashboard to confirm revenue, low stock, and payouts look correct.
 - Visit `/admin/analytics` for the past week’s traffic, top pages, and referrers (data comes from our own tracker—no Plausible account needed yet).
 - Visit `/status` to ensure required environment variables are set.
-- Optional: run `npm run test:puppeteer` locally or check the latest CI screenshots in `docs/qa-screenshots/`.
+- Optional: run the remote smoke (`BASE_URL=https://dev--obsidianriterecords.netlify.app npm run test:puppeteer`) or review the latest screenshots in `docs/qa-screenshots/` if you need visual confirmation.
 
 ## 11. Using the admin copilot
 - Click the robot icon in the admin header (or press `⌘⇧C` / `Ctrl+Shift+C`).

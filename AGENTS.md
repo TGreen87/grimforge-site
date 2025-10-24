@@ -1,6 +1,6 @@
 # Repository Guidelines
 
-> **Current status (2025-09-24):** Focus is on launch readiness. Netlify `dev` deploy needs Supabase + OpenAI env vars restored before the admin copilot will run. Lint/tests are red—stabilise them before merging to `main`.
+> **Current status (2025-10-24):** Netlify Branch Deploys (`dev` and `main`) are the single source of truth—treat them as production candidates. Supabase keys are present on `dev` (see `/status`), but OpenAI credentials and assistant actions still need a live check before we rely on the copilot. Local `npm run build`, `npm run lint`, and `npm test` remain red due to admin typings and Stripe/AusPost mocks; only run them when you are actively fixing those suites. Track owner-reported issues (e.g., admin login loop on `main`) in `docs/NEXT-STEPS.md` until resolved.
 
 See `docs/README.md` for the full documentation index and session logs.
 
@@ -12,20 +12,13 @@ See `docs/README.md` for the full documentation index and session logs.
 - `docs/` – Working agreements, RFCs, QA guides, and continuation prompts; keep every file synchronized with shipped behaviour.
 
 ## Build, Test & Development Commands
-- `npm run dev` – Launch local dev with App Router + Supabase SSR helpers.
-- `npm run type-check`, `npm run lint`, `npm test` – Run before pushing. *Status (2025-09-24):* lint/test currently fail due to admin typings and Stripe/checkout mocks; log results in the session file until fixed.
-- `npm run build && npm start` – Production build smoke; run before promoting `dev → main`.
-- `npm run test:puppeteer` – Branch deploy smoke (homepage, catalog, product, checkout, admin login); screenshots land under `docs/qa-screenshots/`.
+- **Remote-first:** Trigger Netlify builds by pushing to `dev`/`main`, then validate the branch deploy. Use the local commands below only when fixing the suites—they currently fail for known reasons.
+- `npm run dev` – Optional local preview with App Router + Supabase SSR helpers (requires env parity).
+- `npm run type-check`, `npm run lint`, `npm test` – Keep documenting blockers in the session log when you attempt them; the admin `no-explicit-any` debt and checkout/Stripe mocks still cause failures.
+- `npm run build && npm start` – Local production smoke for debugging build regressions (known to crash on this machine—capture logs if you retry).
+- `npm run test:puppeteer` – Use with `BASE_URL=https://dev--obsidianriterecords.netlify.app` for remote smoke if screenshots are needed.
 - `npm run assistant:sync` – Refresh copilot embeddings after updating assistant-related docs.
-- `npx playwright test e2e/tests/smoke.spec.ts` – Deeper storefront coverage during regression hunts.
-
-## Build, Test & Development Commands
-- `npm run dev` – Launch local dev with App Router + Supabase SSR helpers.
-- `npm run type-check`, `npm run lint`, `npm test` – Baseline gates before any push. *Current status:* lint/test harnesses include legacy failures (admin `no-explicit-any`, checkout/Stripe/SEO suites); document skips and unblock before promoting to `main`.
-- `npm run build && npm start` – Production build smoke; run before promoting `dev → main`.
-- `npm run test:puppeteer` – Netlify smoke (homepage, catalog, product, checkout shell, admin login) with screenshots in `docs/qa-screenshots/`.
-- `npm run assistant:sync` – Refresh copilot embeddings after updating docs the assistant relies on (see `docs/AGENT-PIPELINES.md`).
-- `npx playwright test e2e/tests/smoke.spec.ts` – Deeper storefront coverage when investigating regressions.
+- `npx playwright test e2e/tests/smoke.spec.ts` – Deeper storefront coverage during regression hunts (run only when suites are stable).
 
 ## Coding Style & Naming Conventions
 - TypeScript everywhere; `const` by default. Explicit return types on server actions/API routes.

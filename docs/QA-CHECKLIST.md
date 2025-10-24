@@ -1,6 +1,8 @@
 # Branch Deploy QA Checklist (dev)
 
-Last modified: 2025-09-23
+Last modified: 2025-10-24
+
+Operate remote-first: validate Netlify `dev`/`main` deploys and document findings in the session log. Only fall back to local commands when you are actively fixing suites.
 
 Use this checklist to verify the dev Branch Deploy before promoting to main. Reference `docs/README.md` for related launch docs.
 
@@ -9,6 +11,7 @@ Use this checklist to verify the dev Branch Deploy before promoting to main. Ref
 - No console errors on load; static assets under `/_next/static/` resolve.
 - `orr_cid` cookie present after first navigation.
 - Environment (Netlify UI; do not echo values): `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY` (or `SUPABASE_SERVICE_ROLE`), `STRIPE_SECRET_KEY`. Recommended: `NEXT_PUBLIC_SITE_URL` (branch URL). Optional: `AUSPOST_API_KEY`, `AUSPOST_ORIGIN_POSTCODE`.
+- Owner login succeeds on `https://obsidianriterecords.com/admin/login`; compare against `dev` if behaviour differs and log any loops.
 
 ## Home
 - Header/menu responsive; no horizontal overflow on mobile.
@@ -38,7 +41,7 @@ Use this checklist to verify the dev Branch Deploy before promoting to main. Ref
 ## Cart & Checkout (Shipping)
 - Cart drawer opens; items reflect title/variant/qty; totals correct.
 - Checkout modal collects shipping: valid AU address enables “Refresh rates”.
-- Without AusPost env: Stripe static options appear; select one and totals update.
+- Without AusPost env (current configuration): Stripe static options appear (Standard $10 / Express $20); select one and totals update.
 - With AusPost env: Domestic (Parcel Post/Express) and Intl (Standard/Express) appear; sorted by price; selection updates totals.
 - “Continue” → “Place order” opens Stripe Checkout; selected shipping label/amount visible on Stripe.
 - Checkout sheet stepper shows Shipping → Payment → Review; wallet row disabled message appears when no publishable key.
@@ -117,12 +120,12 @@ Tip: Use a temporary QA admin account (email/password) for branch testing, or lo
 - Trigger a harmless client error; `/api/client-logs` accepts report; correlation id included.
 - `/status` shows Supabase env presence and site URL.
 
-## Local Smoke (Puppeteer)
-- `BASE_URL=https://dev--obsidianriterecords.netlify.app npm run test:puppeteer` runs a quick homepage → vinyl anchor → product (if present) → checkout attempt and admin visuals; screenshots land in `docs/qa-screenshots/`.
+## Remote Smoke (Puppeteer)
+- `BASE_URL=https://dev--obsidianriterecords.netlify.app npm run test:puppeteer` runs a quick homepage → vinyl anchor → product (if present) → checkout attempt and admin visuals; screenshots land in `docs/qa-screenshots/`. Use this from the workstation when you need artefacts; no local server required.
 
 ## Go‑Live Checklist
 - Dev branch deploy passes all checks above.
-- `npm run type-check`, `npm run lint`, `npm test` are green.
+- `npm run type-check`, `npm run lint`, `npm test` are green (document known failures until they are fixed).
 - Sitemap and robots verified; shipping works (fallback without AusPost; live with AusPost).
 - Merge `dev` → `main` fast‑forward; monitor for 10–15 minutes; revert fast if regression.
-- Run `npm run audit:a11y` to refresh Lighthouse accessibility reports for home and admin (`docs/qa-screenshots/lighthouse-*.json`).
+- Run `npm run audit:a11y` (pointing to the branch URL) to refresh Lighthouse accessibility reports for home and admin (`docs/qa-screenshots/lighthouse-*.json`); capture failures if the script crashes.

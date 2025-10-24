@@ -1,8 +1,8 @@
-# Environment Quickstart (Branch Deploys + Local)
+# Environment Quickstart (Netlify Branch Deploys)
 
-Last modified: 2025-09-21
+Last modified: 2025-10-24
 
-This guide lists the environment variables required to run the site on Netlify Branch Deploys (dev) and locally. Never commit secrets.
+This guide lists the environment variables required to run the site on Netlify Branch Deploys. Local `.env.local` parity is optional—only configure it when you intentionally run the app on your workstation. Never commit secrets.
 
 Pair this with `AGENTS.md` (Repository Guidelines) for build/test expectations before pushing. Use `docs/README.md` for the living documentation index.
 
@@ -41,12 +41,12 @@ Key references
 
 ## Where to set them
 - Netlify Site settings → Environment variables → add at “All deploy contexts”, so Branch Deploys inherit them.
-- Local: create `.env.local` (never commit); copy from `.env.example` and add secrets.
+- Local (optional): only create `.env.local` when you explicitly need to run the app on your machine. Copy from `.env.example`, add secrets, and keep the file untracked.
 
 ## Verify configuration
 1) Open `/status` on the Branch Deploy:
    - Node version is shown
-   - `NEXT_PUBLIC_SITE_URL` is set to the Branch URL (recommended)
+   - `NEXT_PUBLIC_SITE_URL` reflects the intended host (branch URL during QA or production domain once live)
    - Supabase URL/ANON/SERVICE flags show “yes”
 2) Shipping API (optional): `POST /api/shipping/quote` returns either AusPost options (configured:true) or Stripe static fallback (configured:false).
 3) Checkout API: `POST /api/checkout` returns 200 with `{ checkoutUrl }` when `STRIPE_SECRET_KEY` and service role are present; otherwise it returns 500. For dev, add the provided temporary key to Netlify (`STRIPE_SECRET_KEY=sk_live_...YYv`) and remove it after testing.
@@ -54,7 +54,7 @@ Key references
 ### Stripe key rotation & webhooks
 1. Create a new secret + publishable key pair from the Stripe dashboard (Developers → API keys).
 2. Update Netlify env (`STRIPE_SECRET_KEY`, `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`) and redeploy `dev`.
-3. Update local `.env.local` and run `npm run type-check` to ensure the build still succeeds.
+3. (Optional) Update local `.env.local` if you maintain a workstation build; otherwise rely on the deploy.
 4. Re-run `/api/checkout` (see checklist) and capture the Stripe session ID in `docs/NEXT-STEPS.md` for traceability.
 5. Once confirmed, revoke the old secret key in Stripe.
 
@@ -77,8 +77,8 @@ If you enable the webhook endpoint (`/api/stripe/webhook`):
   - This is expected when AusPost envs are absent; checkout still works and charges the selected static rate.
 
 ## Smoke commands
-- Local smoke (Puppeteer):
+- Remote smoke (Puppeteer):
   ```bash
   BASE_URL=https://dev--obsidianriterecords.netlify.app npm run test:puppeteer
   ```
-  Saves screenshots to `docs/qa-screenshots/`.
+  Saves screenshots to `docs/qa-screenshots/`; no local Next.js server required.
