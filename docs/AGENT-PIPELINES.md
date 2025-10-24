@@ -1,6 +1,6 @@
 # Admin Copilot Pipelines
 
-_Last updated: 2025-09-23 (plan previews + undo tokens)_
+_Last updated: 2025-09-28 (Responses API rewrite + preview host overrides)_
 
 Purpose: Define the conversational flows and technical orchestration required for the assistant to execute end‑to‑end admin tasks (no n8n dependency). These pipelines guide implementation of new assistant actions and supporting services.
 
@@ -74,6 +74,8 @@ Purpose: Define the conversational flows and technical orchestration required fo
 ## Cross-Cutting Considerations
 - **Validation**: All assistant APIs enforce admin auth before OpenAI/DB calls; missing essentials (price, brief) short-circuit with actionable errors.
 - **Auth Modes**: Supabase admin sessions remain the primary gate. For automation or device flows, set `ASSISTANT_ADMIN_TOKEN` and send it via `Authorization: Bearer <token>` (or `x-assistant-api-key`) to unlock chat, actions, and uploads without a browser session. Netlify previews and localhost in dev also bypass auth when `ASSISTANT_ALLOW_PREVIEW` / `ASSISTANT_ALLOW_LOCALHOST` are enabled.
+- **Preview Hosts**: Set `ASSISTANT_PREVIEW_HOSTS` (comma-separated host suffixes) when you need to trust additional staging domains. Auth failures now emit structured console warnings (`reason`, `host`, `preview`, `hasFallbackToken`) so you can spot misconfigured sessions quickly.
+- **Structured Outputs**: `/api/admin/assistant` now uses the OpenAI Responses API with a strict JSON Schema. Every action payload is type-checked server-side (required parameters enforced, attachments listed under `__attachments`). When you add new actions or parameters, update `createAssistantResponseJsonSchema()` in `app/api/admin/assistant/route.ts` alongside the matching Zod schema and Vitest coverage (`tests/api/admin/assistant.test.ts`).
 - **Sessions**: `assistant_sessions`, `assistant_session_events`, `assistant_uploads`, and `assistant_action_undos` persist chat history, actions, media, and undo availability for audit.
 - **Attachments**: UI uploads pass `sessionId`; server records Storage path + size for compliance.
 - **Plan Previews**: The assistant drawer shows multi-step plans (risk + undo notes) before any high-impact action runs. Update `lib/assistant/plans.ts` plus QA docs when steps change.
@@ -81,6 +83,7 @@ Purpose: Define the conversational flows and technical orchestration required fo
 - **Telemetry**: Session logging is live; `/admin/assistant/logs` surfaces the feed for verification.
 - **Documentation**: Keep this spec, `docs/ADMIN-WORKFLOWS.md`, and QA scripts in sync with prompt/plan/undo behaviour.
 - **Models & Prompts**: Chat completions use `ASSISTANT_CHAT_MODEL` (default `gpt-4.1-mini`) and respect `ASSISTANT_CHAT_SYSTEM_PROMPT`. Pipelines use `ASSISTANT_PIPELINE_MODEL` plus optional `ASSISTANT_PRODUCT_SYSTEM_PROMPT` / `ASSISTANT_ARTICLE_SYSTEM_PROMPT`. Override these env vars when switching to GPT‑5 (Codex) or tailoring tone.
+- **Environment checklist**: The assistant will fail fast if `SUPABASE_SERVICE_ROLE_KEY`, `SUPABASE_URL`, or `OPENAI_API_KEY` are missing. Confirm these on any new machine or deploy before testing copilot features.
 
 ## Next Steps (Implementation Order)
 1. Re-enable Vitest suites for assistant undo once shared mocks/env are restored; add assertions for plan preview text and undo expiry messaging.

@@ -1,5 +1,7 @@
 # Repository Guidelines
 
+> **Current status (2025-09-24):** Focus is on launch readiness. Netlify `dev` deploy needs Supabase + OpenAI env vars restored before the admin copilot will run. Lint/tests are red—stabilise them before merging to `main`.
+
 See `docs/README.md` for the full documentation index and session logs.
 
 ## Project Structure & Module Organization
