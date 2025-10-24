@@ -42,7 +42,13 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
     
     // Initialize from localStorage on client side
     const storedItems = getJSON<CartItem[]>(storageKeys.cart, []);
-    setItems(storedItems);
+    const sanitized = Array.isArray(storedItems)
+      ? storedItems.filter((item) => Boolean(item.variantId) && item.quantity > 0)
+      : [];
+    if (sanitized.length !== storedItems.length) {
+      setJSON(storageKeys.cart, sanitized);
+    }
+    setItems(sanitized);
   }, []);
 
   useEffect(() => {

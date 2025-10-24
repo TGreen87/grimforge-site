@@ -137,20 +137,21 @@ const CheckoutModal = ({ children }: CheckoutModalProps) => {
   const handleProcessOrder = async () => {
     setIsProcessing(true);
     try {
-      const payloadItems = items
-        .filter((it) => (it.variantId || it.id) && it.quantity > 0)
-        .map((it) => ({
-          variant_id: (it.variantId ?? it.id) as string,
-          quantity: it.quantity,
-        }))
-
-      if (payloadItems.length === 0) {
-        // Fallback to mock if variant ids are missing
-        await new Promise((r) => setTimeout(r, 1500))
-        toast({ title: 'Cart not ready for checkout', description: 'Please add items from the product page (ensures stock unit is selected).', variant: 'destructive' })
+      const invalidItems = items.filter((it) => !it.variantId || it.quantity <= 0)
+      if (invalidItems.length > 0) {
+        toast({
+          title: 'Cart needs to be refreshed',
+          description: 'Remove the item and add it again from the product page so we can reserve the correct stock.',
+          variant: 'destructive',
+        })
         setIsProcessing(false)
         return
       }
+
+      const payloadItems = items.map((it) => ({
+        variant_id: it.variantId as string,
+        quantity: it.quantity,
+      }))
 
       // Build shipping selection payload
       let shippingPayload: any = {}
