@@ -21,14 +21,32 @@ export default function BuyNowButton({ variantId, quantity = 1, className }: Buy
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ variant_id: variantId, quantity }),
       })
-      if (!res.ok) throw new Error('Checkout failed')
-      const data = await res.json()
-      if (data.checkoutUrl) {
+
+      let data: any = null
+      try {
+        data = await res.json()
+      } catch {
+        data = null
+      }
+
+      if (!res.ok) {
+        const message = typeof data?.error === 'string' && data.error.trim().length > 0
+          ? data.error.trim()
+          : typeof data?.detail === 'string' && data.detail.trim().length > 0
+            ? data.detail.trim()
+            : `Checkout failed (status ${res.status})`
+        throw new Error(message)
+      }
+
+      if (data?.checkoutUrl) {
         window.location.href = data.checkoutUrl as string
+      } else {
+        throw new Error('No checkout URL returned')
       }
     } catch (e) {
       console.error(e)
-      alert('Unable to start checkout. Please try again.')
+      const message = e instanceof Error && e.message ? e.message : 'Unable to start checkout. Please try again.'
+      alert(message)
     } finally {
       setLoading(false)
     }
@@ -44,4 +62,3 @@ export default function BuyNowButton({ variantId, quantity = 1, className }: Buy
     </button>
   )
 }
-
