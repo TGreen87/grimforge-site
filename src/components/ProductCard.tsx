@@ -11,6 +11,7 @@ import { useCart } from "@/contexts/CartContext";
 import { useWishlist } from "@/contexts/WishlistContext";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
+import ThreeDTilt from "@/components/fx/ThreeDTilt";
 
 interface ProductCardProps {
   id: string;
@@ -105,7 +106,7 @@ const ProductCard = ({ id, slug, title, artist, format, price, image, limited, p
   };
 
   return (
-    <Card 
+    <Card
       className="group bg-card/80 backdrop-blur-sm border-border hover:border-accent transition-all duration-300 hover:shadow-blood cursor-pointer"
       onClick={handleCardClick}
       role="link"
@@ -114,71 +115,74 @@ const ProductCard = ({ id, slug, title, artist, format, price, image, limited, p
     >
       <CardContent className="p-3 md:p-4">
         {/* Image Container */}
-        <div className="relative aspect-square mb-3 md:mb-4 overflow-hidden rounded">
-          <img 
-            src={image} 
-            alt={`${artist} - ${title}`}
-            loading="lazy"
-            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-          />
-          
-          {/* Vinyl Spin Effect */}
-          {format === "vinyl" && (
-            <div className="absolute inset-0 vinyl-spin opacity-0 group-hover:opacity-30 bg-gradient-to-r from-transparent via-bone/20 to-transparent"></div>
-          )}
-          
-          {/* Badges - Mobile optimized */}
-          <div className="absolute top-1.5 left-1.5 md:top-2 md:left-2 flex flex-col gap-1">
-            {limited && (
-              <Badge variant="destructive" className="text-xs px-1.5 py-0.5">
-                Limited
-              </Badge>
+        <ThreeDTilt className="mb-3 md:mb-4">
+          <div className="jacket relative aspect-square overflow-hidden rounded">
+            <img
+              src={image}
+              alt={`${artist} - ${title}`}
+              loading="lazy"
+              data-void-src={image}
+              className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+            />
+            
+            {/* Vinyl Spin Effect */}
+            {format === "vinyl" && (
+              <div className="absolute inset-0 vinyl-spin opacity-0 group-hover:opacity-30 bg-gradient-to-r from-transparent via-bone/20 to-transparent"></div>
             )}
-            {preOrder && (
-              <Badge variant="secondary" className="text-xs px-1.5 py-0.5">
-                Preorder
-              </Badge>
-            )}
-            <Badge variant="outline" className="text-xs px-1.5 py-0.5 border-frost text-frost">
-              <span className="hidden sm:inline">{formatIcons[format]} </span>
-              {format.toUpperCase()}
-            </Badge>
-          </div>
-
-          {/* Hover Actions - Touch optimized */}
-          <div className="absolute inset-0 flex items-center justify-center gap-2 bg-background/80 opacity-0 transition-opacity duration-300 group-hover:opacity-100 group-focus-within:opacity-100">
-            <Link href={href} onClick={(e) => e.stopPropagation()}>
-              <Button 
-                size="default"
-                variant="outline"
-                className="h-11 w-11 sm:h-10 sm:w-10 border-frost text-frost hover:bg-frost hover:text-background p-0"
-                aria-label={`View details for ${artist} - ${title}`}
-              >
-                <Eye className="h-3.5 w-3.5 md:h-4 md:w-4" />
-              </Button>
-            </Link>
-            <Button 
-              size="default"
-              variant={isWishlisted ? "default" : "outline"}
-              className={cn(
-                "h-11 w-11 sm:h-10 sm:w-10 p-0",
-                isWishlisted ? "bg-accent hover:bg-accent/90" : "border-frost text-frost hover:bg-frost hover:text-background",
+            
+            {/* Badges - Mobile optimized */}
+            <div className="absolute top-1.5 left-1.5 md:top-2 md:left-2 flex flex-col gap-1">
+              {limited && (
+                <Badge variant="destructive" className="text-xs px-1.5 py-0.5">
+                  Limited
+                </Badge>
               )}
-              onClick={(event) => handleWishlistClick(event)}
-              aria-label={`${isWishlisted ? 'Remove from' : 'Add to'} wishlist: ${artist} - ${title}`}
-            >
-              <Heart className={cn('h-3.5 w-3.5 md:h-4 md:w-4', isWishlisted ? 'fill-current' : undefined)} />
-            </Button>
-            <Button
-              size="default"
-              className="h-11 w-11 sm:h-10 sm:w-10 bg-accent hover:bg-accent/90 p-0"
-              onClick={(event) => handleAddToCartClick(event)}
-              aria-label={`Add to cart: ${artist} - ${title}`}
-            >
-              <ShoppingCart className="h-3.5 w-3.5 md:h-4 md:w-4" />
-            </Button>
+              {preOrder && (
+                <Badge variant="secondary" className="text-xs px-1.5 py-0.5">
+                  Preorder
+                </Badge>
+              )}
+              <Badge variant="outline" className="text-xs px-1.5 py-0.5 border-frost text-frost">
+                <span className="hidden sm:inline">{formatIcons[format]} </span>
+                {format.toUpperCase()}
+              </Badge>
+            </div>
+
+            {/* Hover Actions - Touch optimized */}
+            <div className="absolute inset-0 flex items-center justify-center gap-2 bg-background/80 opacity-0 transition-opacity duration-300 group-hover:opacity-100 group-focus-within:opacity-100">
+              <Link href={href} onClick={(e) => e.stopPropagation()}>
+                <Button
+                  size="default"
+                  variant="outline"
+                  className="h-11 w-11 sm:h-10 sm:w-10 border-frost text-frost hover:bg-frost hover:text-background p-0"
+                  aria-label={`View details for ${artist} - ${title}`}
+                >
+                  <Eye className="h-3.5 w-3.5 md:h-4 md:w-4" />
+                </Button>
+              </Link>
+              <Button
+                size="default"
+                variant={isWishlisted ? "default" : "outline"}
+                className={cn(
+                  "h-11 w-11 sm:h-10 sm:w-10 p-0",
+                  isWishlisted ? "bg-accent hover:bg-accent/90" : "border-frost text-frost hover:bg-frost hover:text-background",
+                )}
+                onClick={(event) => handleWishlistClick(event)}
+                aria-label={`${isWishlisted ? 'Remove from' : 'Add to'} wishlist: ${artist} - ${title}`}
+              >
+                <Heart className={cn('h-3.5 w-3.5 md:h-4 md:w-4', isWishlisted ? 'fill-current' : undefined)} />
+              </Button>
+              <Button
+                size="default"
+                className="h-11 w-11 sm:h-10 sm:w-10 bg-accent hover:bg-accent/90 p-0"
+                onClick={(event) => handleAddToCartClick(event)}
+                aria-label={`Add to cart: ${artist} - ${title}`}
+              >
+                <ShoppingCart className="h-3.5 w-3.5 md:h-4 md:w-4" />
+              </Button>
+            </div>
           </div>
-        </div>
+        </ThreeDTilt>
 
         {/* Product Info - Mobile optimized */}
         <div className="space-y-1.5 md:space-y-2">
