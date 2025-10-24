@@ -3,6 +3,7 @@ import { Inter, Marcellus } from 'next/font/google'
 import { generateSiteMetadata } from '@/lib/seo/metadata'
 import { OrganizationJsonLd } from '@/components/seo/JsonLd'
 import Providers from './providers'
+import { GrimnessProvider } from '@/components/grimness/GrimnessContext'
 import './globals.css'
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-body' })
@@ -32,9 +33,11 @@ export default function RootLayout({
         />
       </head>
       <body className={`${inter.variable} ${marcellus.variable} font-sans overflow-x-hidden`}>
-        <Providers>
-          {children}
-        </Providers>
+        <GrimnessProvider>
+          <Providers>
+            {children}
+          </Providers>
+        </GrimnessProvider>
       </body>
     </html>
   )
