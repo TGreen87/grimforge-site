@@ -43,6 +43,12 @@ const ProductCard = ({ id, slug, title, artist, format, price, image, limited, p
 
   const isWishlisted = isInWishlist(id);
 
+  const voidKey = useMemo(() => {
+    const withoutQuery = image.split('?')[0] ?? ''
+    const filename = withoutQuery.split('/').pop() ?? id
+    return filename.replace(/\.[^/.]+$/, '') || id
+  }, [image, id])
+
   const addToCart = () => {
     addItem({
       id,
@@ -121,7 +127,7 @@ const ProductCard = ({ id, slug, title, artist, format, price, image, limited, p
               src={image}
               alt={`${artist} - ${title}`}
               loading="lazy"
-              data-void-src={image}
+              data-void-key={voidKey}
               className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
             />
             

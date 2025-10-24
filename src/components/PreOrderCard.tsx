@@ -89,6 +89,12 @@ const PreOrderCard = ({
 
   const daysUntilRelease = getDaysUntilRelease();
 
+  const voidKey = (() => {
+    const withoutQuery = image.split('?')[0] ?? ''
+    const filename = withoutQuery.split('/').pop() ?? id
+    return `preorder-${filename.replace(/\.[^/.]+$/, '') || id}`
+  })()
+
   return (
     <Card className="group bg-card/80 backdrop-blur-sm border-border hover:border-accent transition-all duration-300 hover:shadow-blood overflow-hidden">
       <CardHeader className="p-0">
@@ -97,7 +103,7 @@ const PreOrderCard = ({
             <img
               src={image}
               alt={`${artist} - ${title}`}
-              data-void-src={image}
+              data-void-key={voidKey}
               className="w-full h-full object-cover"
             />
             
