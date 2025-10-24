@@ -138,8 +138,11 @@ const CheckoutModal = ({ children }: CheckoutModalProps) => {
     setIsProcessing(true);
     try {
       const payloadItems = items
-        .filter((it) => it.variantId && it.quantity > 0)
-        .map((it) => ({ variant_id: it.variantId as string, quantity: it.quantity }))
+        .filter((it) => (it.variantId || it.id) && it.quantity > 0)
+        .map((it) => ({
+          variant_id: (it.variantId ?? it.id) as string,
+          quantity: it.quantity,
+        }))
 
       if (payloadItems.length === 0) {
         // Fallback to mock if variant ids are missing
