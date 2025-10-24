@@ -1,3 +1,5 @@
+@import './void.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -110,6 +112,44 @@ All colors MUST be HSL. Gothic aesthetic with frost and blood accents.
     --sidebar-border: 240 3.7% 15.9%;
     --sidebar-ring: 217.2 91.2% 59.8%;
   }
+}
+
+.three-d-tilt {
+  position: relative;
+  display: block;
+  transform-style: preserve-3d;
+  transform: perspective(800px) rotateX(0deg) rotateY(0deg);
+  transition: transform 0.28s ease, box-shadow 0.28s ease;
+  will-change: transform;
+  --tilt-x: 0deg;
+  --tilt-y: 0deg;
+  --glare-x: 50%;
+  --glare-y: 50%;
+}
+
+.three-d-tilt::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border-radius: inherit;
+  background: radial-gradient(circle at var(--glare-x) var(--glare-y), rgba(255, 255, 255, 0.22), rgba(255, 255, 255, 0) 60%);
+  opacity: 0;
+  transition: opacity 0.32s ease;
+  mix-blend-mode: screen;
+}
+
+.three-d-tilt[data-tilt-active='true']::after {
+  opacity: 0.35;
+}
+
+.three-d-tilt[data-tilt-disabled='true'] {
+  transform: none !important;
+  transition: none;
+}
+
+.three-d-tilt[data-tilt-disabled='true']::after {
+  opacity: 0;
 }
 
 @layer base {
