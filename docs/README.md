@@ -24,7 +24,7 @@ Use this index as the starting point before touching code or deployments. Pair i
 - [`CONTINUE-PROMPT.md`](CONTINUE-PROMPT.md) – Session handoff primer for agents.
 
 ## Session Logs
-Latest work session notes live under `docs/SESSION-YYYY-MM-DD.md` (most recent: `docs/SESSION-2025-09-23.md`). Older entries have been archived under `docs/archive/` (e.g., `docs/archive/2025-09/`). Check the latest entry before resuming a thread.
+Latest work session notes live under `docs/SESSION-YYYY-MM-DD.md` (most recent: `docs/SESSION-2025-09-24.md`). Older entries have been archived under `docs/archive/` (e.g., `docs/archive/2025-09/`). Check the latest entry before resuming a thread.
 
 ## Automation & QA Artifacts
 - [`qa-screenshots/`](qa-screenshots/) – Puppeteer smoke outputs keyed by timestamp.

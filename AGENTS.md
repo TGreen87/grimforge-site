@@ -11,6 +11,14 @@ See `docs/README.md` for the full documentation index and session logs.
 
 ## Build, Test & Development Commands
 - `npm run dev` – Launch local dev with App Router + Supabase SSR helpers.
+- `npm run type-check`, `npm run lint`, `npm test` – Run before pushing. *Status (2025-09-24):* lint/test currently fail due to admin typings and Stripe/checkout mocks; log results in the session file until fixed.
+- `npm run build && npm start` – Production build smoke; run before promoting `dev → main`.
+- `npm run test:puppeteer` – Branch deploy smoke (homepage, catalog, product, checkout, admin login); screenshots land under `docs/qa-screenshots/`.
+- `npm run assistant:sync` – Refresh copilot embeddings after updating assistant-related docs.
+- `npx playwright test e2e/tests/smoke.spec.ts` – Deeper storefront coverage during regression hunts.
+
+## Build, Test & Development Commands
+- `npm run dev` – Launch local dev with App Router + Supabase SSR helpers.
 - `npm run type-check`, `npm run lint`, `npm test` – Baseline gates before any push. *Current status:* lint/test harnesses include legacy failures (admin `no-explicit-any`, checkout/Stripe/SEO suites); document skips and unblock before promoting to `main`.
 - `npm run build && npm start` – Production build smoke; run before promoting `dev → main`.
 - `npm run test:puppeteer` – Netlify smoke (homepage, catalog, product, checkout shell, admin login) with screenshots in `docs/qa-screenshots/`.
@@ -30,11 +38,13 @@ See `docs/README.md` for the full documentation index and session logs.
 - Targeted Playwright specs live in `e2e/tests/**`; guard unstable suites with tags.
 - Storytelling surfaces (timeline/testimonials/newsletter) and the Journal section are data-driven—verify they stay hidden when tables are empty.
 - Checkout sheet is a three-step slide-over; wallets remain disabled until a Stripe publishable key is configured.
+- Record lint/test outcomes in `docs/SESSION-YYYY-MM-DD.md` before pushing; note blockers when suites remain red.
 
 ## Assistant Copilot Expectations
 - Undo tokens must be generated for product/article/hero pipelines and surfaced in the drawer; verify `/api/admin/assistant/actions/undo` responds 200 on valid tokens before closing a feature slice.
 - Plan previews (multi-step descriptions + risk callouts) appear with every suggested action; adjust `lib/assistant/plans.ts` when new actions land.
 - Log all assistant mutations through `assistant_sessions`, `assistant_session_events`, `assistant_uploads`, and `assistant_action_undos`; keep docs and QA steps aligned when events or schema evolve.
+- If env secrets are missing (e.g., Supabase service role, OpenAI key), pause copilot testing and record the blocker in `docs/NEXT-STEPS.md`/session log.
 
 ## Commit & Deployment Workflow
 - Work directly on `dev`; no PRs. Keep commits imperative (e.g., `Remove placeholder story seeds`).

@@ -228,7 +228,8 @@ Status:
   - ✅ Article drafting/publishing pipeline live with markdown generation and audit logging (2025-09-23).
   - ✅ Assistant session + event logging (including upload audit) wired into all assistant endpoints.
   - ✅ `/admin/assistant/logs` viewer surfaces sessions, events, and attachments (2025-09-23).
-  - ✅ Undo hooks and plan preview UX shipped (assistant drawer + undo API). Follow-up: re-enable Vitest coverage once shared mocks/env restored.
+  - ✅ Undo hooks and plan preview UX shipped (assistant drawer + undo API).
+  - ⚠️ Env regression: Netlify branch deploy currently missing Supabase service role + OpenAI secrets, so the copilot is paused until envs are restored.
 
 ## Rollback
 - Netlify: reset Node to previous major if a runtime regression appears; rebuild branch.
