@@ -46,6 +46,25 @@ const CheckoutModal = ({ children }: CheckoutModalProps) => {
     country: "Australia",
   });
 
+  useEffect(() => {
+    const handleOpen = () => {
+      if (items.length === 0) {
+        toast({
+          title: 'Cart is empty',
+          description: 'Add at least one item from the product page before checking out.',
+          variant: 'destructive',
+        })
+        return
+      }
+      setCurrentStep(1)
+      setIsProcessing(false)
+      setIsOpen(true)
+    }
+
+    window.addEventListener('checkout:open', handleOpen)
+    return () => window.removeEventListener('checkout:open', handleOpen)
+  }, [items.length, toast])
+
   // Shipping options via API (AusPost when configured; Stripe static fallback otherwise)
   type StripeRateData = {
     type: 'fixed_amount'
