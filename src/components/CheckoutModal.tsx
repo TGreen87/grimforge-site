@@ -199,8 +199,13 @@ const CheckoutModal = ({ children }: CheckoutModalProps) => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(checkoutPayload),
       })
-      if (!res.ok) throw new Error('Checkout failed')
-      const data = await res.json()
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok) {
+        const message = typeof data?.error === 'string' && data.error.trim().length > 0
+          ? data.error
+          : 'Checkout failed'
+        throw new Error(message)
+      }
       if (data.checkoutUrl) {
         clearCart()
         window.location.href = data.checkoutUrl as string
@@ -209,7 +214,8 @@ const CheckoutModal = ({ children }: CheckoutModalProps) => {
       throw new Error('No checkout URL returned')
     } catch (e) {
       console.error(e)
-      toast({ title: 'Unable to start checkout', description: 'Please try again.', variant: 'destructive' })
+      const description = e instanceof Error ? e.message : 'Please try again.'
+      toast({ title: 'Unable to start checkout', description, variant: 'destructive' })
       setIsProcessing(false)
     }
   };
