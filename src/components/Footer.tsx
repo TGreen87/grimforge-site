@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import { brand } from "@/config/brand";
 import NewsletterSignup from "@/components/NewsletterSignup";
 import { footer as footerCopy } from "@/content/copy";
+import { toggleVoidMode } from "@/components/fx/VoidToggle";
 
 const Footer = () => {
   const pathname = usePathname();
@@ -16,8 +17,15 @@ const Footer = () => {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           {/* Brand */}
           <div className="space-y-4">
-            <div className="flex items-center space-x-2">
-              <span className="blackletter text-xl text-bone">{brand.name}</span>
+            <div>
+              <button
+                type="button"
+                aria-label="Toggle Void Mode"
+                onClick={() => toggleVoidMode()}
+                className="flex items-center space-x-2 rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-background focus-visible:ring-accent"
+              >
+                <span className="blackletter text-xl text-bone">{brand.name}</span>
+              </button>
             </div>
             <p className="text-muted-foreground text-sm">{footerCopy.tagline}</p>
             <div className="flex space-x-4">

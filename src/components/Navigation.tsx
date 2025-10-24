@@ -49,6 +49,7 @@ const Navigation = () => {
                 alt={brand.name}
                 height={32}
                 width={200}
+                data-void-key="hero-logo"
                 className="h-8 w-auto object-contain"
                 priority
               />
@@ -65,6 +66,7 @@ const Navigation = () => {
                 alt={brand.name}
                 height={24}
                 width={150}
+                data-void-key="hero-logo"
                 className="h-6 w-auto object-contain"
                 priority
               />

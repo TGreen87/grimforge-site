@@ -148,6 +148,18 @@ const CheckoutModal = ({ children }: CheckoutModalProps) => {
         return
       }
 
+      const payloadItems = items.map((it) => ({ variant_id: it.variantId as string, quantity: it.quantity }))
+
+      if (payloadItems.length === 0) {
+        toast({
+          title: 'Cart is empty',
+          description: 'Add at least one item from the product page before checking out.',
+          variant: 'destructive',
+        })
+        setIsProcessing(false)
+        return
+      }
+
       const payloadItems = items.map((it) => ({
         variant_id: it.variantId as string,
         quantity: it.quantity,

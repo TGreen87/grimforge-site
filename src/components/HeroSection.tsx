@@ -43,6 +43,13 @@ const HeroSection = () => {
         <source src="/Video_for_Obsidian_Rite_Records.mp4" type="video/mp4" />
         Your browser does not support the video tag.
       </video>
+      <img
+        src="/assets/album-4.jpg"
+        alt="Obsidian Rite Records hero art"
+        data-void-key="hero-art"
+        className="hero-void-art absolute inset-0 h-full w-full object-cover opacity-0 pointer-events-none transition-opacity duration-500"
+        loading="lazy"
+      />
       
       {/* Bottom overlay for text readability */}
       <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-background/90"></div>

@@ -8,6 +8,7 @@ import { Progress } from "@/components/ui/progress";
 import { useCart } from "@/contexts/CartContext";
 import { useToast } from "@/hooks/use-toast";
 import { Clock, Users, Flame, AlertTriangle } from "lucide-react";
+import ThreeDTilt from "@/components/fx/ThreeDTilt";
 
 interface PreOrderCardProps {
   id: string;
@@ -88,51 +89,60 @@ const PreOrderCard = ({
 
   const daysUntilRelease = getDaysUntilRelease();
 
+  const voidKey = (() => {
+    const withoutQuery = image.split('?')[0] ?? ''
+    const filename = withoutQuery.split('/').pop() ?? id
+    return `preorder-${filename.replace(/\.[^/.]+$/, '') || id}`
+  })()
+
   return (
     <Card className="group bg-card/80 backdrop-blur-sm border-border hover:border-accent transition-all duration-300 hover:shadow-blood overflow-hidden">
       <CardHeader className="p-0">
-        <div className="relative">
-          <img 
-            src={image} 
-            alt={`${artist} - ${title}`}
-            className="w-full h-48 object-cover"
-          />
-          
-          {/* Overlay Badges */}
-          <div className="absolute top-2 left-2 flex flex-col gap-1">
-            <Badge className="bg-accent text-accent-foreground text-xs">
-              <Clock className="h-3 w-3 mr-1" />
-              PREORDER
-            </Badge>
-            {limitedEdition && (
-              <Badge variant="destructive" className="text-xs">
-                <Flame className="h-3 w-3 mr-1" />
-                LIMITED
+        <ThreeDTilt>
+          <div className="jacket relative h-48 overflow-hidden rounded">
+            <img
+              src={image}
+              alt={`${artist} - ${title}`}
+              data-void-key={voidKey}
+              className="w-full h-full object-cover"
+            />
+            
+            {/* Overlay Badges */}
+            <div className="absolute top-2 left-2 flex flex-col gap-1">
+              <Badge className="bg-accent text-accent-foreground text-xs">
+                <Clock className="h-3 w-3 mr-1" />
+                PREORDER
               </Badge>
+              {limitedEdition && (
+                <Badge variant="destructive" className="text-xs">
+                  <Flame className="h-3 w-3 mr-1" />
+                  LIMITED
+                </Badge>
+              )}
+              <Badge variant="outline" className="text-xs border-frost text-frost">
+                {formatIcons[format]} {format.toUpperCase()}
+              </Badge>
+            </div>
+
+            {/* Urgency Badge */}
+            {isAlmostSoldOut && !isSoldOut && (
+              <div className="absolute top-2 right-2">
+                <Badge className="bg-destructive text-destructive-foreground text-xs animate-pulse">
+                  <AlertTriangle className="h-3 w-3 mr-1" />
+                  ALMOST GONE
+                </Badge>
+              </div>
             )}
-            <Badge variant="outline" className="text-xs border-frost text-frost">
-              {formatIcons[format]} {format.toUpperCase()}
-            </Badge>
+
+            {isSoldOut && (
+              <div className="absolute inset-0 bg-background/80 flex items-center justify-center">
+                <Badge variant="destructive" className="text-lg">
+                  SOLD OUT
+                </Badge>
+              </div>
+            )}
           </div>
-
-          {/* Urgency Badge */}
-          {isAlmostSoldOut && !isSoldOut && (
-            <div className="absolute top-2 right-2">
-              <Badge className="bg-destructive text-destructive-foreground text-xs animate-pulse">
-                <AlertTriangle className="h-3 w-3 mr-1" />
-                ALMOST GONE
-              </Badge>
-            </div>
-          )}
-
-          {isSoldOut && (
-            <div className="absolute inset-0 bg-background/80 flex items-center justify-center">
-              <Badge variant="destructive" className="text-lg">
-                SOLD OUT
-              </Badge>
-            </div>
-          )}
-        </div>
+        </ThreeDTilt>
       </CardHeader>
 
       <CardContent className="p-4">
