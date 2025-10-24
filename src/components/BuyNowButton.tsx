@@ -6,43 +6,18 @@ interface BuyNowButtonProps {
   variantId?: string
   quantity?: number
   className?: string
+  onCheckout?: (options: { variantId: string; quantity: number }) => Promise<void> | void
 }
 
-export default function BuyNowButton({ variantId, quantity = 1, className }: BuyNowButtonProps) {
+export default function BuyNowButton({ variantId, quantity = 1, className, onCheckout }: BuyNowButtonProps) {
   const [loading, setLoading] = useState(false)
   const disabled = !variantId || loading
 
   const handleClick = async () => {
-    if (!variantId) return
+    if (!variantId || !onCheckout) return
     try {
       setLoading(true)
-      const res = await fetch('/api/checkout', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ variant_id: variantId, quantity }),
-      })
-
-      let data: any = null
-      try {
-        data = await res.json()
-      } catch {
-        data = null
-      }
-
-      if (!res.ok) {
-        const message = typeof data?.error === 'string' && data.error.trim().length > 0
-          ? data.error.trim()
-          : typeof data?.detail === 'string' && data.detail.trim().length > 0
-            ? data.detail.trim()
-            : `Checkout failed (status ${res.status})`
-        throw new Error(message)
-      }
-
-      if (data?.checkoutUrl) {
-        window.location.href = data.checkoutUrl as string
-      } else {
-        throw new Error('No checkout URL returned')
-      }
+      await onCheckout({ variantId, quantity })
     } catch (e) {
       console.error(e)
       const message = e instanceof Error && e.message ? e.message : 'Unable to start checkout. Please try again.'
