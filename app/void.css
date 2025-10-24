@@ -1,0 +1,24 @@
+html.void-mode {
+  background-color: #050508;
+  filter: hue-rotate(-8deg) saturate(1.18) contrast(1.08);
+  color-scheme: dark;
+}
+
+html.void-mode body {
+  background-color: #050508;
+  color: #f4f1ff;
+  transition: filter 0.35s ease, background-color 0.35s ease, color 0.35s ease;
+}
+
+html.void-mode body a {
+  color: #d6d0ff;
+}
+
+html.void-mode .text-muted-foreground {
+  color: rgba(231, 231, 245, 0.78) !important;
+}
+
+html.void-mode .gothic-heading,
+html.void-mode .blackletter {
+  text-shadow: 2px 2px 6px rgba(0, 0, 0, 0.7);
+}

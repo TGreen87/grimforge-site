@@ -4,6 +4,7 @@ import { generateSiteMetadata } from '@/lib/seo/metadata'
 import { OrganizationJsonLd } from '@/components/seo/JsonLd'
 import Providers from './providers'
 import { GrimnessProvider } from '@/components/grimness/GrimnessContext'
+import VoidToggle from '@/components/fx/VoidToggle'
 import './globals.css'
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-body' })
@@ -34,6 +35,7 @@ export default function RootLayout({
       </head>
       <body className={`${inter.variable} ${marcellus.variable} font-sans overflow-x-hidden`}>
         <GrimnessProvider>
+          <VoidToggle />
           <Providers>
             {children}
           </Providers>
