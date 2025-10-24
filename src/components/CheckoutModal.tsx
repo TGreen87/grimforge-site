@@ -142,9 +142,11 @@ const CheckoutModal = ({ children }: CheckoutModalProps) => {
         .map((it) => ({ variant_id: it.variantId as string, quantity: it.quantity }))
 
       if (payloadItems.length === 0) {
-        // Fallback to mock if variant ids are missing
-        await new Promise((r) => setTimeout(r, 1500))
-        toast({ title: 'Cart not ready for checkout', description: 'Please add items from the product page (ensures stock unit is selected).', variant: 'destructive' })
+        toast({
+          title: 'Cart is empty',
+          description: 'Add at least one item from the product page before checking out.',
+          variant: 'destructive',
+        })
         setIsProcessing(false)
         return
       }
