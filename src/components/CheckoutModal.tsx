@@ -210,18 +210,29 @@ const CheckoutModal = ({ children }: CheckoutModalProps) => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(checkoutPayload),
       })
-      const data = await res.json().catch(() => ({}))
+
+      let data: any = null
+      try {
+        data = await res.json()
+      } catch {
+        data = null
+      }
+
       if (!res.ok) {
         const message = typeof data?.error === 'string' && data.error.trim().length > 0
-          ? data.error
-          : 'Checkout failed'
+          ? data.error.trim()
+          : typeof data?.detail === 'string' && data.detail.trim().length > 0
+            ? data.detail.trim()
+            : `Checkout failed (status ${res.status})`
         throw new Error(message)
       }
-      if (data.checkoutUrl) {
+
+      if (data?.checkoutUrl) {
         clearCart()
         window.location.href = data.checkoutUrl as string
         return
       }
+
       throw new Error('No checkout URL returned')
     } catch (e) {
       console.error(e)
