@@ -15,7 +15,6 @@ import AdminDashboard from "./pages/AdminDashboard";
 import LegalPages from "./pages/LegalPages";
 import ProductDetail from "./pages/ProductDetail";
 import NotFound from "./pages/NotFound";
-import { useEffect } from "react";
 
 const queryClient = new QueryClient({
   defaultOptions: {
