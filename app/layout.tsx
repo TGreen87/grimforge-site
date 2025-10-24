@@ -5,6 +5,7 @@ import { OrganizationJsonLd } from '@/components/seo/JsonLd'
 import Providers from './providers'
 import { GrimnessProvider } from '@/components/grimness/GrimnessContext'
 import VoidToggle from '@/components/fx/VoidToggle'
+import GrimnessPageTransition from '@/components/fx/GrimnessPageTransition'
 import './globals.css'
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-body' })
@@ -37,7 +38,9 @@ export default function RootLayout({
         <GrimnessProvider>
           <VoidToggle />
           <Providers>
-            {children}
+            <GrimnessPageTransition>
+              {children}
+            </GrimnessPageTransition>
           </Providers>
         </GrimnessProvider>
       </body>
