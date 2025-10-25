@@ -104,9 +104,9 @@ const Navigation = () => {
           <CartDrawer />
           {isAuthenticated ? (
             <>
-              <a href="/admin" className="hidden md:block text-sm underline-offset-4 hover:underline" onClick={(e) => { e.preventDefault(); window.location.href = '/admin' }}>
+              <Link href="/admin" className="hidden md:block text-sm underline-offset-4 hover:underline">
                 Admin
-              </a>
+              </Link>
               <UserMenu />
             </>
           ) : (

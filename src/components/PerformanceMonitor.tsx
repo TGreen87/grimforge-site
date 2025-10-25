@@ -20,7 +20,7 @@ const PerformanceMonitor = () => {
   if (!showOfflineAlert) return null;
 
   return (
-    <div className="fixed top-4 left-4 right-4 z-50 max-w-md mx-auto">
+    <div className="pointer-events-none fixed top-4 left-4 right-4 z-50 mx-auto max-w-md">
       {!isOnline && (
         <Alert className="border-destructive bg-destructive/10">
           <WifiOff className="h-4 w-4" />
