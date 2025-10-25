@@ -50,6 +50,7 @@ const Navigation = () => {
                 height={32}
                 width={200}
                 data-void-key="hero-logo"
+                data-void-src="/art/ant/hero-logo-void.png"
                 className="h-8 w-auto object-contain"
                 priority
               />
@@ -67,6 +68,7 @@ const Navigation = () => {
                 height={24}
                 width={150}
                 data-void-key="hero-logo"
+                data-void-src="/art/ant/hero-logo-void.png"
                 className="h-6 w-auto object-contain"
                 priority
               />

@@ -27,6 +27,7 @@ export default function FeaturedSample({ className }: FeaturedSampleProps) {
           priority
           className="object-cover"
           data-void-key="album-1"
+          data-void-src="/art/ant/album-1-void.jpg"
         />
       </div>
       <div className="space-y-2 text-left">
