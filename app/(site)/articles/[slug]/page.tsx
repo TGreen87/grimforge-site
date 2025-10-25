@@ -8,6 +8,22 @@ interface ArticlePageProps {
   params: Promise<{ slug: string }>
 }
 
+const publishedFormatter = new Intl.DateTimeFormat('en-AU', {
+  day: '2-digit',
+  month: 'short',
+  year: 'numeric',
+})
+
+function formatPublishedAt(value?: string | null) {
+  if (!value) return ''
+  try {
+    return publishedFormatter.format(new Date(value))
+  } catch (error) {
+    console.warn('article page: failed to format published_at', error)
+    return ''
+  }
+}
+
 export async function generateMetadata({ params }: ArticlePageProps): Promise<Metadata> {
   const { slug } = await params
   const article = await getArticle(slug)
@@ -89,7 +105,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
         <header className="mb-6">
           <h1 className="blackletter text-4xl md:text-6xl mb-2 text-bone break-words">{article.title}</h1>
           <p className="text-sm text-muted-foreground">
-            {article.author ? `${article.author} • ` : ''}{article.published_at ? new Date(article.published_at).toLocaleDateString() : ''}
+            {article.author ? `${article.author} • ` : ''}{formatPublishedAt(article.published_at)}
           </p>
           {article.excerpt && <p className="text-base md:text-lg text-muted-foreground max-w-3xl mt-2">{article.excerpt}</p>}
         </header>

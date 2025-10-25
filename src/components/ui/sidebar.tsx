@@ -28,6 +28,16 @@ import {
 } from "./hooks/use-sidebar"
 import { sidebarMenuButtonVariants } from "./variants/sidebar-variants"
 
+function pseudoRandomFromString(input: string) {
+  let hash = 0
+  for (let i = 0; i < input.length; i += 1) {
+    hash = (hash << 5) - hash + input.charCodeAt(i)
+    hash |= 0
+  }
+  const normalized = (hash >>> 0) / 4294967295
+  return normalized || 0.5
+}
+
 const SidebarProvider = React.forwardRef<
   HTMLDivElement,
   React.ComponentProps<"div"> & {
@@ -610,10 +620,12 @@ const SidebarMenuSkeleton = React.forwardRef<
     showIcon?: boolean
   }
 >(({ className, showIcon = false, ...props }, ref) => {
-  // Random width between 50 to 90%.
+  const reactId = React.useId()
+  // Stable pseudo-random width between 50% and 90% derived from component identity.
   const width = React.useMemo(() => {
-    return `${Math.floor(Math.random() * 40) + 50}%`
-  }, [])
+    const normalized = pseudoRandomFromString(`${reactId}-${showIcon}`)
+    return `${Math.floor(normalized * 40) + 50}%`
+  }, [reactId, showIcon])
 
   return (
     <div
