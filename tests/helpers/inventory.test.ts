@@ -1,4 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { validateInventoryOperation } from '@/lib/inventory/validation';
 
 // Mock Supabase client
 const mockSupabase = {
@@ -360,40 +361,19 @@ describe('Inventory Management Helpers', () => {
   
   describe('validateInventoryOperation', () => {
     it('should validate positive quantities', () => {
-      const quantity = 5;
-      const variantId = 'variant-123';
-      
-      // Simulate validation logic
-      const isValid = quantity > 0 && variantId && variantId.length > 0;
-      
-      expect(isValid).toBe(true);
+      expect(validateInventoryOperation({ quantity: 5, variantId: 'variant-123' })).toBe(true);
     });
     
     it('should reject negative quantities', () => {
-      const quantity = -1;
-      const variantId = 'variant-123';
-      
-      const isValid = quantity > 0 && variantId && variantId.length > 0;
-      
-      expect(isValid).toBe(false);
+      expect(validateInventoryOperation({ quantity: -1, variantId: 'variant-123' })).toBe(false);
     });
     
     it('should reject zero quantity', () => {
-      const quantity = 0;
-      const variantId = 'variant-123';
-      
-      const isValid = quantity > 0 && variantId && variantId.length > 0;
-      
-      expect(isValid).toBe(false);
+      expect(validateInventoryOperation({ quantity: 0, variantId: 'variant-123' })).toBe(false);
     });
     
     it('should reject invalid variant ID', () => {
-      const quantity = 1;
-      const variantId = '';
-      
-      const isValid = quantity > 0 && variantId && variantId.length > 0;
-      
-      expect(isValid).toBe(false);
+      expect(validateInventoryOperation({ quantity: 1, variantId: '' })).toBe(false);
     });
   });
 });

@@ -14,11 +14,29 @@ function isPreviewHost(request: NextRequest) {
   const previewEnv = process.env.ASSISTANT_ALLOW_PREVIEW === '1'
   const allowLocalhost =
     process.env.ASSISTANT_ALLOW_LOCALHOST === '1' || process.env.NODE_ENV !== 'production'
+  const previewHosts = (process.env.ASSISTANT_PREVIEW_HOSTS || '')
+    .split(',')
+    .map((entry) => entry.trim().toLowerCase())
+    .filter(Boolean)
+
+  const normalisedHost = host.toLowerCase()
   return (
     previewEnv ||
-    /netlify\.app$/.test(host) ||
-    (allowLocalhost && /^localhost(?::\d+)?$/.test(host))
+    /netlify\.app$/.test(normalisedHost) ||
+    previewHosts.some((entry) => normalisedHost.endsWith(entry)) ||
+    (allowLocalhost && /^(localhost|127\.0\.0\.1)(?::\d+)?$/.test(normalisedHost))
   )
+}
+
+function logAuthFailure(request: NextRequest, reason: string) {
+  const host = request.headers.get('x-forwarded-host') || request.headers.get('host') || 'unknown'
+  const preview = isPreviewHost(request)
+  console.warn('Admin assistant auth failure', {
+    reason,
+    host,
+    preview,
+    hasFallbackToken: Boolean(ADMIN_FALLBACK_TOKEN),
+  })
 }
 
 export function extractAssistantToken(headers: Headers) {
@@ -76,11 +94,13 @@ export async function assertAdmin(request: NextRequest): Promise<AssertAdminResu
       return { ok: true as const, userId: null }
     }
     if (ADMIN_FALLBACK_TOKEN) {
+      logAuthFailure(request, 'missing-user-with-token')
       return {
         ok: false as const,
         error: NextResponse.json({ error: 'Unauthorized – provide a valid assistant API key' }, { status: 401 }),
       }
     }
+    logAuthFailure(request, 'missing-user')
     return { ok: false as const, error: NextResponse.json({ error: 'Unauthorized' }, { status: 401 }) }
   }
 
@@ -95,8 +115,10 @@ export async function assertAdmin(request: NextRequest): Promise<AssertAdminResu
   }
 
   if (isPreviewHost(request)) {
+    logAuthFailure(request, 'non-admin-preview-bypass')
     return { ok: true as const, userId: user.id }
   }
 
+  logAuthFailure(request, 'non-admin')
   return { ok: false as const, error: NextResponse.json({ error: 'Forbidden' }, { status: 403 }) }
 }

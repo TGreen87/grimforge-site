@@ -1,7 +1,7 @@
 import { z } from 'zod'
 import { TablesInsert } from '@/integrations/supabase/types'
 import { createServiceClient } from '@/lib/supabase/server'
-import { callOpenAIJson } from '@/lib/assistant/openai'
+import { callOpenAIJson, JsonSchema } from '@/lib/assistant/openai'
 import { AssistantAttachment } from '@/lib/assistant/types'
 import { writeAuditLog } from '@/lib/audit-logger'
 
@@ -18,6 +18,23 @@ const ARTICLE_SCHEMA_DESCRIPTION = `{
   "markdown": string (GitHub-flavoured markdown, include headings, paragraphs, and bullet lists),
   "tags": string array (max 6 entries)
 }`
+
+const ARTICLE_JSON_SCHEMA: JsonSchema = {
+  type: 'object',
+  additionalProperties: false,
+  required: ['title', 'excerpt', 'markdown'],
+  properties: {
+    title: { type: 'string' },
+    excerpt: { type: 'string' },
+    markdown: { type: 'string' },
+    tags: {
+      type: 'array',
+      items: { type: 'string' },
+      maxItems: 6,
+      default: [],
+    },
+  },
+}
 
 const ARTICLE_SYSTEM_PROMPT =
   process.env.ASSISTANT_ARTICLE_SYSTEM_PROMPT ||
@@ -71,12 +88,20 @@ export async function draftArticlePipeline(options: {
 
   const wordCount = clampWordCount(input.wordCount ?? 400)
   const attachmentContext = attachments.map((item) => `${item.name} (${item.type || 'file'})`).join(', ')
+  const imageInputs = attachments
+    .filter((file) => file.type?.startsWith('image/'))
+    .map((file) => ({
+      type: 'input_image' as const,
+      image_url: { url: file.url },
+      detail: 'high' as const,
+    }))
 
   const userPrompt = [
     `Brief: ${input.brief}`,
     input.productSlug ? `Target product slug: ${input.productSlug}` : null,
     `Word target: ${wordCount}`,
     attachmentContext ? `Attachments: ${attachmentContext}` : null,
+    imageInputs.length ? 'When artwork is provided, weave its colours and imagery into the tone of the article.' : null,
     'Tone: black-metal journalistic, evocative, reverent but grounded.',
     'Include 2-3 headings and short paragraphs. Close with a call-to-action referencing the label.'
   ].filter(Boolean).join('\n')
@@ -86,7 +111,9 @@ export async function draftArticlePipeline(options: {
     userPrompt,
     schema: ARTICLE_SCHEMA,
     schemaDescription: ARTICLE_SCHEMA_DESCRIPTION,
+    jsonSchema: ARTICLE_JSON_SCHEMA,
     temperature: 0.5,
+    attachments: imageInputs,
   })
 
   const title = (input.title ?? article.title).trim()

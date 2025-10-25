@@ -8,25 +8,26 @@ export async function POST(req: NextRequest) {
   try {
     // Parse request body
     const body = await req.json()
-    const variant_id: string | undefined = body?.variant_id
-    const quantity: number | undefined = body?.quantity
-    const items: Array<{ variant_id: string; quantity: number }> | undefined = Array.isArray(body?.items) ? body.items : undefined
-
-    const customerInput = (body?.customer && typeof body.customer === 'object') ? body.customer as Record<string, unknown> : {}
-    const rawEmail = typeof body?.email === 'string' && body.email.trim().length > 0
-      ? body.email
-      : typeof customerInput?.email === 'string' && (customerInput.email as string).trim().length > 0
-      ? (customerInput.email as string)
+    const variant_id: string | undefined = typeof body?.variant_id === 'string' ? body.variant_id : undefined
+    const quantity: number | undefined =
+      typeof body?.quantity === 'number' && Number.isFinite(body.quantity) ? body.quantity : undefined
+    const items = Array.isArray(body?.items)
+      ? body.items.filter(
+          (entry): entry is { variant_id: string; quantity: number } =>
+            entry &&
+            typeof entry === 'object' &&
+            typeof entry.variant_id === 'string' &&
+            typeof entry.quantity === 'number' &&
+            entry.quantity > 0,
+        )
       : undefined
 
-    if (!rawEmail) {
-      return NextResponse.json({ error: 'Customer email is required' }, { status: 400 })
-    }
-
-    const customerEmail = rawEmail.trim().toLowerCase()
+    const customerInput = (body?.customer && typeof body.customer === 'object') ? body.customer as Record<string, unknown> : {}
 
     // Validate input
-    if (!variant_id || !quantity || quantity < 1) {
+    if (items && items.length > 0) {
+      // All multi-item entries have already been filtered to the required shape above.
+    } else if (!variant_id || !quantity || quantity < 1) {
       return NextResponse.json(
         { error: 'Invalid variant_id or quantity' },
         { status: 400 }
@@ -35,61 +36,6 @@ export async function POST(req: NextRequest) {
 
     // Initialize Supabase service client (bypasses RLS)
     const supabase = createServiceClient()
-
-    // Upsert customer profile
-    const customerProfile = {
-      first_name: typeof customerInput?.first_name === 'string' ? (customerInput.first_name as string) : null,
-      last_name: typeof customerInput?.last_name === 'string' ? (customerInput.last_name as string) : null,
-      phone: typeof customerInput?.phone === 'string' ? (customerInput.phone as string) : null,
-      shipping_address: typeof customerInput?.shipping_address === 'object' && customerInput.shipping_address !== null
-        ? customerInput.shipping_address
-        : (typeof body?.shipping_address === 'object' ? body.shipping_address : null),
-      billing_address: typeof customerInput?.billing_address === 'object' && customerInput.billing_address !== null
-        ? customerInput.billing_address
-        : null,
-      marketing_opt_in: typeof customerInput?.marketing_opt_in === 'boolean' ? customerInput.marketing_opt_in : false,
-      notes: typeof customerInput?.notes === 'string' ? (customerInput.notes as string) : null,
-    }
-
-    const { data: existingCustomer } = await supabase
-      .from('customers')
-      .select('id')
-      .eq('email', customerEmail)
-      .maybeSingle()
-
-    let customerId: string | null = existingCustomer?.id ?? null
-
-    if (customerId) {
-      await supabase
-        .from('customers')
-        .update({
-          ...customerProfile,
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', customerId)
-    } else {
-      const { data: insertedCustomer, error: insertCustomerError } = await supabase
-        .from('customers')
-        .insert({
-          email: customerEmail,
-          ...customerProfile,
-        })
-        .select('id')
-        .single()
-
-      if (insertCustomerError) {
-        await writeAuditLog(
-          createPaymentAuditLog({
-            eventType: 'checkout.customer_upsert_failed',
-            error: insertCustomerError.message,
-            metadata: { email: customerEmail },
-          })
-        )
-        return NextResponse.json({ error: 'Failed to create customer profile' }, { status: 500 })
-      }
-
-      customerId = insertedCustomer?.id ?? null
-    }
 
     // Helper to fetch a single variant with product+inventory
     const fetchVariant = async (vid: string) => {
@@ -154,6 +100,76 @@ export async function POST(req: NextRequest) {
     }
 
     // Note: inventory availability is validated per item above
+
+    const rawEmail =
+      (typeof body?.email === 'string' && body.email.trim().length > 0 ? body.email : null) ??
+      (typeof customerInput?.email === 'string' && (customerInput.email as string).trim().length > 0
+        ? (customerInput.email as string)
+        : null)
+
+    if (!rawEmail) {
+      return NextResponse.json({ error: 'Customer email is required' }, { status: 400 })
+    }
+
+    const customerEmail = rawEmail.trim().toLowerCase()
+
+    const customerProfile = {
+      first_name: typeof customerInput?.first_name === 'string' ? (customerInput.first_name as string) : null,
+      last_name: typeof customerInput?.last_name === 'string' ? (customerInput.last_name as string) : null,
+      phone: typeof customerInput?.phone === 'string' ? (customerInput.phone as string) : null,
+      shipping_address:
+        typeof customerInput?.shipping_address === 'object' && customerInput.shipping_address !== null
+          ? customerInput.shipping_address
+          : typeof body?.shipping_address === 'object'
+            ? body.shipping_address
+            : null,
+      billing_address:
+        typeof customerInput?.billing_address === 'object' && customerInput.billing_address !== null
+          ? customerInput.billing_address
+          : null,
+      marketing_opt_in: typeof customerInput?.marketing_opt_in === 'boolean' ? customerInput.marketing_opt_in : false,
+      notes: typeof customerInput?.notes === 'string' ? (customerInput.notes as string) : null,
+    }
+
+    const { data: existingCustomer } = await supabase
+      .from('customers')
+      .select('id')
+      .eq('email', customerEmail)
+      .maybeSingle()
+
+    let customerId: string | null = existingCustomer?.id ?? null
+
+    if (customerId) {
+      await supabase
+        .from('customers')
+        .update({
+          ...customerProfile,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', customerId)
+    } else {
+      const { data: insertedCustomer, error: insertCustomerError } = await supabase
+        .from('customers')
+        .insert({
+          email: customerEmail,
+          ...customerProfile,
+        })
+        .select('id')
+        .single()
+
+      if (insertCustomerError) {
+        await writeAuditLog(
+          createPaymentAuditLog({
+            eventType: 'checkout.customer_upsert_failed',
+            error: insertCustomerError.message,
+            metadata: { email: customerEmail },
+          }),
+        )
+        return NextResponse.json({ error: 'Failed to create customer profile' }, { status: 500 })
+      }
+
+      customerId = insertedCustomer?.id ?? null
+    }
 
     // 2. Create pending order in database
     const orderNumber = `ORR-${Date.now().toString().slice(-6)}`

@@ -7,9 +7,9 @@ export default function AdminPage({ params }: { params: Promise<{ segments?: str
   // Use React's use() hook to unwrap the promise in client component
   const resolvedParams = use(params);
   
-  // If no segments, navigate to products by default
+  // If no segments, navigate to dashboard by default
   if (!resolvedParams.segments || resolvedParams.segments.length === 0) {
-    return <NavigateToResource resource="products" />;
+    return <NavigateToResource resource="dashboard" />;
   }
   
   // Let Refine handle the routing for specific segments

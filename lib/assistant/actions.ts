@@ -154,5 +154,6 @@ export function buildActionsPrompt(): string {
     })
   })
   lines.push('When proposing an action, include every required parameter in the structured response. Use camelCase keys that match the parameter names.')
+  lines.push('Prefix hidden flags with double underscores: include "__attachments" for uploaded files and set "__autoExecute": true only when the owner explicitly requests immediate execution without further confirmation.')
   return lines.join('\n')
 }

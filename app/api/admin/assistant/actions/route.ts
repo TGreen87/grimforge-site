@@ -672,7 +672,10 @@ export async function POST(request: NextRequest) {
 }
 
 function extractAttachments(parameters: Record<string, unknown>): { attachments: AssistantAttachment[]; cleaned: Record<string, unknown> } {
-  const { __attachments, ...rest } = parameters as Record<string, unknown> & { __attachments?: unknown }
+  const { __attachments, __autoExecute: _autoExecute, ...rest } = parameters as Record<
+    string,
+    unknown
+  > & { __attachments?: unknown; __autoExecute?: unknown }
   const attachments: AssistantAttachment[] = []
 
   if (Array.isArray(__attachments)) {
