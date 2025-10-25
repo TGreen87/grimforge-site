@@ -5,6 +5,7 @@ import { useEffect, useRef } from 'react'
 import { useGrimness } from '@/components/grimness/GrimnessContext'
 
 const AUDIO_SRC = '/audio/vinyl.mp3'
+const AUDIO_ENABLED = process.env.NEXT_PUBLIC_AUDIO_ENABLED === '1'
 const FADE_DURATION_MS = 300
 
 type HowlerBackend = {
@@ -38,9 +39,14 @@ declare global {
   }
 }
 
+function clampVolume(value: number) {
+  if (!Number.isFinite(value)) return 0
+  return Math.max(0, Math.min(1, value))
+}
+
 function squareVolume(value: number) {
-  const clamped = Math.max(0, Math.min(1, value))
-  return clamped * clamped * 0.2
+  const clamped = clampVolume(value)
+  return clampVolume(clamped * clamped * 0.2)
 }
 
 export default function AudioBed() {
@@ -49,6 +55,8 @@ export default function AudioBed() {
   const htmlFadeRef = useRef<number | null>(null)
   const isMutedRef = useRef(false)
   const latestTargetRef = useRef(0)
+  const htmlErrorHandlerRef = useRef<EventListener | null>(null)
+  const assetStatusRef = useRef<'unknown' | 'ready' | 'missing'>(AUDIO_ENABLED ? 'unknown' : 'missing')
 
   const ensureControls = () => {
     if (typeof window === 'undefined') return
@@ -75,23 +83,24 @@ export default function AudioBed() {
   }
 
   const applyVolume = (target: number) => {
-    latestTargetRef.current = target
+    const clampedTarget = clampVolume(target)
+    latestTargetRef.current = clampedTarget
     const backend = backendRef.current
-    if (!backend) return
 
-    if (isMutedRef.current) {
-      target = 0
-    }
+    if (!backend || !AUDIO_ENABLED || assetStatusRef.current !== 'ready') return
+
+    const desired = isMutedRef.current ? 0 : clampedTarget
 
     if (backend.type === 'howler') {
       const instance = backend.howl
-      const current = instance.volume()
+      const current = clampVolume(instance.volume())
       if (typeof instance.fade === 'function') {
-        instance.fade(current, target, FADE_DURATION_MS)
+        instance.fade(current, clampVolume(desired), FADE_DURATION_MS)
       } else {
-        instance.volume(target)
+        instance.volume(clampVolume(desired))
       }
-      if (!instance.playing()) {
+      const shouldPlay = clampVolume(desired) > 0
+      if (shouldPlay && typeof instance.play === 'function' && !instance.playing()) {
         try {
           void instance.play()
         } catch (error) {
@@ -102,11 +111,12 @@ export default function AudioBed() {
     }
 
     const audio = backend.audio
-    const startVolume = audio.volume
-    const delta = target - startVolume
+    const startVolume = clampVolume(audio.volume)
+    const safeTarget = clampVolume(desired)
+    const delta = safeTarget - startVolume
     if (Math.abs(delta) < 0.01) {
-      audio.volume = target
-      if (target > 0) {
+      audio.volume = safeTarget
+      if (safeTarget > 0) {
         void audio.play().catch(() => null)
       }
       return
@@ -116,7 +126,7 @@ export default function AudioBed() {
     const start = performance.now()
     const animate = (timestamp: number) => {
       const progress = Math.min(1, (timestamp - start) / FADE_DURATION_MS)
-      audio.volume = startVolume + delta * progress
+      audio.volume = clampVolume(startVolume + delta * progress)
       if (progress < 1) {
         htmlFadeRef.current = requestAnimationFrame(animate)
       } else {
@@ -124,7 +134,7 @@ export default function AudioBed() {
       }
     }
     htmlFadeRef.current = requestAnimationFrame(animate)
-    if (target > 0) {
+    if (safeTarget > 0) {
       void audio.play().catch(() => null)
     }
   }
@@ -133,11 +143,40 @@ export default function AudioBed() {
     if (typeof window === 'undefined') return
     ensureControls()
 
+    if (!AUDIO_ENABLED) {
+      return () => {
+        cleanupHtmlFade()
+        backendRef.current = null
+      }
+    }
+
     let disposed = false
-    const globalHowl = window.Howl
+
+    const cleanupBackend = () => {
+      cleanupHtmlFade()
+      const backend = backendRef.current
+      if (backend?.type === 'howler') {
+        try {
+          backend.howl.stop()
+          backend.howl.unload()
+        } catch (error) {
+          console.warn('AudioBed: failed to cleanup howler', error)
+        }
+      } else if (backend?.type === 'html') {
+        if (htmlErrorHandlerRef.current) {
+          backend.audio.removeEventListener('error', htmlErrorHandlerRef.current)
+          htmlErrorHandlerRef.current = null
+        }
+        backend.audio.pause()
+        backend.audio.remove()
+      }
+      backendRef.current = null
+    }
 
     const establishBackend = async () => {
-      if (disposed) return
+      if (disposed || assetStatusRef.current !== 'ready' || backendRef.current) return
+
+      const globalHowl = typeof window !== 'undefined' ? window.Howl : undefined
 
       if (typeof globalHowl === 'function') {
         try {
@@ -145,6 +184,12 @@ export default function AudioBed() {
             src: [AUDIO_SRC],
             loop: true,
             volume: 0,
+            html5: true,
+            onloaderror: () => {
+              console.warn('AudioBed: Howler failed to load audio asset, disabling bed')
+              assetStatusRef.current = 'missing'
+              backendRef.current = null
+            },
           })
           backendRef.current = { type: 'howler', howl: howlInstance }
           try {
@@ -168,37 +213,54 @@ export default function AudioBed() {
       const tryPlay = () => {
         void audio.play().catch(() => null)
       }
+      const handleError: EventListener = () => {
+        console.warn('AudioBed: audio asset failed to load, disabling bed')
+        assetStatusRef.current = 'missing'
+        cleanupBackend()
+      }
+      htmlErrorHandlerRef.current = handleError
       audio.addEventListener('canplay', tryPlay, { once: true })
+      audio.addEventListener('error', handleError)
       document.body.appendChild(audio)
       backendRef.current = { type: 'html', audio }
       applyVolume(latestTargetRef.current)
     }
 
-    void establishBackend()
+    const verifyAsset = async () => {
+      if (assetStatusRef.current === 'ready') {
+        await establishBackend()
+        return
+      }
+
+      try {
+        const response = await fetch(AUDIO_SRC, { method: 'HEAD' })
+        if (!disposed && response.ok) {
+          assetStatusRef.current = 'ready'
+          await establishBackend()
+        } else if (!disposed) {
+          assetStatusRef.current = 'missing'
+        }
+      } catch (error) {
+        if (!disposed) {
+          assetStatusRef.current = 'missing'
+          console.warn('AudioBed: audio asset unavailable, skipping playback', error)
+        }
+      }
+    }
+
+    void verifyAsset()
 
     return () => {
       disposed = true
-      cleanupHtmlFade()
-      const backend = backendRef.current
-      if (backend?.type === 'howler') {
-        try {
-          backend.howl.stop()
-          backend.howl.unload()
-        } catch (error) {
-          console.warn('AudioBed: failed to cleanup howler', error)
-        }
-      } else if (backend?.type === 'html') {
-        backend.audio.pause()
-        backend.audio.remove()
-      }
-      backendRef.current = null
+      cleanupBackend()
     }
   }, [])
 
   useEffect(() => {
     const targetVolume = levelIndex === 0 ? 0 : squareVolume(weights.audioGain)
-    latestTargetRef.current = targetVolume
-    applyVolume(targetVolume)
+    const clamped = clampVolume(targetVolume)
+    latestTargetRef.current = clamped
+    applyVolume(clamped)
   }, [levelIndex, weights.audioGain])
 
   return null
