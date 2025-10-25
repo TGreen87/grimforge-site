@@ -219,6 +219,7 @@ const CustomerManagement = () => {
             <tbody>
               {filteredCustomers.map((customer) => {
                 const customerValue = getCustomerValue(customer);
+                const dialogDescriptionId = `customer-profile-description-${customer.id}`;
                 
                 return (
                   <tr key={customer.id} className="border-b border-border hover:bg-muted/30">
@@ -254,7 +255,10 @@ const CustomerManagement = () => {
                               View Profile
                             </Button>
                           </DialogTrigger>
-                          <DialogContent className="max-w-4xl">
+                          <DialogContent className="max-w-4xl" aria-describedby={dialogDescriptionId}>
+                            <p id={dialogDescriptionId} className="sr-only">
+                              Detailed profile information, purchase history, and management actions for {customer.name}.
+                            </p>
                             <DialogHeader>
                               <DialogTitle>{customer.name} - Customer Profile</DialogTitle>
                             </DialogHeader>

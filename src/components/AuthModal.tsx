@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from "react";
+import { useState, useId } from "react";
 import { getSupabaseBrowserClient } from "@/integrations/supabase/browser";
 import { getBaseUrl } from "@/lib/runtime";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -17,6 +17,7 @@ interface AuthModalProps {
 }
 
 const AuthModal = ({ trigger }: AuthModalProps) => {
+  const descriptionId = useId();
   const [isOpen, setIsOpen] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [loginData, setLoginData] = useState({ email: "", password: "" });
@@ -96,7 +97,10 @@ const AuthModal = ({ trigger }: AuthModalProps) => {
         )}
       </DialogTrigger>
       
-      <DialogContent className="bg-background border-border max-w-md">
+      <DialogContent className="bg-background border-border max-w-md" aria-describedby={descriptionId}>
+        <p id={descriptionId} className="sr-only">
+          Use this modal to sign in to Obsidian Rite Records or create a new account.
+        </p>
         <DialogHeader>
           <DialogTitle className="blackletter text-2xl text-bone text-center">
             Sign in or register
