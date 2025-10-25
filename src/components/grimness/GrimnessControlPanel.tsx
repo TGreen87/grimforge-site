@@ -2,7 +2,13 @@
 
 import { GrimnessSlider } from '@/components/grimness/GrimnessSlider'
 
+const GRIMNESS_ENABLED = process.env.NEXT_PUBLIC_GRIMNESS_ENABLED === '1'
+
 export default function GrimnessControlPanel() {
+  if (!GRIMNESS_ENABLED) {
+    return null
+  }
+
   return (
     <div className="pointer-events-none fixed inset-x-0 bottom-6 z-40 hidden justify-center md:flex">
       <div

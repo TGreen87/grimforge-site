@@ -152,6 +152,45 @@ All colors MUST be HSL. Gothic aesthetic with frost and blood accents.
   opacity: 0;
 }
 
+.grimness-fog-layer {
+  pointer-events: none;
+  position: fixed;
+  inset: 0;
+  z-index: 35;
+  mix-blend-mode: screen;
+  background-image:
+    radial-gradient(circle at 25% 30%, rgba(134, 113, 255, 0.18), rgba(134, 113, 255, 0) 55%),
+    radial-gradient(circle at 75% 20%, rgba(192, 177, 255, 0.16), rgba(192, 177, 255, 0) 60%),
+    radial-gradient(circle at 50% 70%, rgba(112, 132, 255, 0.14), rgba(112, 132, 255, 0) 65%);
+  background-repeat: no-repeat;
+  opacity: var(--fog-opacity, 0.22);
+  filter: blur(var(--fog-blur, 24px));
+  transform: scale(var(--fog-scale, 1)) translateZ(0);
+  transition: opacity 0.45s ease, filter 0.45s ease, transform 0.45s ease;
+  animation: grimness-fog-drift 28s ease-in-out infinite alternate;
+}
+
+@keyframes grimness-fog-drift {
+  0% {
+    background-position: 10% 12%, 80% 18%, 45% 78%;
+    transform: scale(var(--fog-scale, 1)) translate3d(-1%, -1%, 0);
+  }
+  50% {
+    background-position: 18% 20%, 73% 25%, 48% 70%;
+    transform: scale(calc(var(--fog-scale, 1) + 0.03)) translate3d(1%, 1%, 0);
+  }
+  100% {
+    background-position: 22% 16%, 68% 28%, 52% 74%;
+    transform: scale(var(--fog-scale, 1)) translate3d(-0.5%, 0.5%, 0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .grimness-fog-layer {
+    animation: none;
+  }
+}
+
 @layer base {
   * {
     @apply border-border;

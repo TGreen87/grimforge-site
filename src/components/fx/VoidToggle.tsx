@@ -4,6 +4,8 @@ import { useEffect, useRef } from 'react'
 
 import { applyArtManifest, voidArtManifest } from '@/lib/artManifest'
 
+const VOIDMODE_ENABLED = process.env.NEXT_PUBLIC_VOIDMODE_ENABLED === '1'
+
 const TOGGLE_KEY = '6'
 const ACTIVATION_COUNT = 3
 const ACTIVATION_WINDOW_MS = 2000
@@ -43,7 +45,7 @@ function dispatchVoidEvent(eventName: 'voidmode:on' | 'voidmode:off') {
 }
 
 export function enableVoidMode() {
-  if (typeof window === 'undefined') return
+  if (!VOIDMODE_ENABLED || typeof window === 'undefined') return
   const root = document.documentElement
   if (voidModeEnabled && root.classList.contains('void-mode')) return
   root.classList.add('void-mode')
@@ -63,7 +65,7 @@ export function disableVoidMode() {
 }
 
 export function toggleVoidMode(force?: boolean) {
-  if (typeof window === 'undefined') return
+  if (!VOIDMODE_ENABLED || typeof window === 'undefined') return
   const shouldEnable = typeof force === 'boolean'
     ? force
     : !document.documentElement.classList.contains('void-mode')
@@ -81,6 +83,10 @@ export function isVoidModeEnabled() {
 }
 
 export function VoidToggle() {
+  if (!VOIDMODE_ENABLED) {
+    return null
+  }
+
   const keypresses = useRef<number[]>([])
 
   useEffect(() => {

@@ -7,9 +7,12 @@ import GrimoireSection, { ArticlePreview } from '@/components/GrimoireSection'
 import RecommendationEngine from '@/components/RecommendationEngine'
 import { StorySections, NewsletterSection, TimelineEntry, TestimonialEntry, NewsletterContent } from '@/components/StorySections'
 import { createServiceClient } from '@/lib/supabase/server'
+import FeaturedSample from '@/components/demo/FeaturedSample'
 
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
+
+const GRIMNESS_ENABLED = process.env.NEXT_PUBLIC_GRIMNESS_ENABLED === '1'
 
 export default async function HomePage({ searchParams }: { searchParams: Record<string, string | string[]> }) {
   const previewSlug = typeof searchParams?.previewCampaign === 'string' ? searchParams.previewCampaign : null
@@ -71,6 +74,11 @@ export default async function HomePage({ searchParams }: { searchParams: Record<
     <>
       {/* Feature-flagged hero; falls back to legacy hero when disabled */}
       <CampaignHero previewSlug={previewSlug} />
+      {GRIMNESS_ENABLED ? (
+        <section className="container mx-auto px-4 pb-10">
+          <FeaturedSample />
+        </section>
+      ) : null}
       <ProductCatalog />
       <div className="container mx-auto px-4 py-16">
         <RecommendationEngine />

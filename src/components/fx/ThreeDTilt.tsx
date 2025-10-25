@@ -7,6 +7,7 @@ import { cn } from '@/lib/utils'
 const MAX_DEG = 8
 const PERSPECTIVE = 800
 const REDUCED_MOTION_QUERY = '(prefers-reduced-motion: reduce)'
+const GRIMNESS_ENABLED = process.env.NEXT_PUBLIC_GRIMNESS_ENABLED === '1'
 
 function clamp(value: number, min: number, max: number) {
   return Math.min(Math.max(value, min), max)
@@ -17,6 +18,18 @@ interface ThreeDTiltProps extends HTMLAttributes<HTMLDivElement> {
 }
 
 export default function ThreeDTilt({ children, className, ...divProps }: ThreeDTiltProps) {
+  if (!GRIMNESS_ENABLED) {
+    return (
+      <div
+        className={cn('three-d-tilt release-card', className)}
+        data-tilt-disabled="true"
+        {...divProps}
+      >
+        {children}
+      </div>
+    )
+  }
+
   const rootRef = useRef<HTMLDivElement>(null)
   const reduceMotionQueryRef = useRef<MediaQueryList | null>(null)
   const tiltEnabledRef = useRef(true)

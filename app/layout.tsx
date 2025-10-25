@@ -4,16 +4,17 @@ import { generateSiteMetadata } from '@/lib/seo/metadata'
 import { OrganizationJsonLd } from '@/components/seo/JsonLd'
 import Providers from './providers'
 import { GrimnessProvider } from '@/components/grimness/GrimnessContext'
-import { GrimnessSlider } from '@/components/grimness/GrimnessSlider'
 import VoidToggle from '@/components/fx/VoidToggle'
 import AudioBed from '@/components/fx/AudioBed'
-import GrimnessPageTransition from '@/components/fx/GrimnessPageTransition'
 import './globals.css'
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-body' })
 const marcellus = Marcellus({ weight: '400', subsets: ['latin'], variable: '--font-heading' })
 
 export const metadata: Metadata = generateSiteMetadata()
+
+const VOIDMODE_ENABLED = process.env.NEXT_PUBLIC_VOIDMODE_ENABLED === '1'
+const AUDIO_ENABLED = process.env.NEXT_PUBLIC_AUDIO_ENABLED === '1'
 
 export default function RootLayout({
   children,
@@ -38,32 +39,10 @@ export default function RootLayout({
       </head>
       <body className={`${inter.variable} ${marcellus.variable} font-sans overflow-x-hidden`}>
         <GrimnessProvider>
-          <div
-            id="orr-debug"
-            style={{
-              position: 'fixed',
-              bottom: '8px',
-              left: '8px',
-              zIndex: 9999,
-              font: '12px/1.1 ui-sans-serif,system-ui',
-              color: '#aaa',
-              background: '#0009',
-              padding: '6px 8px',
-              borderRadius: '6px',
-              backdropFilter: 'blur(2px)',
-            }}
-          >
-            ORR grimness mounted
-          </div>
-          <div className="fixed bottom-3 left-1/2 z-50 -translate-x-1/2">
-            <GrimnessSlider />
-          </div>
-          <VoidToggle />
-          <AudioBed />
+          {VOIDMODE_ENABLED ? <VoidToggle /> : null}
+          {AUDIO_ENABLED ? <AudioBed /> : null}
           <Providers>
-            <GrimnessPageTransition>
-              {children}
-            </GrimnessPageTransition>
+            {children}
           </Providers>
         </GrimnessProvider>
       </body>

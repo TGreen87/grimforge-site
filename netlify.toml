@@ -33,3 +33,8 @@
 [context.deploy-preview.environment]
   NEXT_PUBLIC_SUPABASE_URL = "https://shbalyvvquvtvnkrsxtx.supabase.co"
   NEXT_PUBLIC_SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNoYmFseXZ2cXV2dHZua3JzeHR4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ3NDY4MzgsImV4cCI6MjA3MDMyMjgzOH0.oeI0CLImpKIRjp1cZ8u53cNLWQrTtnTGTKy5Zi6MaXY"
+
+[context."uitest".environment]
+  NEXT_PUBLIC_GRIMNESS_ENABLED = "1"
+  NEXT_PUBLIC_VOIDMODE_ENABLED = "1"
+  NEXT_PUBLIC_AUDIO_ENABLED = "0"
