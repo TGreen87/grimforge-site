@@ -52,7 +52,7 @@ After updating `.env.local`, run `netlify env:set <VAR_NAME>` from the project r
    - `NEXT_PUBLIC_SITE_URL` reflects the intended host (branch URL during QA or production domain once live)
    - Supabase URL/ANON/SERVICE flags show “yes”
 2) Shipping API (optional): `POST /api/shipping/quote` returns either AusPost options (configured:true) or Stripe static fallback (configured:false).
-3) Checkout API: `POST /api/checkout` returns 200 with `{ checkoutUrl }` when `STRIPE_SECRET_KEY` and service role are present; otherwise it returns 500. For dev, add the provided temporary key to Netlify (`STRIPE_SECRET_KEY=sk_live_...YYv`) and remove it after testing.
+3) Checkout API: `POST /api/checkout` returns 200 with `{ url }` when `STRIPE_SECRET_KEY` and service role are present; otherwise it returns 500. For dev, add the provided temporary key to Netlify (`STRIPE_SECRET_KEY=sk_live_...YYv`) and remove it after testing.
 
 ### Stripe key rotation & webhooks
 1. Create a new secret + publishable key pair from the Stripe dashboard (Developers → API keys).

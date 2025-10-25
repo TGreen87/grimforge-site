@@ -22,6 +22,29 @@ interface Props {
   productMeta: ProductMeta
 }
 
+const VARIANT_PRICE_KEYS = ['stripe_price_id', 'stripePriceId', 'price_id', 'priceId'] as const
+
+function extractPriceId(variant: VariantWithInventory | null): string | undefined {
+  if (!variant) return undefined
+
+  for (const key of VARIANT_PRICE_KEYS) {
+    const value = (variant as Record<string, unknown>)[key]
+    if (typeof value === 'string' && value.trim().toLowerCase().startsWith('price_')) {
+      return value.trim()
+    }
+  }
+
+  const metadata = variant.metadata
+  if (metadata && typeof metadata === 'object') {
+    const metaValue = (metadata as Record<string, unknown>).stripe_price_id
+    if (typeof metaValue === 'string' && metaValue.trim().toLowerCase().startsWith('price_')) {
+      return metaValue.trim()
+    }
+  }
+
+  return undefined
+}
+
 export default function VariantClientBlock({ variants, initialPrice, productMeta }: Props) {
   const [selected, setSelected] = useState<VariantWithInventory | null>(variants[0] ?? null)
   const { addItem } = useCart()
@@ -43,6 +66,7 @@ export default function VariantClientBlock({ variants, initialPrice, productMeta
   }
 
   const addVariantToCart = (variant: VariantWithInventory) => {
+    const priceId = extractPriceId(variant)
     addItem({
       id: variant.id,
       title: productMeta.title || 'Item',
@@ -51,6 +75,7 @@ export default function VariantClientBlock({ variants, initialPrice, productMeta
       price,
       image: productMeta.image,
       variantId: variant.id,
+      priceId,
     })
   }
 

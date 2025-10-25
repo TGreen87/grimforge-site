@@ -156,69 +156,35 @@ const CheckoutModal = ({ children }: CheckoutModalProps) => {
   const handleProcessOrder = async () => {
     setIsProcessing(true);
     try {
-      const invalidItems = items.filter((it) => !it.variantId || it.quantity <= 0)
+      const invalidItems = items.filter((it) => !it.priceId || it.quantity <= 0)
       if (invalidItems.length > 0) {
         toast({
-          title: 'Cart needs to be refreshed',
-          description: 'Remove the item and add it again from the product page so we can reserve the correct stock.',
+          title: 'Cart needs a refresh',
+          description: 'Remove and re-add items so we can pair them with a Stripe price before checkout.',
           variant: 'destructive',
         })
         setIsProcessing(false)
         return
       }
 
-      const payloadItems = items.map((it) => ({ variant_id: it.variantId as string, quantity: it.quantity }))
-
-      if (payloadItems.length === 0) {
+      const checkoutItem = items[0]
+      if (!checkoutItem || !checkoutItem.priceId) {
         toast({
-          title: 'Cart is empty',
-          description: 'Add at least one item from the product page before checking out.',
+          title: 'Checkout unavailable',
+          description: 'This item is still syncing with Stripe. Please refresh the page or try again in a moment.',
           variant: 'destructive',
         })
         setIsProcessing(false)
         return
       }
 
-      // Build shipping selection payload
-      let shippingPayload: any = {}
-      if (selectedShip) {
-        if ('shipping_rate_data' in selectedShip) {
-          shippingPayload.shipping_rate_data = selectedShip.shipping_rate_data
-        } else {
-          shippingPayload.shipping = {
-            display_name: selectedShip.display_name,
-            amount_cents: selectedShip.amount_cents,
-            currency: selectedShip.currency,
-            eta_min_days: selectedShip.eta_min_days,
-            eta_max_days: selectedShip.eta_max_days,
-          }
-        }
+      const checkoutPayload: { priceId: string; quantity: number; variant_id?: string } = {
+        priceId: checkoutItem.priceId,
+        quantity: checkoutItem.quantity,
       }
 
-      const trimmedName = shippingData.fullName.trim()
-      const [firstName, ...restName] = trimmedName ? trimmedName.split(' ') : ['']
-      const lastName = restName.join(' ') || null
-      const shippingAddressPayload = {
-        line1: shippingData.address,
-        city: shippingData.city,
-        state: shippingData.state,
-        postal_code: shippingData.postalCode,
-        country: getCountryCode(shippingData.country),
-      }
-
-      const checkoutPayload = {
-        items: payloadItems,
-        email: shippingData.email,
-        customer: {
-          email: shippingData.email,
-          first_name: firstName || null,
-          last_name: lastName,
-          phone: shippingData.phone || null,
-          shipping_address: shippingAddressPayload,
-          marketing_opt_in: marketingOptIn,
-        },
-        shipping_address: shippingAddressPayload,
-        ...shippingPayload,
+      if (checkoutItem.variantId) {
+        checkoutPayload.variant_id = checkoutItem.variantId
       }
 
       const res = await fetch('/api/checkout', {
@@ -235,17 +201,18 @@ const CheckoutModal = ({ children }: CheckoutModalProps) => {
       }
 
       if (!res.ok) {
-        const message = typeof data?.error === 'string' && data.error.trim().length > 0
-          ? data.error.trim()
-          : typeof data?.detail === 'string' && data.detail.trim().length > 0
-            ? data.detail.trim()
-            : `Checkout failed (status ${res.status})`
+        const message =
+          typeof data?.message === 'string' && data.message.trim().length > 0
+            ? data.message.trim()
+            : typeof data?.error === 'string' && data.error.trim().length > 0
+              ? data.error.trim()
+              : `Checkout failed (status ${res.status})`
         throw new Error(message)
       }
 
-      if (data?.checkoutUrl) {
+      if (typeof data?.url === 'string' && data.url.length > 0) {
         clearCart()
-        window.location.href = data.checkoutUrl as string
+        window.location.href = data.url as string
         return
       }
 

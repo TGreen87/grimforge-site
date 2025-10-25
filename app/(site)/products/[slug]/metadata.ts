@@ -19,12 +19,22 @@ type ProductRowWithLegacyFields = Omit<ProductRow, 'format'> & {
 type VariantRowWithInventoryJoin = VariantRow & {
   inventory: InventoryRow | InventoryRow[] | null
   format?: string | null
+  stripe_price_id?: string | null
+  stripePriceId?: string | null
+  price_id?: string | null
+  priceId?: string | null
+  metadata?: Record<string, unknown> | null
 }
 
 export type VariantWithInventory = VariantRow & {
   inventory: InventoryRow | null
   /** Legacy seeds occasionally stored a display format on the variant */
   format?: string | null
+  stripe_price_id?: string | null
+  stripePriceId?: string | null
+  price_id?: string | null
+  priceId?: string | null
+  metadata?: Record<string, unknown> | null
 }
 
 export type ProductWithVariants = ProductRowWithLegacyFields & {

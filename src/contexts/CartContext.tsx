@@ -11,6 +11,7 @@ export interface CartItem {
   image: string;
   quantity: number;
   variantId?: string; // for multi-item checkout
+  priceId?: string;
 }
 
 interface CartContextType {
@@ -43,7 +44,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
     // Initialize from localStorage on client side
     const storedItems = getJSON<CartItem[]>(storageKeys.cart, []);
     const sanitized = Array.isArray(storedItems)
-      ? storedItems.filter((item) => Boolean(item.variantId) && item.quantity > 0)
+      ? storedItems.filter((item) => (Boolean(item.variantId) || Boolean(item.priceId)) && item.quantity > 0)
       : [];
     if (sanitized.length !== storedItems.length) {
       setJSON(storageKeys.cart, sanitized);
@@ -63,7 +64,12 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
       if (existingItem) {
         return currentItems.map(item =>
           item.id === newItem.id
-            ? { ...item, quantity: item.quantity + 1 }
+            ? {
+                ...item,
+                quantity: item.quantity + 1,
+                priceId: item.priceId ?? newItem.priceId,
+                variantId: item.variantId ?? newItem.variantId,
+              }
             : item
         );
       }
