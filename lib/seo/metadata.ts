@@ -127,7 +127,7 @@ export function generateMetadata({
 export function generateSiteMetadata(): Metadata {
   const metadata = generateMetadata({
     title: 'Obsidian Rite Records | Independent Black Metal Label and Store',
-    description: 'Independent label and store for underground black metal. Discover artists, releases, and limited runs.',
+    description: 'Obsidian Rite Records is an independent label and store for underground black metal. Discover artists, releases, and limited runs.',
     keywords: [
       'black metal',
       'underground metal',

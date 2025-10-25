@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useId } from "react";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
@@ -25,6 +25,7 @@ export function ProductGallery({ title, artist, primaryImage, additionalImages }
 
   const [activeIndex, setActiveIndex] = useState(0);
   const [lightboxOpen, setLightboxOpen] = useState(false);
+  const dialogDescriptionId = useId();
 
   const activeSrc = images[Math.min(activeIndex, images.length - 1)];
   const caption = artist ? `${artist} — ${title}` : title;
@@ -65,7 +66,14 @@ export function ProductGallery({ title, artist, primaryImage, additionalImages }
             </div>
           </button>
         </DialogTrigger>
-        <DialogContent className="bg-background/95 sm:max-w-4xl" data-story="gallery-lightbox">
+        <DialogContent
+          className="bg-background/95 sm:max-w-4xl"
+          data-story="gallery-lightbox"
+          aria-describedby={dialogDescriptionId}
+        >
+          <p id={dialogDescriptionId} className="sr-only">
+            Enlarged product gallery for {caption}. Use arrow keys or thumbnails to browse release artwork.
+          </p>
           <div className="relative aspect-square w-full overflow-hidden rounded-lg">
             <Image
               src={activeSrc || FALLBACK}

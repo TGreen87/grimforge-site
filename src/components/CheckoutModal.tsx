@@ -46,6 +46,25 @@ const CheckoutModal = ({ children }: CheckoutModalProps) => {
     country: "Australia",
   });
 
+  useEffect(() => {
+    const handleOpen = () => {
+      if (items.length === 0) {
+        toast({
+          title: 'Cart is empty',
+          description: 'Add at least one item from the product page before checking out.',
+          variant: 'destructive',
+        })
+        return
+      }
+      setCurrentStep(1)
+      setIsProcessing(false)
+      setIsOpen(true)
+    }
+
+    window.addEventListener('checkout:open', handleOpen)
+    return () => window.removeEventListener('checkout:open', handleOpen)
+  }, [items.length, toast])
+
   // Shipping options via API (AusPost when configured; Stripe static fallback otherwise)
   type StripeRateData = {
     type: 'fixed_amount'
@@ -137,58 +156,35 @@ const CheckoutModal = ({ children }: CheckoutModalProps) => {
   const handleProcessOrder = async () => {
     setIsProcessing(true);
     try {
-      const payloadItems = items
-        .filter((it) => it.variantId && it.quantity > 0)
-        .map((it) => ({ variant_id: it.variantId as string, quantity: it.quantity }))
-
-      if (payloadItems.length === 0) {
-        // Fallback to mock if variant ids are missing
-        await new Promise((r) => setTimeout(r, 1500))
-        toast({ title: 'Cart not ready for checkout', description: 'Please add items from the product page (ensures stock unit is selected).', variant: 'destructive' })
+      const invalidItems = items.filter((it) => !it.priceId || it.quantity <= 0)
+      if (invalidItems.length > 0) {
+        toast({
+          title: 'Cart needs a refresh',
+          description: 'Remove and re-add items so we can pair them with a Stripe price before checkout.',
+          variant: 'destructive',
+        })
         setIsProcessing(false)
         return
       }
 
-      // Build shipping selection payload
-      let shippingPayload: any = {}
-      if (selectedShip) {
-        if ('shipping_rate_data' in selectedShip) {
-          shippingPayload.shipping_rate_data = selectedShip.shipping_rate_data
-        } else {
-          shippingPayload.shipping = {
-            display_name: selectedShip.display_name,
-            amount_cents: selectedShip.amount_cents,
-            currency: selectedShip.currency,
-            eta_min_days: selectedShip.eta_min_days,
-            eta_max_days: selectedShip.eta_max_days,
-          }
-        }
+      const checkoutItem = items[0]
+      if (!checkoutItem || !checkoutItem.priceId) {
+        toast({
+          title: 'Checkout unavailable',
+          description: 'This item is still syncing with Stripe. Please refresh the page or try again in a moment.',
+          variant: 'destructive',
+        })
+        setIsProcessing(false)
+        return
       }
 
-      const trimmedName = shippingData.fullName.trim()
-      const [firstName, ...restName] = trimmedName ? trimmedName.split(' ') : ['']
-      const lastName = restName.join(' ') || null
-      const shippingAddressPayload = {
-        line1: shippingData.address,
-        city: shippingData.city,
-        state: shippingData.state,
-        postal_code: shippingData.postalCode,
-        country: getCountryCode(shippingData.country),
+      const checkoutPayload: { priceId: string; quantity: number; variant_id?: string } = {
+        priceId: checkoutItem.priceId,
+        quantity: checkoutItem.quantity,
       }
 
-      const checkoutPayload = {
-        items: payloadItems,
-        email: shippingData.email,
-        customer: {
-          email: shippingData.email,
-          first_name: firstName || null,
-          last_name: lastName,
-          phone: shippingData.phone || null,
-          shipping_address: shippingAddressPayload,
-          marketing_opt_in: marketingOptIn,
-        },
-        shipping_address: shippingAddressPayload,
-        ...shippingPayload,
+      if (checkoutItem.variantId) {
+        checkoutPayload.variant_id = checkoutItem.variantId
       }
 
       const res = await fetch('/api/checkout', {
@@ -196,17 +192,35 @@ const CheckoutModal = ({ children }: CheckoutModalProps) => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(checkoutPayload),
       })
-      if (!res.ok) throw new Error('Checkout failed')
-      const data = await res.json()
-      if (data.checkoutUrl) {
+
+      let data: any = null
+      try {
+        data = await res.json()
+      } catch {
+        data = null
+      }
+
+      if (!res.ok) {
+        const message =
+          typeof data?.message === 'string' && data.message.trim().length > 0
+            ? data.message.trim()
+            : typeof data?.error === 'string' && data.error.trim().length > 0
+              ? data.error.trim()
+              : `Checkout failed (status ${res.status})`
+        throw new Error(message)
+      }
+
+      if (typeof data?.url === 'string' && data.url.length > 0) {
         clearCart()
-        window.location.href = data.checkoutUrl as string
+        window.location.href = data.url as string
         return
       }
+
       throw new Error('No checkout URL returned')
     } catch (e) {
       console.error(e)
-      toast({ title: 'Unable to start checkout', description: 'Please try again.', variant: 'destructive' })
+      const description = e instanceof Error ? e.message : 'Please try again.'
+      toast({ title: 'Unable to start checkout', description, variant: 'destructive' })
       setIsProcessing(false)
     }
   };

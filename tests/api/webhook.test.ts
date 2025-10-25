@@ -56,6 +56,7 @@ vi.mock('@/lib/audit-logger', () => ({
 describe('/api/stripe/webhook', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    process.env.STRIPE_WEBHOOK_SECRET = 'whsec_test'
     
     // Reset default mocks
     mockSupabase.single.mockResolvedValue({
@@ -431,7 +432,7 @@ describe('/api/stripe/webhook', () => {
 
     const request = new NextRequest('http://localhost:3000/api/stripe/webhook', {
       method: 'POST',
-      body: JSON.stringify(mockEvent),
+      body: JSON.stringify(testEvent),
     })
 
     const response = await POST(request)

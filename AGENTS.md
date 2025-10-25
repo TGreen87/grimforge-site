@@ -1,48 +1,84 @@
-# Repository Guidelines
+# Codex Agents Guide - grimforge-site
 
-> **Current status (2025-10-24):** Netlify Branch Deploys (`dev` and `main`) are the single source of truth—treat them as production candidates. Supabase keys are present on `dev` (see `/status`), but OpenAI credentials and assistant actions still need a live check before we rely on the copilot. Local `npm run build`, `npm run lint`, and `npm test` remain red due to admin typings and Stripe/AusPost mocks; only run them when you are actively fixing those suites. Track owner-reported issues (e.g., admin login loop on `main`) in `docs/NEXT-STEPS.md` until resolved.
+This document defines how Codex agents work in this repository and how they ship changes safely.
 
-See `docs/README.md` for the full documentation index and session logs.
+## Branches and deploys
 
-## Project Structure & Module Organization
-- `app/` – Next.js App Router routes. `app/(site)` drives the public storefront; `app/admin` hosts the Refine/AntD admin.
-- `src/components`, `src/lib`, `src/hooks` – Shared UI blocks, helpers, and client utilities. Prefer colocating tests under `tests/`.
-- `integrations/`, `lib/supabase` – Supabase client factories plus external service adapters (Stripe, AusPost).
-- `supabase/` – SQL migrations, RLS policies, MCP config. Never edit tables in the dashboard without exporting a migration.
-- `docs/` – Working agreements, RFCs, QA guides, and continuation prompts; keep every file synchronized with shipped behaviour.
+- `main` - production - https://obsidianriterecords.com  
+- `dev` - staging - https://dev--obsidianriterecords.netlify.app  
+- `uitest` - experiments - https://uitest--obsidianriterecords.netlify.app
 
-## Build, Test & Development Commands
-- **Remote-first:** Trigger Netlify builds by pushing to `dev`/`main`, then validate the branch deploy. Use the local commands below only when fixing the suites—they currently fail for known reasons.
-- `npm run dev` – Optional local preview with App Router + Supabase SSR helpers (requires env parity).
-- `npm run type-check`, `npm run lint`, `npm test` – Keep documenting blockers in the session log when you attempt them; the admin `no-explicit-any` debt and checkout/Stripe mocks still cause failures.
-- `npm run build && npm start` – Local production smoke for debugging build regressions (known to crash on this machine—capture logs if you retry).
-- `npm run test:puppeteer` – Use with `BASE_URL=https://dev--obsidianriterecords.netlify.app` for remote smoke if screenshots are needed.
-- `npm run assistant:sync` – Refresh copilot embeddings after updating assistant-related docs.
-- `npx playwright test e2e/tests/smoke.spec.ts` – Deeper storefront coverage during regression hunts (run only when suites are stable).
+**Default branch for Codex agents is `dev`.**  
+Use `uitest` only for UI experiments.
 
-## Coding Style & Naming Conventions
-- TypeScript everywhere; `const` by default. Explicit return types on server actions/API routes.
-- Components in `PascalCase`, helpers in `camelCase`, route folders in kebab-case.
-- Tailwind class order: layout → spacing → color → state. Use shared tokens (`blackletter`, `gothic-heading`) and the Marcellus heading font via `var(--font-heading)`.
-- Prefer Supabase RPCs for analytics-heavy queries; wrap fetchers in `lib/`.
-- Never commit env secrets or Supabase API keys.
+## Non-negotiable workflow rules
 
-## Testing Guidelines
-- Co-locate unit specs under `tests/` mirroring source paths; keep new logic ≈80% covered with Vitest or Playwright.
-- Document and isolate skipped specs (currently assistant undo + webhook/checkout suites) with TODOs referencing blockers before re-enabling.
-- Targeted Playwright specs live in `e2e/tests/**`; guard unstable suites with tags.
-- Storytelling surfaces (timeline/testimonials/newsletter) and the Journal section are data-driven—verify they stay hidden when tables are empty.
-- Checkout sheet is a three-step slide-over; wallets remain disabled until a Stripe publishable key is configured.
-- Record lint/test outcomes in `docs/SESSION-YYYY-MM-DD.md` before pushing; note blockers when suites remain red.
+- Do not open PRs. Commit and push directly to the branch.
+- Do not run local tests or local builds. Verification happens through Netlify branch deploys only.
+- Keep every change minimal, scoped, and reversible.
+- Use conventional commit messages, for example:
+  - `feat(checkout): normalize payload and add zod validation`
+  - `fix(ui): remove overlay intercept and restore link clicks`
+  - `chore(a11y): add DialogDescription to Radix dialogs`
+- After each push, print the Netlify branch deploy URL and wait for human verification.
 
-## Assistant Copilot Expectations
-- Undo tokens must be generated for product/article/hero pipelines and surfaced in the drawer; verify `/api/admin/assistant/actions/undo` responds 200 on valid tokens before closing a feature slice.
-- Plan previews (multi-step descriptions + risk callouts) appear with every suggested action; adjust `lib/assistant/plans.ts` when new actions land.
-- Log all assistant mutations through `assistant_sessions`, `assistant_session_events`, `assistant_uploads`, and `assistant_action_undos`; keep docs and QA steps aligned when events or schema evolve.
-- If env secrets are missing (e.g., Supabase service role, OpenAI key), pause copilot testing and record the blocker in `docs/NEXT-STEPS.md`/session log.
+## Areas of focus
 
-## Commit & Deployment Workflow
-- Work directly on `dev`; no PRs. Keep commits imperative (e.g., `Remove placeholder story seeds`).
-- Push after lint/type/test + Puppeteer and record results in the latest `docs/SESSION-*.md`. When baseline suites are red, note the failing commands with reasons in the session log before pushing.
-- Confirm the Netlify branch deploy (`https://dev--obsidianriterecords.netlify.app`) before promoting to `main`; production deploy happens only after explicit “Go live on main”.
-- Update `docs/NEXT-STEPS.md`, `docs/IMPLEMENTATION-PLAN.md`, and `docs/CONTINUE-PROMPT.md` whenever scope or plan shifts. Reflect new automation (assistant undo tokens, plan previews) in both docs and QA checklists the same day they ship.
+1. **Checkout**
+   - API accepts `{ priceId, quantity }`.
+   - Legacy `{ variant_id, quantity }` must be mapped to Stripe Price ID using Supabase, then normalized to `{ priceId, quantity }`.
+   - Quantity must be a positive integer.
+   - Return `{ url }` for a Stripe Checkout Session on success.
+   - On 4xx return structured JSON with a specific `code` and human-readable `message`.
+
+2. **Clickable UI**
+   - Remove or scope full page overlays and high `z-index` wrappers that intercept clicks.
+   - Do not nest `<button>` inside `<a>` or `<Link>` or the reverse.
+   - Prefer `<Link href="...">` over manual `router.push` for anchors.
+
+3. **Hydration stability**
+   - Avoid dynamic values at SSR time. Move `Date.now`, `Math.random`, `window`, and `navigator` usage into `useEffect` of client components.
+
+4. **Audio**
+   - Always clamp `HTMLMediaElement.volume` to `[0, 1]`.
+   - Asset paths must resolve. If `/public/audio/vinyl.mp3` is missing, do not call `play`.
+
+5. **Accessibility**
+   - For every Radix `DialogContent`, provide `DialogDescription` or `aria-describedby`.
+   - Maintain visible focus indicators and keyboard reachability.
+
+## Feature flags
+
+- `NEXT_PUBLIC_GRIMNESS_ENABLED` - enables grimness slider and visuals.
+- `NEXT_PUBLIC_VOIDMODE_ENABLED` - enables the 666 Void Mode toggle and art swaps.
+- `NEXT_PUBLIC_AUDIO_ENABLED` - enables the subtle audio bed if the asset exists.
+
+## Agent macros
+
+Use these macro commands when running Codex CLI v0.49.
+
+- `codex> set branch dev`
+- `codex> set branch uitest`
+- `codex> fix checkout`
+- `codex> fix clicks`
+- `codex> fix hydration`
+- `codex> fix audio`
+- `codex> fix a11y`
+- `codex> deploy verify`
+
+Each macro does a small set of focused edits, commits with a conventional message, pushes, and prints the Netlify deploy URL.
+
+## Verification
+
+- Human verifies the branch deploy on Netlify for the target branch.
+- If a change regresses production, fast-forward `main` from the last green commit or `git revert` the offending commit on `main`.
+
+## Rollback plan
+
+- Use `git revert <sha>` on the branch that introduced the issue.
+- Push and verify the Netlify branch deploy has recovered the page.
+- If required, temporarily turn a feature flag off in `.env` to neutralize a feature while investigating.
+
+## Known pitfalls
+
+- Browser extensions may inject content scripts that cause React hydration mismatches and custom element collisions. The site must be robust enough to function; however, treat extension-triggered visual diffs as non-blocking unless they break core flows like checkout or navigation.

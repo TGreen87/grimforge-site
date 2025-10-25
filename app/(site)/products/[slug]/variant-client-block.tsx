@@ -6,6 +6,7 @@ import VariantSelector from './variant-selector'
 import { useCart } from '@/src/contexts/CartContext'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
+import { useToast } from '@/hooks/use-toast'
 import type { VariantWithInventory } from './metadata'
 
 interface ProductMeta {
@@ -21,9 +22,33 @@ interface Props {
   productMeta: ProductMeta
 }
 
+const VARIANT_PRICE_KEYS = ['stripe_price_id', 'stripePriceId', 'price_id', 'priceId'] as const
+
+function extractPriceId(variant: VariantWithInventory | null): string | undefined {
+  if (!variant) return undefined
+
+  for (const key of VARIANT_PRICE_KEYS) {
+    const value = (variant as Record<string, unknown>)[key]
+    if (typeof value === 'string' && value.trim().toLowerCase().startsWith('price_')) {
+      return value.trim()
+    }
+  }
+
+  const metadata = variant.metadata
+  if (metadata && typeof metadata === 'object') {
+    const metaValue = (metadata as Record<string, unknown>).stripe_price_id
+    if (typeof metaValue === 'string' && metaValue.trim().toLowerCase().startsWith('price_')) {
+      return metaValue.trim()
+    }
+  }
+
+  return undefined
+}
+
 export default function VariantClientBlock({ variants, initialPrice, productMeta }: Props) {
   const [selected, setSelected] = useState<VariantWithInventory | null>(variants[0] ?? null)
   const { addItem } = useCart()
+  const { toast } = useToast()
 
   const { price, available, canBuy } = useMemo(() => {
     const current = selected ?? variants[0] ?? null
@@ -40,16 +65,41 @@ export default function VariantClientBlock({ variants, initialPrice, productMeta
     setSelected(variant)
   }
 
-  const handleAddToCart = () => {
-    if (!canBuy || !selected) return
+  const addVariantToCart = (variant: VariantWithInventory) => {
+    const priceId = extractPriceId(variant)
     addItem({
-      id: selected.id,
+      id: variant.id,
       title: productMeta.title || 'Item',
       artist: productMeta.artist || '',
-      format: selected.format || productMeta.format || 'vinyl',
-      price: price,
+      format: variant.format || productMeta.format || 'vinyl',
+      price,
       image: productMeta.image,
-      variantId: selected.id,
+      variantId: variant.id,
+      priceId,
+    })
+  }
+
+  const handleAddToCart = () => {
+    if (!canBuy || !selected) return
+    addVariantToCart(selected)
+    toast({ title: 'Added to cart', description: `${productMeta.title} has been added to your cart.` })
+  }
+
+  const handleBuyNow = async ({ variantId }: { variantId: string; quantity: number }) => {
+    const current = selected && selected.id === variantId
+      ? selected
+      : variants.find((variant) => variant.id === variantId) ?? null
+
+    if (!canBuy || !current) {
+      throw new Error('Variant no longer available. Refresh and try again.')
+    }
+
+    addVariantToCart(current)
+    toast({ title: 'Preparing checkout…', description: 'Review shipping details to complete your order.' })
+
+    // Wait for cart state to update before opening modal
+    requestAnimationFrame(() => {
+      window.dispatchEvent(new Event('checkout:open'))
     })
   }
 
@@ -66,7 +116,7 @@ export default function VariantClientBlock({ variants, initialPrice, productMeta
       </div>
 
       <div className="space-y-2">
-        <BuyNowButton variantId={selected?.id} quantity={1} />
+        <BuyNowButton variantId={selected?.id} quantity={1} onCheckout={handleBuyNow} />
         <Button
           type="button"
           className="w-full"

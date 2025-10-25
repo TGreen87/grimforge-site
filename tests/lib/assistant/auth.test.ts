@@ -13,6 +13,7 @@ afterEach(() => {
   delete process.env.ASSISTANT_API_KEY
   delete process.env.ASSISTANT_ALLOW_PREVIEW
   delete process.env.ASSISTANT_ALLOW_LOCALHOST
+  delete process.env.ASSISTANT_PREVIEW_HOSTS
 })
 
 describe('extractAssistantToken', () => {

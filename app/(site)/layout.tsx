@@ -1,5 +1,6 @@
 import Navigation from '@/components/Navigation'
 import Footer from '@/components/Footer'
+import ExtensionOverlayDetector from '@/components/ExtensionOverlayDetector'
 
 export default function SiteLayout({
   children,
@@ -8,6 +9,7 @@ export default function SiteLayout({
 }) {
   return (
     <div className="min-h-screen">
+      <ExtensionOverlayDetector />
       <Navigation />
       <main className="relative">
         {children}

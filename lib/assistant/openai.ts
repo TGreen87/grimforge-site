@@ -11,7 +11,50 @@ interface CallOpenAIJsonOptions<T extends z.ZodTypeAny> {
   temperature?: number
 }
 
-export async function callOpenAIJson<T extends z.ZodTypeAny>(options: CallOpenAIJsonOptions<T>): Promise<z.infer<T>> {
+export type JsonSchema = Record<string, unknown>
+
+interface InputImagePart {
+  type: 'input_image'
+  image_url: { url: string }
+  detail?: 'auto' | 'low' | 'high'
+}
+
+interface CallOpenAIJsonStrictOptions<T extends z.ZodTypeAny> extends CallOpenAIJsonOptions<T> {
+  jsonSchema: JsonSchema
+  attachments?: InputImagePart[]
+}
+
+interface ResponsesContentItem {
+  type?: string
+  text?: string
+}
+
+interface ResponsesOutputItem {
+  content?: ResponsesContentItem[]
+}
+
+interface ResponsesPayload {
+  output?: ResponsesOutputItem[]
+  output_text?: string
+  error?: { message?: string }
+}
+
+function extractJsonText(payload: ResponsesPayload): string | null {
+  if (payload.output_text && payload.output_text.trim().length > 0) {
+    return payload.output_text.trim()
+  }
+  const outputs = Array.isArray(payload.output) ? payload.output : []
+  for (const output of outputs) {
+    const content = Array.isArray(output?.content) ? output?.content : []
+    const match = content.find((item) => item?.type === 'output_text' && typeof item?.text === 'string')
+    if (match?.text) {
+      return match.text.trim()
+    }
+  }
+  return null
+}
+
+export async function callOpenAIJson<T extends z.ZodTypeAny>(options: CallOpenAIJsonStrictOptions<T>): Promise<z.infer<T>> {
   const apiKey = process.env.OPENAI_API_KEY
   if (!apiKey) {
     throw new Error('OPENAI_API_KEY not configured for assistant pipeline')
@@ -20,7 +63,26 @@ export async function callOpenAIJson<T extends z.ZodTypeAny>(options: CallOpenAI
   const model = options.model || DEFAULT_PIPELINE_MODEL
   const temperature = options.temperature ?? 0.2
 
-  const response = await fetch('https://api.openai.com/v1/chat/completions', {
+  const systemContent = [
+    {
+      type: 'input_text' as const,
+      text:
+        `${options.systemPrompt}\n` +
+        `You must respond with a JSON object that matches the supplied response format.`,
+    },
+  ]
+
+  const attachments = options.attachments ?? []
+  const userContent = [
+    ...attachments.map((item) => ({
+      type: item.type,
+      image_url: item.image_url,
+      ...(item.detail ? { detail: item.detail } : {}),
+    })),
+    { type: 'input_text' as const, text: options.userPrompt },
+  ]
+
+  const response = await fetch('https://api.openai.com/v1/responses', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -29,17 +91,25 @@ export async function callOpenAIJson<T extends z.ZodTypeAny>(options: CallOpenAI
     body: JSON.stringify({
       model,
       temperature,
-      messages: [
+      input: [
         {
           role: 'system',
-          content:
-            `${options.systemPrompt}\n` +
-            `Respond with a single valid JSON object that matches this description without additional commentary or code fences.\n` +
-            options.schemaDescription,
+          content: systemContent,
         },
-        { role: 'user', content: options.userPrompt },
+        {
+          role: 'user',
+          content: userContent,
+        },
       ],
-      response_format: { type: 'json_object' },
+      response_format: {
+        type: 'json_schema',
+        json_schema: {
+          name: 'assistant_pipeline_response',
+          strict: true,
+          schema: options.jsonSchema,
+          description: options.schemaDescription,
+        },
+      },
     }),
   })
 
@@ -48,11 +118,13 @@ export async function callOpenAIJson<T extends z.ZodTypeAny>(options: CallOpenAI
     throw new Error(`OpenAI pipeline request failed (${response.status}): ${errorText}`)
   }
 
-  const completion = (await response.json()) as {
-    choices: Array<{ message: { content: string } }>
+  const completion = (await response.json()) as ResponsesPayload
+
+  if (completion.error?.message) {
+    throw new Error(`OpenAI pipeline response error: ${completion.error.message}`)
   }
 
-  const raw = completion.choices[0]?.message?.content
+  const raw = extractJsonText(completion)
   if (!raw) {
     throw new Error('OpenAI pipeline response missing content')
   }

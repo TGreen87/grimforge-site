@@ -1,7 +1,7 @@
 import { z } from 'zod'
 import { TablesInsert } from '@/integrations/supabase/types'
 import { createServiceClient } from '@/lib/supabase/server'
-import { callOpenAIJson } from '@/lib/assistant/openai'
+import { callOpenAIJson, JsonSchema } from '@/lib/assistant/openai'
 import { AssistantAttachment } from '@/lib/assistant/types'
 import { writeAuditLog } from '@/lib/audit-logger'
 
@@ -16,6 +16,7 @@ const PRODUCT_ENRICHMENT_SCHEMA = z.object({
   skuSuffix: z.string().default('STD'),
   heroSubtitle: z.string().optional().nullable(),
   heroDescription: z.string().optional().nullable(),
+  imageAlt: z.string().optional().nullable(),
 })
 
 const PRODUCT_SCHEMA_DESCRIPTION = `{
@@ -28,8 +29,38 @@ const PRODUCT_SCHEMA_DESCRIPTION = `{
   "variantName": string,
   "skuSuffix": string (3-6 uppercase letters),
   "heroSubtitle": string or null,
-  "heroDescription": string or null
+  "heroDescription": string or null,
+  "imageAlt": string or null
 }`
+
+const PRODUCT_ENRICHMENT_JSON_SCHEMA: JsonSchema = {
+  type: 'object',
+  additionalProperties: false,
+  required: ['title', 'artist', 'description', 'seoBlurb', 'variantName', 'skuSuffix'],
+  properties: {
+    title: { type: 'string' },
+    artist: { type: 'string' },
+    description: { type: 'string' },
+    seoBlurb: { type: 'string' },
+    tags: {
+      type: 'array',
+      items: { type: 'string' },
+      maxItems: 8,
+      default: [],
+    },
+    marketingHighlights: {
+      type: 'array',
+      items: { type: 'string' },
+      maxItems: 5,
+      default: [],
+    },
+    variantName: { type: 'string' },
+    skuSuffix: { type: 'string', pattern: '^[A-Z0-9]{3,6}$' },
+    heroSubtitle: { type: ['string', 'null'], default: null },
+    heroDescription: { type: ['string', 'null'], default: null },
+    imageAlt: { type: ['string', 'null'], default: null },
+  },
+}
 
 export interface CreateProductFullInput {
   brief?: string
@@ -64,6 +95,8 @@ export interface CreateProductFullResult {
   slug: string
   published: boolean
   heroUpdated: boolean
+  imageAlt: string | null
+  seoBlurb: string | null
   undo: {
     action: 'delete_product'
     productId: string
@@ -87,6 +120,13 @@ export async function createProductFullPipeline(options: {
   const resolvedFormat = input.format?.toLowerCase() || 'vinyl'
   const tagList = normaliseTagList(input.tags)
   const attachmentContext = attachments.map((item) => `${item.name} (${item.type || 'file'})`).join(', ')
+  const imageInputs = attachments
+    .filter((file) => file.type?.startsWith('image/'))
+    .map((file) => ({
+      type: 'input_image' as const,
+      image_url: { url: file.url },
+      detail: 'high' as const,
+    }))
 
   const needsEnrichment = !input.title || !input.artist || tagList.length === 0 || !input.brief
 
@@ -100,6 +140,7 @@ export async function createProductFullPipeline(options: {
       `Price: AUD ${Number(input.price).toFixed(2)}`,
       `Initial stock: ${input.stock ?? 0}`,
       attachmentContext ? `Attachments: ${attachmentContext}` : null,
+      imageInputs.length ? 'Use the attached artwork to infer mood, instrumentation, and any notable colours or iconography. Generate a short alt text describing the artwork.' : null,
       'Tone: atmospheric black metal, ritualistic, ominous.',
     ]
       .filter(Boolean)
@@ -110,7 +151,9 @@ export async function createProductFullPipeline(options: {
       userPrompt,
       schema: PRODUCT_ENRICHMENT_SCHEMA,
       schemaDescription: PRODUCT_SCHEMA_DESCRIPTION,
+      jsonSchema: PRODUCT_ENRICHMENT_JSON_SCHEMA,
       temperature: 0.4,
+      attachments: imageInputs,
     })
   }
 
@@ -229,6 +272,8 @@ export async function createProductFullPipeline(options: {
       price: Number(input.price),
       publish,
       heroUpdated,
+      seo_blurb: enrichment?.seoBlurb,
+      image_alt: enrichment?.imageAlt,
     },
   })
 
@@ -251,6 +296,8 @@ export async function createProductFullPipeline(options: {
       variantId: variant.id,
       campaignId: campaignId ?? null,
     },
+    imageAlt: enrichment?.imageAlt ?? null,
+    seoBlurb: enrichment?.seoBlurb ?? null,
   }
 }
 

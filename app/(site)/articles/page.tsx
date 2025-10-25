@@ -13,6 +13,22 @@ interface ArticleRow {
 
 export const dynamic = 'force-dynamic'
 
+const publishedFormatter = new Intl.DateTimeFormat('en-AU', {
+  day: '2-digit',
+  month: 'short',
+  year: 'numeric',
+})
+
+function formatPublishedAt(value?: string | null) {
+  if (!value) return ''
+  try {
+    return publishedFormatter.format(new Date(value))
+  } catch (error) {
+    console.warn('articles: failed to format published_at', error)
+    return ''
+  }
+}
+
 export default async function ArticlesIndex() {
   const supabase = getSupabaseServerClient()
   const { data } = await supabase
@@ -33,7 +49,7 @@ export default async function ArticlesIndex() {
             <div className="p-4">
               <h2 className="gothic-heading text-xl text-bone mb-2">{a.title}</h2>
               <p className="text-xs text-muted-foreground mb-1">
-                {a.author ? `${a.author} • ` : ''}{a.published_at ? new Date(a.published_at).toLocaleDateString() : ''}
+                {a.author ? `${a.author} • ` : ''}{formatPublishedAt(a.published_at)}
               </p>
               <p className="text-sm text-muted-foreground line-clamp-3">{a.excerpt || ''}</p>
             </div>

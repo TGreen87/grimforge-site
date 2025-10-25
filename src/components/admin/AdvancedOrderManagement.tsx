@@ -198,7 +198,8 @@ const AdvancedOrderManagement = () => {
               {filteredOrders.map((order) => {
                 const statusInfo = statusConfig[order.status];
                 const StatusIcon = statusInfo.icon;
-                
+                const dialogDescriptionId = `order-details-description-${order.id}`;
+
                 return (
                   <tr key={order.id} className="border-b border-border hover:bg-muted/30">
                     <td className="p-4 font-medium">{order.id}</td>
@@ -224,7 +225,10 @@ const AdvancedOrderManagement = () => {
                               View Details
                             </Button>
                           </DialogTrigger>
-                          <DialogContent className="max-w-4xl">
+                          <DialogContent className="max-w-4xl" aria-describedby={dialogDescriptionId}>
+                            <p id={dialogDescriptionId} className="sr-only">
+                              Detailed customer, item, and fulfillment information for order {order.id}.
+                            </p>
                             <DialogHeader>
                               <DialogTitle>Order {order.id} Details</DialogTitle>
                             </DialogHeader>

@@ -2,7 +2,7 @@ import { randomUUID } from 'crypto'
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { searchAssistantKnowledge } from '@/lib/assistant/knowledge'
-import { assistantActionTypes, buildActionsPrompt } from '@/lib/assistant/actions'
+import { assistantActionTypes, assistantActions, buildActionsPrompt } from '@/lib/assistant/actions'
 import { ensureAssistantSession, logAssistantEvent } from '@/lib/assistant/sessions'
 import { assertAdmin } from '@/lib/assistant/auth'
 
@@ -28,7 +28,7 @@ const assistantActionSchema = z.object({
 
 const assistantResponseSchema = z.object({
   reply: z.string().min(1),
-  actions: z.array(assistantActionSchema).optional(),
+  actions: z.array(assistantActionSchema).default([]),
 })
 
 const messageSchema = z.object({
@@ -54,11 +54,109 @@ function toResponsesInput(messages: Array<{ role: string; content: string }>) {
   }))
 }
 
-function extractResponsesText(json: any) {
-  const outputs = Array.isArray(json?.output) ? json.output : []
+function parameterTypeToJsonSchema(type: 'string' | 'number' | 'boolean'): JsonSchema {
+  switch (type) {
+    case 'number':
+      return { type: 'number' }
+    case 'boolean':
+      return { type: 'boolean' }
+    case 'string':
+    default:
+      return { type: 'string' }
+  }
+}
+
+const attachmentPropertySchema: JsonSchema = {
+  type: 'array',
+  items: {
+    type: 'object',
+    additionalProperties: false,
+    required: ['url'],
+    properties: {
+      url: { type: 'string' },
+      name: { type: 'string' },
+      type: { type: ['string', 'null'] },
+      storagePath: { type: ['string', 'null'] },
+      size: { type: ['number', 'null'] },
+    },
+  },
+}
+
+function createAssistantResponseJsonSchema(): JsonSchema {
+  const actionSchemas = assistantActions.map((action) => {
+    const parameterProperties: Record<string, JsonSchema> = {}
+    const requiredParameters: string[] = []
+
+    action.parameters.forEach((parameter) => {
+      parameterProperties[parameter.name] = parameterTypeToJsonSchema(parameter.type)
+      if (parameter.required) {
+        requiredParameters.push(parameter.name)
+      }
+    })
+
+    // Allow optional attachment metadata on any action
+    parameterProperties.__attachments = attachmentPropertySchema
+    parameterProperties.__autoExecute = { type: 'boolean' }
+
+    return {
+      type: 'object',
+      additionalProperties: false,
+      required: ['type', 'summary', 'parameters'],
+      properties: {
+        type: { const: action.type },
+        summary: { type: 'string' },
+        parameters: {
+          type: 'object',
+          additionalProperties: false,
+          properties: parameterProperties,
+          ...(requiredParameters.length ? { required: requiredParameters } : {}),
+        },
+      },
+    }
+  })
+
+  return {
+    type: 'object',
+    additionalProperties: false,
+    required: ['reply', 'actions'],
+    properties: {
+      reply: { type: 'string' },
+      actions: {
+        type: 'array',
+        items: { oneOf: actionSchemas },
+        default: [],
+      },
+    },
+  }
+}
+
+interface OpenAIResponsesContentItem {
+  type?: string
+  text?: string
+}
+
+interface OpenAIResponsesOutputItem {
+  content?: OpenAIResponsesContentItem[]
+}
+
+interface OpenAIResponsesPayload {
+  output?: OpenAIResponsesOutputItem[]
+}
+
+interface OpenAIErrorPayload {
+  error?: {
+    message?: string
+  }
+}
+
+function extractResponsesText(payload: OpenAIResponsesPayload) {
+  const outputs = Array.isArray(payload.output) ? payload.output : []
   for (const output of outputs) {
     const contentItems = Array.isArray(output?.content) ? output.content : []
-    const match = contentItems.find((item: any) => item?.type === 'output_text' && typeof item?.text === 'string')
+    const match = contentItems.find(
+      (item): item is OpenAIResponsesContentItem =>
+        item?.type === 'output_text' && typeof item?.text === 'string',
+    )
     if (match?.text) {
       return match.text.trim()
     }
@@ -68,29 +166,9 @@ function extractResponsesText(json: any) {
 
 const assistantResponseSchemaName = 'AssistantResponse'
 
-const assistantResponseSchemaDefinition = {
-  type: 'object',
-  required: ['reply'],
-  properties: {
-    reply: { type: 'string' },
-    actions: {
-      type: 'array',
-      items: {
-        type: 'object',
-        required: ['type', 'summary', 'parameters'],
-        properties: {
-          type: {
-            type: 'string',
-            enum: actionTypeEnum.options,
-          },
-          summary: { type: 'string' },
-          parameters: { type: 'object', additionalProperties: true },
-        },
-      },
-    },
-  },
-  additionalProperties: false,
-} as const
+type JsonSchema = Record<string, unknown>
+
+const assistantResponseSchemaDefinition = createAssistantResponseJsonSchema()
 
 function buildContextSnippet(docs: Awaited<ReturnType<typeof searchAssistantKnowledge>>) {
   return docs
@@ -168,103 +246,56 @@ export async function POST(request: NextRequest) {
       ...messages.slice(-8),
     ]
 
-    const basePayload = {
+    const responsesPayload = {
       model: OPENAI_MODEL,
       temperature: 0.2,
+      input: toResponsesInput(openAiMessages),
       response_format: {
         type: 'json_schema',
         json_schema: {
           name: assistantResponseSchemaName,
           schema: assistantResponseSchemaDefinition,
+          strict: true,
         },
       },
     }
 
-    const responsesBasePayload = {
-      model: OPENAI_MODEL,
-      temperature: 0.2,
-    }
-
-    let parsedResponse: z.infer<typeof assistantResponseSchema> | null = null
-    let responseSource: 'chat' | 'responses' = 'chat'
-
-    const chatResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+    const openAiResponse = await fetch('https://api.openai.com/v1/responses', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${apiKey}`,
       },
-      body: JSON.stringify({
-        ...basePayload,
-        messages: openAiMessages,
-      }),
+      body: JSON.stringify(responsesPayload),
     })
 
-    let errorPayload: any = null
+    let parsedResponse: z.infer<typeof assistantResponseSchema> | null = null
+    let errorPayload: OpenAIErrorPayload | null = null
 
-    if (chatResponse.ok) {
-      const completion = (await chatResponse.json()) as {
-        choices: Array<{ message: { content: string } }>
-      }
-      const rawContent = completion.choices[0]?.message?.content?.trim()
-      if (rawContent) {
+    if (openAiResponse.ok) {
+      const responseJson = (await openAiResponse.json()) as OpenAIResponsesPayload
+      const rawText = extractResponsesText(responseJson)
+
+      if (rawText) {
         try {
-          parsedResponse = assistantResponseSchema.parse(JSON.parse(rawContent))
+          parsedResponse = assistantResponseSchema.parse(JSON.parse(rawText))
         } catch {
-          parsedResponse = { reply: rawContent, actions: [] }
+          parsedResponse = { reply: rawText, actions: [] }
+        }
+      } else {
+        errorPayload = {
+          error: { message: 'Responses API returned no output text' },
         }
       }
     } else {
       try {
-        errorPayload = await chatResponse.json()
+        errorPayload = (await openAiResponse.json()) as OpenAIErrorPayload
       } catch {
-        errorPayload = { error: { message: await chatResponse.text() } }
+        errorPayload = { error: { message: await openAiResponse.text() } }
       }
     }
 
-    if (!parsedResponse) {
-      const message: string = errorPayload?.error?.message ?? ''
-      const requiresResponses =
-        chatResponse.status === 404 && typeof message === 'string' && message.includes('v1/responses')
-
-      if (requiresResponses) {
-        responseSource = 'responses'
-        const responsesResponse = await fetch('https://api.openai.com/v1/responses', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${apiKey}`,
-          },
-          body: JSON.stringify({
-            ...responsesBasePayload,
-            input: toResponsesInput(openAiMessages),
-          }),
-        })
-
-        if (responsesResponse.ok) {
-          const fallbackJson = await responsesResponse.json()
-          const rawText = extractResponsesText(fallbackJson)
-          if (rawText) {
-            try {
-              parsedResponse = assistantResponseSchema.parse(JSON.parse(rawText))
-            } catch {
-              parsedResponse = { reply: rawText, actions: [] }
-            }
-            errorPayload = null
-          } else {
-            errorPayload = {
-              error: { message: 'Responses API returned no output text' },
-            }
-          }
-        } else {
-          try {
-            errorPayload = await responsesResponse.json()
-          } catch {
-            errorPayload = { error: { message: await responsesResponse.text() } }
-          }
-        }
-      }
-    }
+    const responseSource = 'responses' as const
 
     if (!parsedResponse) {
       const errorMessage = errorPayload?.error?.message || 'Assistant request failed'

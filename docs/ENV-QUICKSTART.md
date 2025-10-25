@@ -38,6 +38,9 @@ Key references
 - `ASSISTANT_ADMIN_TOKEN` — Secret key that authorises `/api/admin/assistant` (chat, actions, uploads) without relying on Supabase cookies. Supply it via `Authorization: Bearer <token>` or `x-assistant-api-key`.
 - `ASSISTANT_ALLOW_PREVIEW` — Set to `1` to bypass Supabase auth on any host (otherwise only Netlify branch deploys are implicitly trusted).
 - `ASSISTANT_ALLOW_LOCALHOST` — Defaults to `0` in this repo so the shared `dev` branch stays locked down. Raise to `1` only if you intentionally run trusted local builds.
+- `ASSISTANT_PREVIEW_HOSTS` — Optional comma-separated list of additional host suffixes (e.g. `staging.obsidianrite.com`). Requests from these hosts bypass Supabase auth the same way Netlify previews do.
+
+After updating `.env.local`, run `netlify env:set <VAR_NAME>` from the project root so branch deploys stay in sync. Secrets such as `OPENAI_API_KEY` should be piped via stdin (e.g. `set -a; . .env.local; netlify env:set OPENAI_API_KEY <<<$OPENAI_API_KEY`).
 
 ## Where to set them
 - Netlify Site settings → Environment variables → add at “All deploy contexts”, so Branch Deploys inherit them.
@@ -49,7 +52,7 @@ Key references
    - `NEXT_PUBLIC_SITE_URL` reflects the intended host (branch URL during QA or production domain once live)
    - Supabase URL/ANON/SERVICE flags show “yes”
 2) Shipping API (optional): `POST /api/shipping/quote` returns either AusPost options (configured:true) or Stripe static fallback (configured:false).
-3) Checkout API: `POST /api/checkout` returns 200 with `{ checkoutUrl }` when `STRIPE_SECRET_KEY` and service role are present; otherwise it returns 500. For dev, add the provided temporary key to Netlify (`STRIPE_SECRET_KEY=sk_live_...YYv`) and remove it after testing.
+3) Checkout API: `POST /api/checkout` returns 200 with `{ url }` when `STRIPE_SECRET_KEY` and service role are present; otherwise it returns 500. For dev, add the provided temporary key to Netlify (`STRIPE_SECRET_KEY=sk_live_...YYv`) and remove it after testing.
 
 ### Stripe key rotation & webhooks
 1. Create a new secret + publishable key pair from the Stripe dashboard (Developers → API keys).

@@ -5,6 +5,7 @@ import AdvancedSearch from "./AdvancedSearch";
 import { brand } from "@/config/brand";
 import { navLinks } from "@/config/nav";
 import { GrimnessSlider } from "@/components/grimness/GrimnessSlider";
+import Link from "next/link";
 
 interface MobileMenuProps {
   scrollToSection: (id: string) => void;
@@ -47,13 +48,13 @@ const MobileMenu = ({ scrollToSection, isAuthenticated }: MobileMenuProps) => {
           ))}
           {isAuthenticated && (
             <SheetClose asChild>
-              <a
+              <Link
                 href="/admin"
-                className="block w-full text-left px-3 py-2 rounded hover:bg-muted transition-colors"
+                className="block w-full rounded px-3 py-2 text-left transition-colors hover:bg-muted"
                 aria-label="Go to Admin"
               >
                 Admin
-              </a>
+              </Link>
             </SheetClose>
           )}
         </nav>

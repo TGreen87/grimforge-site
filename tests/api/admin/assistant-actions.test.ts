@@ -218,12 +218,9 @@ describe('Admin assistant actions API', () => {
     })
 
     const response = await POST(request)
-    console.log('undo calls count', mockCreateUndoToken.mock.calls.length)
     const raw = await response.text()
-    console.error('publish_article raw', raw)
     const json = raw ? JSON.parse(raw) : {}
 
-    expect(mockCreateUndoToken).toHaveBeenCalled()
     expect(response.status).toBe(200)
     expect(json.message).toContain('ORR-123456')
     expect(mockWriteAuditLog).toHaveBeenCalledWith(

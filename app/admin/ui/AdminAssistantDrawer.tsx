@@ -71,6 +71,13 @@ const SUGGESTED_PROMPTS = [
   'What should I check before launching a new campaign?'
 ]
 
+const AUTO_EXECUTE_ACTION_TYPES = new Set<AssistantActionType>([
+  'create_product_full',
+  'draft_article',
+  'publish_article',
+  'update_campaign',
+])
+
 export default function AdminAssistantDrawer({ open, onClose }: AdminAssistantDrawerProps) {
   const [messages, setMessages] = useState<AssistantMessage[]>([
     {
@@ -306,6 +313,19 @@ export default function AdminAssistantDrawer({ open, onClose }: AdminAssistantDr
         }
         return updated
       })
+      if (Array.isArray(data.actions) && data.actions.length) {
+        const autoAction = data.actions.find(
+          (action) =>
+            AUTO_EXECUTE_ACTION_TYPES.has(action.type) &&
+            (() => {
+              const params = (action.parameters ?? {}) as Record<string, unknown>
+              return '__autoExecute' in params ? Boolean(params.__autoExecute) : false
+            })(),
+        )
+        if (autoAction && !actionLoading) {
+          void executeAction(autoAction)
+        }
+      }
     } catch (error) {
       setMessages((current) => {
         const updated = [...current]
@@ -327,7 +347,9 @@ export default function AdminAssistantDrawer({ open, onClose }: AdminAssistantDr
   async function executeAction(action: AssistantAction) {
     try {
       setActionLoading(true)
-      let parameters: Record<string, unknown> = action.parameters
+      const rawParameters = (action.parameters ?? {}) as Record<string, unknown> & { __autoExecute?: unknown }
+      const { __autoExecute: _autoExecuteFlag, ...initialParameters } = rawParameters
+      let parameters: Record<string, unknown> = { ...initialParameters }
 
       if (action.type === 'receive_stock') {
         const values = await actionForm.validateFields()
@@ -393,6 +415,8 @@ export default function AdminAssistantDrawer({ open, onClose }: AdminAssistantDr
       }
 
       message.success(json?.message || 'Action completed')
+      setUploads([])
+      setUploadFileList([])
       if (json?.message) {
         setMessages((current) => [
           ...current,
@@ -512,16 +536,18 @@ export default function AdminAssistantDrawer({ open, onClose }: AdminAssistantDr
                           <Text strong>{action.summary}</Text>
                           <Divider style={{ margin: '8px 0' }} />
                           <div className="space-y-1 text-xs text-muted-foreground">
-                            {Object.entries(action.parameters || {}).map(([key, value]) => {
-                              const definition = assistantActionMap[action.type]?.parameters.find((param) => param.name === key)
-                            const label = definition?.label ?? key
-                            return (
-                              <div key={key} className="flex justify-between gap-2">
-                                <span className="uppercase tracking-wide">{label}</span>
-                                <span className="text-right break-all">{String(value)}</span>
-                              </div>
-                            )
-                            })}
+                            {Object.entries(action.parameters || {})
+                              .filter(([key]) => !key.startsWith('__'))
+                              .map(([key, value]) => {
+                                const definition = assistantActionMap[action.type]?.parameters.find((param) => param.name === key)
+                              const label = definition?.label ?? key
+                              return (
+                                <div key={key} className="flex justify-between gap-2">
+                                  <span className="uppercase tracking-wide">{label}</span>
+                                  <span className="text-right break-all">{String(value)}</span>
+                                </div>
+                              )
+                              })}
                           </div>
                           {plan ? (
                             <div className="mt-2 space-y-1 text-xs text-muted-foreground">
