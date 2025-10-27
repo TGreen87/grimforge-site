@@ -179,10 +179,91 @@ export async function POST(req: NextRequest) {
     )
   }
 
+  const stripe = getStripe()
+
+  let price
+  try {
+    price = await stripe.prices.retrieve(priceId)
+  } catch (error) {
+    console.error("Failed to load Stripe price", priceId, error)
+    return NextResponse.json(
+      {
+        code: "INVALID_PRICE",
+        message: "Stripe price could not be retrieved.",
+      },
+      { status: 400 }
+    )
+  }
+
+  const unitAmountCents =
+    typeof price.unit_amount === "number"
+      ? price.unit_amount
+      : price.unit_amount_decimal
+      ? Math.round(Number(price.unit_amount_decimal))
+      : null
+
+  if (!unitAmountCents || unitAmountCents <= 0) {
+    return NextResponse.json(
+      {
+        code: "INVALID_PRICE",
+        message: "Stripe price is missing an amount.",
+      },
+      { status: 400 }
+    )
+  }
+
+  const currency = typeof price.currency === "string" ? price.currency : "usd"
+  const subtotalCents = unitAmountCents * quantity
+  const subtotal = subtotalCents / 100
+  const total = subtotal
+
+  const orderId = uuidv4()
+
+  const orderMetadata: Record<string, unknown> = {
+    source: "stripe_checkout",
+    priceId,
+    variantId: variantId ?? null,
+    branch: "dev",
+  }
+
+  const orderInsert: Record<string, unknown> = {
+    id: orderId,
+    status: "pending",
+    payment_status: "pending",
+    subtotal,
+    total,
+    currency,
+    metadata: orderMetadata,
+  }
+
+  const { error: orderInsertError } = await supabase.from("orders").insert(orderInsert)
+
+  if (orderInsertError) {
+    console.error("Failed to create pending order", orderInsertError)
+    await writeAuditLog(
+      createPaymentAuditLog({
+        eventType: "checkout.order_insert_failed",
+        error: orderInsertError.message,
+        metadata: {
+          priceId,
+          variantId: variantId ?? null,
+        },
+      })
+    )
+    return NextResponse.json(
+      {
+        code: "ORDER_CREATE_FAILED",
+        message: "Could not create pending order.",
+      },
+      { status: 500 }
+    )
+  }
+
   const normalizedLog = {
     priceId,
     variantId: variantId ?? null,
     quantity,
+    orderId,
   }
 
   await writeAuditLog(
@@ -199,7 +280,6 @@ export async function POST(req: NextRequest) {
     "https://obsidianriterecords.com"
 
   try {
-    const stripe = getStripe()
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
       line_items: [
@@ -208,8 +288,17 @@ export async function POST(req: NextRequest) {
           quantity,
         },
       ],
-      success_url: buildUrl(origin, "/order/success?session_id={CHECKOUT_SESSION_ID}"),
-      cancel_url: buildUrl(origin, "/cart?cancelled=true"),
+      success_url: buildUrl(origin, `/checkout/success?order=${orderId}`),
+      cancel_url: buildUrl(origin, `/checkout/cancel?order=${orderId}`),
+      metadata: {
+        order_id: orderId,
+      },
+      payment_intent_data: {
+        metadata: {
+          order_id: orderId,
+        },
+      },
+      client_reference_id: orderId,
     })
 
     await writeAuditLog(
