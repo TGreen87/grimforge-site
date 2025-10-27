@@ -8,25 +8,44 @@ export const dynamic = 'force-dynamic'
 async function updateOrderStatus(
   orderId: string,
   values: Record<string, unknown>,
-  metadataPatch?: Record<string, unknown>
+  metadataPatch?: Record<string, unknown>,
+  emailFallback?: string | null
 ) {
   const supabase = createServiceClient()
 
+  const emailCandidate = typeof emailFallback === 'string' ? emailFallback.trim() : ''
   let mergedMetadata: Record<string, unknown> | undefined
-  if (metadataPatch) {
+  let emailUpdate: { email: string } | undefined
+
+  if (metadataPatch || emailCandidate) {
+    const selectColumns: string[] = []
+    if (metadataPatch) selectColumns.push('metadata')
+    if (emailCandidate) selectColumns.push('email')
+
     const { data } = await supabase
       .from('orders')
-      .select('metadata')
+      .select(selectColumns.join(','))
       .eq('id', orderId)
       .maybeSingle()
-    const current = (data?.metadata && typeof data.metadata === 'object' && !Array.isArray(data.metadata))
-      ? (data.metadata as Record<string, unknown>)
-      : {}
-    mergedMetadata = { ...current, ...metadataPatch }
+
+    if (metadataPatch) {
+      const current = (data?.metadata && typeof data.metadata === 'object' && !Array.isArray(data.metadata))
+        ? (data.metadata as Record<string, unknown>)
+        : {}
+      mergedMetadata = { ...current, ...metadataPatch }
+    }
+
+    if (emailCandidate) {
+      const currentEmail = typeof data?.email === 'string' ? data.email.trim() : ''
+      if (!currentEmail) {
+        emailUpdate = { email: emailCandidate }
+      }
+    }
   }
 
   await supabase.from('orders').update({
     ...values,
+    ...(emailUpdate ?? {}),
     ...(metadataPatch ? { metadata: mergedMetadata } : {}),
     updated_at: new Date().toISOString(),
   }).eq('id', orderId)
@@ -72,7 +91,8 @@ export async function POST(req: NextRequest) {
               ...(session.metadata || {}),
               stripe_checkout_session_id: session.id,
               stripe_customer_id: session.customer || undefined,
-            }
+            },
+            session.customer_details?.email ?? null
           )
         }
         break
@@ -99,6 +119,20 @@ export async function POST(req: NextRequest) {
         const intent = event.data.object as Stripe.PaymentIntent
         const orderId = intent.metadata?.order_id
         if (orderId) {
+          let emailFallback: string | null = null
+          const checkoutSessionId = typeof intent.metadata?.stripe_checkout_session_id === 'string'
+            ? intent.metadata.stripe_checkout_session_id
+            : undefined
+          if (checkoutSessionId) {
+            try {
+              const stripe = getStripe()
+              const checkoutSession = await stripe.checkout.sessions.retrieve(checkoutSessionId)
+              emailFallback = checkoutSession.customer_details?.email ?? null
+            } catch (error) {
+              console.warn('Failed to retrieve checkout session for email backfill', error)
+            }
+          }
+
           await updateOrderStatus(
             orderId,
             {
@@ -106,7 +140,8 @@ export async function POST(req: NextRequest) {
               status: 'processing',
               stripe_payment_intent_id: intent.id,
             },
-            intent.metadata || undefined
+            intent.metadata || undefined,
+            emailFallback
           )
         }
         break
