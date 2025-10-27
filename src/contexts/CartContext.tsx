@@ -10,6 +10,7 @@ export interface CartItem {
   price: number;
   image: string;
   quantity: number;
+  priceId?: string;
   variantId?: string; // for multi-item checkout
 }
 
@@ -43,7 +44,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
     // Initialize from localStorage on client side
     const storedItems = getJSON<CartItem[]>(storageKeys.cart, []);
     const sanitized = Array.isArray(storedItems)
-      ? storedItems.filter((item) => Boolean(item.variantId) && item.quantity > 0)
+      ? storedItems.filter((item) => (Boolean(item.priceId) || Boolean(item.variantId)) && item.quantity > 0)
       : [];
     if (sanitized.length !== storedItems.length) {
       setJSON(storageKeys.cart, sanitized);

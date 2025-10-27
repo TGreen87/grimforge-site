@@ -156,7 +156,18 @@ const CheckoutModal = ({ children }: CheckoutModalProps) => {
   const handleProcessOrder = async () => {
     setIsProcessing(true);
     try {
-      const invalidItems = items.filter((it) => !it.variantId || it.quantity <= 0)
+      const itemsMissingPrice = items.filter((it) => !it.priceId)
+      if (itemsMissingPrice.length > 0) {
+        toast({
+          title: 'Checkout unavailable',
+          description: 'We could not load pricing for one or more items. Refresh the product page and add it again.',
+          variant: 'destructive',
+        })
+        setIsProcessing(false)
+        return
+      }
+
+      const invalidItems = items.filter((it) => (it.quantity ?? 0) <= 0)
       if (invalidItems.length > 0) {
         toast({
           title: 'Cart needs to be refreshed',
@@ -167,9 +178,11 @@ const CheckoutModal = ({ children }: CheckoutModalProps) => {
         return
       }
 
-      const payloadItems = items.map((it) => ({ variant_id: it.variantId as string, quantity: it.quantity }))
+      const payloadItems = items
+        .filter((it) => Boolean(it.variantId))
+        .map((it) => ({ variant_id: it.variantId as string, quantity: it.quantity }))
 
-      if (payloadItems.length === 0) {
+      if (items.length === 0) {
         toast({
           title: 'Cart is empty',
           description: 'Add at least one item from the product page before checking out.',
@@ -178,6 +191,9 @@ const CheckoutModal = ({ children }: CheckoutModalProps) => {
         setIsProcessing(false)
         return
       }
+
+      const primaryCartItem = items[0]
+      const primaryVariantId = primaryCartItem?.variantId ?? null
 
       // Build shipping selection payload
       let shippingPayload: any = {}
@@ -207,7 +223,10 @@ const CheckoutModal = ({ children }: CheckoutModalProps) => {
       }
 
       const checkoutPayload = {
-        items: payloadItems,
+        priceId: primaryCartItem?.priceId,
+        quantity: primaryCartItem?.quantity,
+        ...(primaryVariantId ? { variant_id: primaryVariantId } : {}),
+        ...(payloadItems.length > 0 ? { items: payloadItems } : {}),
         email: shippingData.email,
         customer: {
           email: shippingData.email,
@@ -243,9 +262,11 @@ const CheckoutModal = ({ children }: CheckoutModalProps) => {
         throw new Error(message)
       }
 
-      if (data?.checkoutUrl) {
+      const redirectUrl = typeof data?.url === 'string' ? data.url : typeof data?.checkoutUrl === 'string' ? data.checkoutUrl : null
+
+      if (redirectUrl) {
         clearCart()
-        window.location.href = data.checkoutUrl as string
+        window.location.href = redirectUrl
         return
       }
 
