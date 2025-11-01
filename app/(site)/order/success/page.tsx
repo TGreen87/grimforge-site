@@ -9,7 +9,7 @@ export default async function SuccessPage({ searchParams }: Props) {
       <main className="container mx-auto max-w-2xl p-6">
         <h1 className="text-xl font-semibold mb-2">No session found</h1>
         <p className="text-sm text-muted-foreground">
-          If you just paid, check your email for the Stripe receipt.
+          We could not find your payment session. If you just paid, please check your email for the Stripe receipt.
         </p>
       </main>
     );
@@ -38,12 +38,11 @@ export default async function SuccessPage({ searchParams }: Props) {
         <h2 className="mb-3 font-medium">Items</h2>
         <ul className="space-y-2">
           {items.map((li) => {
-            // @ts-ignore expanded via `expand`
+            const qty = li.quantity ?? 1;
+            // @ts-ignore expanded by Stripe retrieve
             const price = li.price;
-            // @ts-ignore expanded via `expand`
             const product = price?.product as { name?: string } | undefined;
             const name = product?.name ?? "Item";
-            const qty = li.quantity ?? 1;
             const amount = ((li.amount_subtotal ?? 0) / 100).toFixed(2);
             return (
               <li key={li.id} className="flex items-center justify-between text-sm">
