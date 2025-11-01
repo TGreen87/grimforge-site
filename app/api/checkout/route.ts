@@ -273,11 +273,10 @@ export async function POST(req: NextRequest) {
     })
   )
 
-  const origin =
-    req.headers.get("origin") ??
-    process.env.NEXT_PUBLIC_SITE_URL ??
-    process.env.SITE_URL ??
-    "https://obsidianriterecords.com"
+  const fallbackOrigin = process.env.NEXT_PUBLIC_SITE_URL || "https://dev--obsidianriterecords.netlify.app"
+  const reqOrigin = req.headers.get("origin") || fallbackOrigin
+  const successUrl = `${reqOrigin}/order/success?session_id={CHECKOUT_SESSION_ID}`
+  const cancelUrl = `${reqOrigin}/order/cancel`
 
   try {
     const session = await stripe.checkout.sessions.create({
@@ -288,8 +287,8 @@ export async function POST(req: NextRequest) {
           quantity,
         },
       ],
-      success_url: buildUrl(origin, `/checkout/success?order=${orderId}`),
-      cancel_url: buildUrl(origin, `/checkout/cancel?order=${orderId}`),
+      success_url: successUrl,
+      cancel_url: cancelUrl,
       metadata: {
         order_id: orderId,
       },
