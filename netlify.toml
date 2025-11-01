@@ -36,4 +36,4 @@
 
 [context."dev".environment]
   NEXT_PUBLIC_ENABLE_TEST_ROUTES = "1"
-  NEXT_PUBLIC_TEST_PRICE_ID = "price_xxx_replace_me"
+  NEXT_PUBLIC_TEST_PRICE_ID = "price_1SOdXILMXUBNgXHMCV2nn2zd"
