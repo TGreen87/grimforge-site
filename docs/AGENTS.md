@@ -22,10 +22,17 @@ This is the quick reference for Codex agents.
 ## Targets
 
 - Checkout must accept `{ priceId, quantity }`, map `{ variant_id }` via Supabase, and return a Stripe Checkout URL.
+- Success and cancel redirects live at `/order/success` and `/order/cancel`; keep them server-rendered and fast.
 - Links must be clickable with left click. Remove click-blocking overlays and bad nesting of anchors and buttons.
 - Hydration must be stable. Move client only logic into `useEffect` of client components.
 - Audio volume must be clamped and asset paths must exist.
 - Radix dialogs must include a proper description for screen readers.
+
+## Stripe QA surfaces
+
+- `/api/stripe/health` returns `{ ok: true }` when secrets are configured.
+- `/api/stripe/webhook` verifies signatures with `STRIPE_WEBHOOK_SECRET`; it logs checkout completions and succeeded intents.
+- `/test/checkout` is available when `NEXT_PUBLIC_ENABLE_TEST_ROUTES=1` and uses `NEXT_PUBLIC_TEST_PRICE_ID`.
 
 ## Feature flags
 

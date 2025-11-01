@@ -30,6 +30,8 @@ Use `uitest` only for UI experiments.
    - Quantity must be a positive integer.
    - Return `{ url }` for a Stripe Checkout Session on success.
    - On 4xx return structured JSON with a specific `code` and human-readable `message`.
+   - Success and cancel redirects now live at `/order/success` and `/order/cancel`; keep them fast and SSR-safe.
+   - The smoke route `/test/checkout` posts to `/api/checkout` with `NEXT_PUBLIC_TEST_PRICE_ID`; surface server `code` responses when debugging.
 
 2. **Clickable UI**
    - Remove or scope full page overlays and high `z-index` wrappers that intercept clicks.
@@ -46,6 +48,14 @@ Use `uitest` only for UI experiments.
 5. **Accessibility**
    - For every Radix `DialogContent`, provide `DialogDescription` or `aria-describedby`.
    - Maintain visible focus indicators and keyboard reachability.
+
+## Stripe QA surfaces
+
+- `/api/stripe/health` validates that `STRIPE_SECRET_KEY` is configured; it should return `{ ok: true }` without making outbound charges.
+- `/api/stripe/webhook` now logs `checkout.session.completed` and `payment_intent.succeeded`; configure `STRIPE_WEBHOOK_SECRET` before touching the handler.
+- `/order/success?session_id=cs_test_...` renders a receipt summary using server-side Stripe fetches.
+- `/order/cancel` provides a friendly landing for aborted checkouts.
+- `/test/checkout` is enabled when `NEXT_PUBLIC_ENABLE_TEST_ROUTES=1` and requires `NEXT_PUBLIC_TEST_PRICE_ID`.
 
 ## Feature flags
 

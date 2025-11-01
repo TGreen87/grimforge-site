@@ -1,6 +1,6 @@
 ## Continuation Prompt (New Chat)
 
-_Last updated: 2025-10-24_
+_Last updated: 2025-11-01_
 
 Paste the following into a fresh Codex session whenever you need to resume work on grimforge-site with MCP tools enabled.
 
@@ -11,23 +11,23 @@ Paste the following into a fresh Codex session whenever you need to resume work 
 - Assistant pipelines/specs live in `docs/AGENT-PIPELINES.md`; review before modifying copilot actions.
 - Repo: `grimforge-site` — Next.js 15 App Router storefront with Refine/AntD admin.
 - Working branch: `dev` (single-branch workflow, see `AGENTS.md`).
-- Branch deploy: https://dev--obsidianriterecords.netlify.app (treat as QA surface).
+- Branch deploy: https://dev--obsidianriterecords.netlify.app (treat as QA surface). `/order/success` and `/order/cancel` now render Stripe receipts/cancel copy server-side.
 - Remote-first: rely on Netlify deploys for verification; run local commands only when fixing suites or capturing logs.
 - Core docs: `AGENTS.md`, `docs/IMPLEMENTATION-PLAN.md`, `docs/NEXT-STEPS.md`, `docs/QA-CHECKLIST.md`, `docs/PRODUCTION-LAUNCH-CHECKLIST.md`.
 - MCP setup: Supabase MCP reads `supabase/config.toml` (service-role token `sbp_*`); Puppeteer MCP runs via Docker `docker run --rm --init -e DOCKER_CONTAINER=true mcp/puppeteer`.
 - Seed & policies: `docs/SUPABASE-SEED.md`. Shipping/AusPost behaviour documented in `docs/SHIPPING-AUSPOST.md`.
-- Feature flags: campaign hero (`NEXT_PUBLIC_FEATURE_HERO_CAMPAIGN`), admin bulk tools, Slack alerts; defaults noted in `docs/NEXT-STEPS.md`.
+- Feature flags: campaign hero (`NEXT_PUBLIC_FEATURE_HERO_CAMPAIGN`), admin bulk tools, Slack alerts; defaults noted in `docs/NEXT-STEPS.md`. Test checkout route is gated by `NEXT_PUBLIC_ENABLE_TEST_ROUTES` + `NEXT_PUBLIC_TEST_PRICE_ID`.
 - Before coding, skim `docs/IMPLEMENTATION-PLAN.md` to understand phased priorities; keep `docs/NEXT-STEPS.md` in sync with any new decisions.
 
 **Goals When Restarting**
-1. Confirm branch deploy health: homepage 200, `/status` env flags, seeded product slug reachable.
+1. Confirm branch deploy health: homepage 200, `/status` env flags, seeded product slug reachable, and `/api/stripe/health` returns `{ ok: true }`.
 2. Verify owner login on `https://obsidianriterecords.com/admin/login`; compare against `dev` and log any loop/backdoor issues.
 3. Run the remote Puppeteer smoke (`BASE_URL=https://dev--obsidianriterecords.netlify.app npm run test:puppeteer`) per `docs/QA-CHECKLIST.md`; capture screenshots in `docs/qa-screenshots/`.
 4. Validate catalog quick actions (hover/focus add-to-cart + wishlist) and admin critical flows (product create/save, dashboard alerts, Slack test button where creds allow).
 5. Cycle campaign hero layouts (Classic/Split/Minimal) and ensure badges, highlights, and media controls behave; note reduced-motion fallback.
 6. Confirm product detail gallery (thumbnails + lightbox) and sticky buy module behaviour across breakpoints.
 7. Confirm dashboard revenue goal card progress + settings save behaviour.
-8. Validate checkout sheet: multi-step flow, wallet row remains disabled without a Stripe publishable key, and totals recalc correctly.
+8. Validate checkout sheet: multi-step flow, wallet row remains disabled without a Stripe publishable key, totals recalc correctly, and Stripe redirects land on `/order/success` / `/order/cancel` with the right messaging.
 9. Verify storytelling surfaces: `/admin/story` CRUD works, storefront hides timeline/testimonials/newsletter when tables are empty, and shows real content when populated.
 10. Confirm homepage Journal renders featured + secondary articles when Supabase has published entries (fallback copy otherwise).
 11. Exercise the admin copilot: add structured context, upload a sample asset, and confirm the assistant responds with citations and logs (no destructive actions in preview).
