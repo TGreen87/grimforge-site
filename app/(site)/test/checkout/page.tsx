@@ -38,13 +38,11 @@ export default function TestCheckoutPage() {
       const data = await response.json().catch(() => null)
 
       if (!response.ok || !data || typeof data.url !== "string") {
-        const fallback =
-          typeof data?.message === "string"
-            ? data.message
-            : typeof data?.error === "string"
-            ? data.error
-            : `Checkout failed with status ${response.status}`
-        throw new Error(fallback)
+        const msg =
+          (typeof data?.code === "string" && data.code) ||
+          (typeof data?.message === "string" && data.message) ||
+          `Checkout failed with status ${response.status}`
+        throw new Error(msg)
       }
 
       window.location.assign(data.url)
