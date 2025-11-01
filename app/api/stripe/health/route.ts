@@ -1,16 +1,13 @@
 import { NextResponse } from "next/server";
-import Stripe from "stripe";
+import { getStripe } from "@/lib/stripe";
 
 export async function GET() {
-  const key = process.env.STRIPE_SECRET_KEY;
-  if (!key || !key.startsWith("sk_")) {
-    return NextResponse.json({ ok: false, reason: "missing_key" }, { status: 500 });
-  }
   try {
-    // Minimal probe only, no network call
-    const stripe = new Stripe(key, { apiVersion: "2024-06-20" as any });
-    return NextResponse.json({ ok: true, account: "configured" });
-  } catch {
-    return NextResponse.json({ ok: false, reason: "init_failed" }, { status: 500 });
+    const stripe = getStripe();
+    const account = await stripe.accounts.retrieve();
+    return NextResponse.json({ ok: true, account: account.id });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "unknown";
+    return NextResponse.json({ ok: false, error: message }, { status: 500 });
   }
 }

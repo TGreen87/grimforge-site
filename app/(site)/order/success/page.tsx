@@ -1,4 +1,4 @@
-import { stripe } from "@/lib/stripe";
+import { getStripe } from "@/lib/stripe";
 
 type Props = { searchParams?: { session_id?: string } };
 
@@ -15,6 +15,7 @@ export default async function SuccessPage({ searchParams }: Props) {
     );
   }
 
+  const stripe = getStripe();
   const session = await stripe.checkout.sessions.retrieve(sid, {
     expand: ["line_items.data.price.product"],
   });
@@ -22,7 +23,7 @@ export default async function SuccessPage({ searchParams }: Props) {
   const email =
     session.customer_details?.email || session.customer_email || "customer";
   const items = session.line_items?.data ?? [];
-  const total = ((session.amount_total ?? 0) / 100).toFixed(2);
+  const totalAud = ((session.amount_total ?? 0) / 100).toFixed(2);
 
   return (
     <main className="container mx-auto max-w-2xl p-6 space-y-6">
@@ -55,7 +56,7 @@ export default async function SuccessPage({ searchParams }: Props) {
 
         <div className="mt-4 flex items-center justify-between border-t border-border/50 pt-3 text-sm">
           <span>Total paid</span>
-          <span>${total} AUD</span>
+          <span>${totalAud} AUD</span>
         </div>
       </section>
 
