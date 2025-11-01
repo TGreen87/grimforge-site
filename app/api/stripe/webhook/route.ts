@@ -1,158 +1,59 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { createServiceClient } from '@/lib/supabase/server'
-import { getStripe } from '@/lib/stripe'
-import type Stripe from 'stripe'
+import { NextRequest, NextResponse } from "next/server";
+import { getStripe } from "@/lib/stripe";
 
-export const dynamic = 'force-dynamic'
-
-async function updateOrderStatus(
-  orderId: string,
-  values: Record<string, unknown>,
-  metadataPatch?: Record<string, unknown>,
-  emailFallback?: string | null
-) {
-  const supabase = createServiceClient()
-
-  const emailCandidate = typeof emailFallback === 'string' ? emailFallback.trim() : ''
-  let mergedMetadata: Record<string, unknown> | undefined
-  let emailUpdate: { email: string } | undefined
-
-  if (metadataPatch || emailCandidate) {
-    const selectColumns: string[] = []
-    if (metadataPatch) selectColumns.push('metadata')
-    if (emailCandidate) selectColumns.push('email')
-
-    const { data } = await supabase
-      .from('orders')
-      .select(selectColumns.join(','))
-      .eq('id', orderId)
-      .maybeSingle()
-
-    if (metadataPatch) {
-      const current = (data?.metadata && typeof data.metadata === 'object' && !Array.isArray(data.metadata))
-        ? (data.metadata as Record<string, unknown>)
-        : {}
-      mergedMetadata = { ...current, ...metadataPatch }
-    }
-
-    if (emailCandidate) {
-      const currentEmail = typeof data?.email === 'string' ? data.email.trim() : ''
-      if (!currentEmail) {
-        emailUpdate = { email: emailCandidate }
-      }
-    }
-  }
-
-  await supabase.from('orders').update({
-    ...values,
-    ...(emailUpdate ?? {}),
-    ...(metadataPatch ? { metadata: mergedMetadata } : {}),
-    updated_at: new Date().toISOString(),
-  }).eq('id', orderId)
-}
+const WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET;
 
 export async function POST(req: NextRequest) {
-  const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET
-  if (!endpointSecret) {
-    return NextResponse.json({ error: 'STRIPE_WEBHOOK_SECRET not configured' }, { status: 400 })
+  if (!WEBHOOK_SECRET) {
+    return NextResponse.json({ error: "Missing STRIPE_WEBHOOK_SECRET" }, { status: 500 });
   }
 
-  const signature = req.headers.get('stripe-signature')
-  if (!signature) {
-    return NextResponse.json({ error: 'Missing stripe-signature header' }, { status: 400 })
-  }
+  const stripe = getStripe();
+  const rawBody = await req.text();
+  const signature = req.headers.get("stripe-signature") || "";
 
-  const payload = await req.text()
-  let event: Stripe.Event
-
+  let event;
   try {
-    const stripe = getStripe()
-    event = stripe.webhooks.constructEvent(payload, signature, endpointSecret)
+    event = stripe.webhooks.constructEvent(rawBody, signature, WEBHOOK_SECRET);
   } catch (err) {
-    const message = err instanceof Error ? err.message : 'Unable to verify Stripe signature'
-    console.error('Stripe webhook signature verification failed', message)
-    return NextResponse.json({ error: message }, { status: 400 })
+    const message = err instanceof Error ? err.message : "invalid_signature";
+    return NextResponse.json({ error: message }, { status: 400 });
   }
 
   try {
     switch (event.type) {
-      case 'checkout.session.completed': {
-        const session = event.data.object as Stripe.Checkout.Session
-        const orderId = session.metadata?.order_id
-        if (orderId) {
-          await updateOrderStatus(
-            orderId,
-            {
-              payment_status: 'paid',
-              status: 'processing',
-              stripe_payment_intent_id: typeof session.payment_intent === 'string' ? session.payment_intent : null,
-            },
-            {
-              ...(session.metadata || {}),
-              stripe_checkout_session_id: session.id,
-              stripe_customer_id: session.customer || undefined,
-            },
-            session.customer_details?.email ?? null
-          )
-        }
-        break
+      case "checkout.session.completed": {
+        const session = event.data.object as any;
+        console.info("webhook.checkout.session.completed", {
+          id: session.id,
+          amount_total: session.amount_total,
+          currency: session.currency,
+          email: session.customer_details?.email || session.customer_email,
+        });
+        break;
       }
-      case 'payment_intent.payment_failed': {
-        const intent = event.data.object as Stripe.PaymentIntent
-        const orderId = intent.metadata?.order_id
-        if (orderId) {
-          await updateOrderStatus(
-            orderId,
-            {
-              payment_status: 'failed',
-              status: 'pending',
-            },
-            {
-              ...(intent.metadata || {}),
-              last_payment_error: intent.last_payment_error?.message,
-            }
-          )
-        }
-        break
-      }
-      case 'payment_intent.succeeded': {
-        const intent = event.data.object as Stripe.PaymentIntent
-        const orderId = intent.metadata?.order_id
-        if (orderId) {
-          let emailFallback: string | null = null
-          const checkoutSessionId = typeof intent.metadata?.stripe_checkout_session_id === 'string'
-            ? intent.metadata.stripe_checkout_session_id
-            : undefined
-          if (checkoutSessionId) {
-            try {
-              const stripe = getStripe()
-              const checkoutSession = await stripe.checkout.sessions.retrieve(checkoutSessionId)
-              emailFallback = checkoutSession.customer_details?.email ?? null
-            } catch (error) {
-              console.warn('Failed to retrieve checkout session for email backfill', error)
-            }
-          }
-
-          await updateOrderStatus(
-            orderId,
-            {
-              payment_status: 'paid',
-              status: 'processing',
-              stripe_payment_intent_id: intent.id,
-            },
-            intent.metadata || undefined,
-            emailFallback
-          )
-        }
-        break
+      case "payment_intent.succeeded": {
+        const pi = event.data.object as any;
+        console.info("webhook.payment_intent.succeeded", {
+          id: pi.id,
+          amount: pi.amount,
+          currency: pi.currency,
+        });
+        break;
       }
       default:
-        break
+        break;
     }
-  } catch (err) {
-    console.error('Error handling Stripe webhook', err)
-    return NextResponse.json({ error: 'Webhook handler failed' }, { status: 500 })
-  }
 
-  return NextResponse.json({ received: true })
+    return NextResponse.json({ received: true });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "unknown";
+    return NextResponse.json({ error: message }, { status: 500 });
+  }
 }
+
+export const config = {
+  api: {
+    bodyParser: false,
+  },
+};
