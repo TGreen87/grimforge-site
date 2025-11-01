@@ -6,7 +6,6 @@ import Providers from './providers'
 import { GrimnessProvider } from '@/components/grimness/GrimnessContext'
 import VoidToggle from '@/components/fx/VoidToggle'
 import AudioBed from '@/components/fx/AudioBed'
-import GrimnessControlPanel from '@/components/grimness/GrimnessControlPanel'
 import GrimnessPageTransition from '@/components/fx/GrimnessPageTransition'
 import './globals.css'
 
@@ -40,7 +39,6 @@ export default function RootLayout({
         <GrimnessProvider>
           <VoidToggle />
           <AudioBed />
-          <GrimnessControlPanel />
           <Providers>
             <GrimnessPageTransition>
               {children}
