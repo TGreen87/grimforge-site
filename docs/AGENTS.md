@@ -36,7 +36,7 @@ This is the quick reference for Codex agents.
 
 ## Feature flags
 
-- `NEXT_PUBLIC_GRIMNESS_ENABLED`
+- `NEXT_PUBLIC_GRIMNESS_ENABLED` (UI currently hidden; leave off unless asked to revive the feature)
 - `NEXT_PUBLIC_VOIDMODE_ENABLED`
 - `NEXT_PUBLIC_AUDIO_ENABLED`
 

@@ -59,7 +59,7 @@ Use `uitest` only for UI experiments.
 
 ## Feature flags
 
-- `NEXT_PUBLIC_GRIMNESS_ENABLED` - enables grimness slider and visuals.
+- `NEXT_PUBLIC_GRIMNESS_ENABLED` - toggles grimness flag (UI currently hidden; leave disabled unless feature is revived).
 - `NEXT_PUBLIC_VOIDMODE_ENABLED` - enables the 666 Void Mode toggle and art swaps.
 - `NEXT_PUBLIC_AUDIO_ENABLED` - enables the subtle audio bed if the asset exists.
 

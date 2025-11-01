@@ -27,7 +27,7 @@ Paste the following into a fresh Codex session whenever you need to resume work 
 5. Cycle campaign hero layouts (Classic/Split/Minimal) and ensure badges, highlights, and media controls behave; note reduced-motion fallback.
 6. Confirm product detail gallery (thumbnails + lightbox) and sticky buy module behaviour across breakpoints.
 7. Confirm dashboard revenue goal card progress + settings save behaviour.
-8. Validate checkout sheet: multi-step flow, wallet row remains disabled without a Stripe publishable key, totals recalc correctly, and Stripe redirects land on `/order/success` / `/order/cancel` with the right messaging.
+8. Validate checkout sheet: multi-step flow, wallet row remains disabled without a Stripe publishable key, totals recalc correctly, `/api/stripe/health` returns `{ ok: true }`, and Stripe redirects land on `/order/success` / `/order/cancel` with the right messaging.
 9. Verify storytelling surfaces: `/admin/story` CRUD works, storefront hides timeline/testimonials/newsletter when tables are empty, and shows real content when populated.
 10. Confirm homepage Journal renders featured + secondary articles when Supabase has published entries (fallback copy otherwise).
 11. Exercise the admin copilot: add structured context, upload a sample asset, and confirm the assistant responds with citations and logs (no destructive actions in preview).

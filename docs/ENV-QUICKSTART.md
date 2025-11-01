@@ -1,6 +1,6 @@
 # Environment Quickstart (Netlify Branch Deploys)
 
-Last modified: 2025-10-24
+Last modified: 2025-11-01
 
 This guide lists the environment variables required to run the site on Netlify Branch Deploys. Local `.env.local` parity is optional—only configure it when you intentionally run the app on your workstation. Never commit secrets.
 
@@ -17,6 +17,9 @@ Key references
 - `SUPABASE_SERVICE_ROLE_KEY` (or `SUPABASE_SERVICE_ROLE`) — Server-side operations (e.g., `/api/checkout`)
 - `STRIPE_SECRET_KEY` — Enables Stripe Checkout session creation
 - `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` — (Optional until wallet support enabled) Publishable key used by the cart modal; rotate alongside the secret.
+- `NEXT_PUBLIC_ENABLE_TEST_ROUTES` — Set to `1` so `/test/checkout` stays enabled on branch deploys.
+- `NEXT_PUBLIC_TEST_PRICE_ID` — Stripe test price used by `/test/checkout` for smoke checks.
+- `STRIPE_WEBHOOK_SECRET` — Required now that `/api/stripe/webhook` validates signatures.
 - `OPENAI_API_KEY` — Powers Supabase edge functions and the in-admin copilot. Store it in Netlify + `.env.local`; the assistant will refuse to load without it.
 
 ## Recommended
@@ -24,7 +27,6 @@ Key references
 - `SITE_URL_STAGING` — Same as above; used as a fallback in metadata/redirects
 
 ## Optional
-- `STRIPE_WEBHOOK_SECRET` — Required only if Stripe webhook route is enabled
 - `AUSPOST_API_KEY`, `AUSPOST_ORIGIN_POSTCODE` — Enables live AusPost quotes; otherwise we return Stripe static rates
 - `ADMIN_SETUP_TOKEN` — Needed for `/api/admin/setup` bootstrap endpoint
 - `NEXT_PUBLIC_ENABLE_ADMIN_BULK` — Feature flag for admin bulk tooling

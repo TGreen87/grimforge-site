@@ -1,7 +1,12 @@
 # Agent Contract: Grimness System
 
 ## Purpose
-Build a production grimness experience.
+The grimness/void-mode initiative is paused. Keep this contract in archive for future revival.
+
+## Status — Paused (2025-11-01)
+- Grimness slider UI is currently removed from layout/mobile; feature flag remains but has no visible control.
+- Audio bed and void toggle remain integrated; do not expand functionality without explicit direction.
+- Branch strategy below applied during the experimental `uitest` cycle; current active branch is `dev`.
 
 ## Roles
 ### IDE Agent owns

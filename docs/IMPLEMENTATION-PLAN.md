@@ -1,6 +1,6 @@
 # Implementation Plan (Dev Branch)
 
-Last modified: 2025-10-24
+Last modified: 2025-11-01
 
 This document captures the end-to-end plan to finish the storefront and admin for Obsidian Rite Records. It aligns with the solo workflow on the `dev` branch and Netlify Branch Deploys—use the deploys as the source of truth and rely on local builds only when debugging failing suites.
 

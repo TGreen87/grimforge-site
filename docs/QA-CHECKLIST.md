@@ -1,6 +1,6 @@
 # Branch Deploy QA Checklist (dev)
 
-Last modified: 2025-10-24
+Last modified: 2025-11-01
 
 Operate remote-first: validate Netlify `dev`/`main` deploys and document findings in the session log. Only fall back to local commands when you are actively fixing suites.
 
@@ -10,7 +10,8 @@ Use this checklist to verify the dev Branch Deploy before promoting to main. Ref
 - Open `https://dev--obsidianriterecords.netlify.app` → 200 OK.
 - No console errors on load; static assets under `/_next/static/` resolve.
 - `orr_cid` cookie present after first navigation.
-- Environment (Netlify UI; do not echo values): `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY` (or `SUPABASE_SERVICE_ROLE`), `STRIPE_SECRET_KEY`. Recommended: `NEXT_PUBLIC_SITE_URL` (branch URL). Optional: `AUSPOST_API_KEY`, `AUSPOST_ORIGIN_POSTCODE`.
+- Environment (Netlify UI; do not echo values): `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY` (or `SUPABASE_SERVICE_ROLE`), `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `NEXT_PUBLIC_ENABLE_TEST_ROUTES`, `NEXT_PUBLIC_TEST_PRICE_ID`. Recommended: `NEXT_PUBLIC_SITE_URL` (branch URL). Optional: `AUSPOST_API_KEY`, `AUSPOST_ORIGIN_POSTCODE`.
+- Hit `/api/stripe/health` → expect `{ ok: true }`; if it fails, fix secrets before proceeding.
 - Owner login succeeds on `https://obsidianriterecords.com/admin/login`; compare against `dev` if behaviour differs and log any loops.
 
 ## Home
@@ -31,7 +32,7 @@ Use this checklist to verify the dev Branch Deploy before promoting to main. Ref
 
 ## Product Detail
 - `/products/{slug}` shows title/artist, primary image, price; variant selector updates price/availability.
-- “Add to Cart” works; “Buy Now” redirects to Stripe Checkout.
+- “Add to Cart” works; “Buy Now” redirects to Stripe Checkout, returning to `/order/success?session_id=...` with a receipt summary.
 - JSON‑LD script present in page source.
 - Legacy `/product/{id}` redirects to slug route.
 - If no products exist or admin Save fails, seed via `docs/SUPABASE-SEED.md` (Supabase MCP/Studio) and retry with slug `test-vinyl-dark-rituals`.
@@ -44,6 +45,7 @@ Use this checklist to verify the dev Branch Deploy before promoting to main. Ref
 - Without AusPost env (current configuration): Stripe static options appear (Standard $10 / Express $20); select one and totals update.
 - With AusPost env: Domestic (Parcel Post/Express) and Intl (Standard/Express) appear; sorted by price; selection updates totals.
 - “Continue” → “Place order” opens Stripe Checkout; selected shipping label/amount visible on Stripe.
+- Cancelling from Stripe lands on `/order/cancel` with friendly copy.
 - Checkout sheet stepper shows Shipping → Payment → Review; wallet row disabled message appears when no publishable key.
 - If `/api/checkout` returns 500, confirm `STRIPE_SECRET_KEY` exists; redeploy dev and retry.
 - Multi‑item: 2+ items included in session; shipping option still applied.
@@ -119,6 +121,7 @@ Tip: Use a temporary QA admin account (email/password) for branch testing, or lo
 ## Observability
 - Trigger a harmless client error; `/api/client-logs` accepts report; correlation id included.
 - `/status` shows Supabase env presence and site URL.
+- `/api/stripe/health` returns `{ ok: true }` post-deploy.
 
 ## Remote Smoke (Puppeteer)
 - `BASE_URL=https://dev--obsidianriterecords.netlify.app npm run test:puppeteer` runs a quick homepage → vinyl anchor → product (if present) → checkout attempt and admin visuals; screenshots land in `docs/qa-screenshots/`. Use this from the workstation when you need artefacts; no local server required.
