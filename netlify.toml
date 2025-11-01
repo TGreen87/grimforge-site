@@ -35,5 +35,6 @@
   NEXT_PUBLIC_SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNoYmFseXZ2cXV2dHZua3JzeHR4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ3NDY4MzgsImV4cCI6MjA3MDMyMjgzOH0.oeI0CLImpKIRjp1cZ8u53cNLWQrTtnTGTKy5Zi6MaXY"
 
 [context."dev".environment]
+  # Ensure remote checkout smoke route stays enabled during dev QA
   NEXT_PUBLIC_ENABLE_TEST_ROUTES = "1"
   NEXT_PUBLIC_TEST_PRICE_ID = "price_1SOdXILMXUBNgXHMCV2nn2zd"
