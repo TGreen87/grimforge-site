@@ -47,3 +47,7 @@ See `docs/README.md` for the full documentation index and session logs.
 - Confirm the Netlify branch deploy (`https://dev--obsidianriterecords.netlify.app`) before promoting to `main`; production deploy happens only after explicit “Go live on main”.
 - Update `docs/NEXT-STEPS.md`, `docs/IMPLEMENTATION-PLAN.md`, and `docs/CONTINUE-PROMPT.md` whenever scope or plan shifts. Reflect new automation (assistant undo tokens, plan previews) in both docs and QA checklists the same day they ship.
 - Whenever a user pastes prompts or snippets that reference external APIs/frameworks, consult the official developer documentation first to validate variable names, required headers, and formatting before coding changes or replies.
+- Default all git commands to `DRY_RUN=1` unless the user explicitly requests a real mutation (guardrail against accidental pushes).
+- Stay on `dev` unless the user instructs otherwise; never push directly to `main`.
+- Before feature merges, confirm required env vars are present via `/status` and `/api/health/*` endpoints; document any gaps.
+- Run the relevant e2e smoke (`npx playwright test e2e/shopify-checkout.spec.ts` or agreed substitute) before promoting changes to `main`.
