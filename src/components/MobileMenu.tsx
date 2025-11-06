@@ -4,7 +4,6 @@ import { Menu } from "lucide-react";
 import AdvancedSearch from "./AdvancedSearch";
 import { brand } from "@/config/brand";
 import { navLinks } from "@/config/nav";
-import { GrimnessSlider } from "@/components/grimness/GrimnessSlider";
 
 interface MobileMenuProps {
   scrollToSection: (id: string) => void;
@@ -26,11 +25,6 @@ const MobileMenu = ({ scrollToSection, isAuthenticated }: MobileMenuProps) => {
 
         <div className="mt-4">
           <AdvancedSearch />
-        </div>
-
-        <div className="mt-6 rounded-lg border border-border/60 bg-background/70 p-4 md:hidden" aria-label="Grimness control">
-          <h3 className="text-xs font-semibold uppercase tracking-[0.35em] text-muted-foreground mb-3">Grimness</h3>
-          <GrimnessSlider />
         </div>
 
         <nav className="mt-6 space-y-2">
