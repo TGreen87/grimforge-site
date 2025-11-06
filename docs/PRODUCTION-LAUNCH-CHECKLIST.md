@@ -8,11 +8,11 @@ This document tracks every action required to ship grimforge-site to production 
 |--------|------|------|-------------|
 | ☐ | Keys | Add `STRIPE_SECRET_KEY`, `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`, `STRIPE_WEBHOOK_SECRET` to Netlify (mirror in `.env.local` only if you need a local run); redeploy `dev`. |  |
 | ☑ | Auth | Confirm owner login succeeds on `https://obsidianriterecords.com/admin/login`; compare against `dev` if it loops. | Resolved 2025-10-24 |
-| — | Shipping | AusPost credentials not required; confirm Stripe static rates cover Standard/Express tiers. | Decision: rely on Stripe shipping (2025-10-24) |
-| ☐ | Checkout | Run `/api/checkout` manual test with real publishable key; confirm Stripe session, verify totals and shipping. |  |
+| — | Shipping (legacy) | AusPost credentials not required; confirm Stripe static rates cover Standard/Express tiers. | Retired 2025-11-06 (Shopify shipping) |
+| — | Checkout (legacy) | Legacy `/api/checkout` manual test superseded by Shopify storefront checkout. | Retired 2025-11-06 |
 | ☐ | Checkout | Capture Stripe landing page screenshot for owner documentation. |  |
 | ☐ | Webhooks | Stripe dashboard → Events: verify webhook delivery success (`checkout.session.completed`, `payment_intent.*`). |  |
-| ☐ | Shipping | Test AusPost quote with domestic (VIC → NSW) and international (AU → NZ) addresses; note rates. |  |
+| — | Shipping (legacy) | AusPost quote testing removed with Shopify migration. | Retired 2025-11-06 |
 | ☐ | Content | Replace `public/og-image.jpg` with final hero artwork; re-run `npx linkinator`. |  |
 | ☐ | Content | Final proofread of `/legal/*` pages (tone, links). |  |
 | ☐ | Documentation | Produce owner-facing “Admin quick start” (adding product, stock, checkout flow). |  |

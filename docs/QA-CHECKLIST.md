@@ -39,13 +39,14 @@ Use this checklist to verify the dev Branch Deploy before promoting to main. Ref
 - Gallery supports thumbnail selection, keyboard focus, and lightbox open/close; sticky buy module remains visible on desktop.
 
 ## Cart & Checkout (Shipping)
+> Legacy coverage — bespoke cart/checkout removed 2025-11-06 during Shopify migration.
 - Cart drawer opens; items reflect title/variant/qty; totals correct.
 - Checkout modal collects shipping: valid AU address enables “Refresh rates”.
 - Without AusPost env (current configuration): Stripe static options appear (Standard $10 / Express $20); select one and totals update.
 - With AusPost env: Domestic (Parcel Post/Express) and Intl (Standard/Express) appear; sorted by price; selection updates totals.
 - “Continue” → “Place order” opens Stripe Checkout; selected shipping label/amount visible on Stripe.
-- Checkout sheet stepper shows Shipping → Payment → Review; wallet row disabled message appears when no publishable key.
-- If `/api/checkout` returns 500, confirm `STRIPE_SECRET_KEY` exists; redeploy dev and retry.
+- Checkout sheet stepper (legacy) showed Shipping → Payment → Review; this UI no longer ships post-Shopify migration.
+- Legacy `/api/checkout` 500 guidance retained only for historical context; Shopify checkout will ship with new validation steps.
 - Multi‑item: 2+ items included in session; shipping option still applied.
 
 ## SEO & Sitemaps

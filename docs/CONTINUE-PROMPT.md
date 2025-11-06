@@ -15,7 +15,7 @@ Paste the following into a fresh Codex session whenever you need to resume work 
 - Remote-first: rely on Netlify deploys for verification; run local commands only when fixing suites or capturing logs.
 - Core docs: `AGENTS.md`, `docs/IMPLEMENTATION-PLAN.md`, `docs/NEXT-STEPS.md`, `docs/QA-CHECKLIST.md`, `docs/PRODUCTION-LAUNCH-CHECKLIST.md`.
 - MCP setup: Supabase MCP reads `supabase/config.toml` (service-role token `sbp_*`); Puppeteer MCP runs via Docker `docker run --rm --init -e DOCKER_CONTAINER=true mcp/puppeteer`.
-- Seed & policies: `docs/SUPABASE-SEED.md`. Shipping/AusPost behaviour documented in `docs/SHIPPING-AUSPOST.md`.
+- Seed & policies: `docs/SUPABASE-SEED.md`. Legacy shipping/AusPost behaviour (pre-Shopify) archived in `docs/SHIPPING-AUSPOST.md`.
 - Feature flags: campaign hero (`NEXT_PUBLIC_FEATURE_HERO_CAMPAIGN`), admin bulk tools, Slack alerts; defaults noted in `docs/NEXT-STEPS.md`.
 - Before coding, skim `docs/IMPLEMENTATION-PLAN.md` to understand phased priorities; keep `docs/NEXT-STEPS.md` in sync with any new decisions.
 
@@ -66,7 +66,7 @@ Paste the following into a fresh Codex session whenever you need to resume work 
 **Constraints & Tips**
 - Never log secrets or credentials. Use owner-provided accounts for admin flows.
 - Keep work scoped to QA unless explicitly tasked with code changes.
-- AusPost creds optional; if absent, `/api/shipping/quote` should report `configured:false` and fallback to Stripe static rates.
+- AusPost creds no longer apply—the bespoke `/api/shipping/quote` endpoint was removed with the 2025-11-06 Shopify migration.
 - Respect automation defaults: when you touch code, plan for lint/type-check/test fixes and document outcomes—local runs are optional unless you are actively debugging the failures outlined in `AGENTS.md`.
 
 **Deliverables**

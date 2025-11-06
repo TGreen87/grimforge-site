@@ -1,11 +1,9 @@
 "use client";
 
-import { useState } from "react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { useCart } from "@/contexts/CartContext";
 import { useToast } from "@/hooks/use-toast";
 import { Clock, Users, Flame, AlertTriangle } from "lucide-react";
 import ThreeDTilt from "@/components/fx/ThreeDTilt";
@@ -37,8 +35,6 @@ const PreOrderCard = ({
   description,
   limitedEdition
 }: PreOrderCardProps) => {
-  const [isOrdering, setIsOrdering] = useState(false);
-  const { addItem } = useCart();
   const { toast } = useToast();
 
   const remainingCopies = totalPressing - currentOrders;
@@ -52,31 +48,12 @@ const PreOrderCard = ({
     cd: "💿"
   };
 
-  const handlePreOrder = async () => {
-    if (isSoldOut) return;
-    
-    setIsOrdering(true);
-    
-    // Simulate preorder processing
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    const priceNumber = parseFloat(price.replace('$', ''));
-    addItem({
-      id: `preorder-${id}`,
-      title: `[PREORDER] ${title}`,
-      artist,
-      format,
-      price: priceNumber,
-      image
-    });
-    
+  const handlePreOrder = () => {
     toast({
-      title: "Preorder secured! 🔥",
-      description: `Your copy of ${title} has been reserved in the dark. You will be charged when it ships.`,
+      title: "Shopify checkout coming soon",
+      description: "Preorders will move to the new Shopify storefront shortly. Thanks for your patience!",
       duration: 3000,
     });
-    
-    setIsOrdering(false);
   };
 
   const getDaysUntilRelease = () => {
@@ -221,16 +198,14 @@ const PreOrderCard = ({
             
             <Button 
               onClick={handlePreOrder}
-              disabled={isSoldOut || isOrdering}
+              disabled={isSoldOut}
               className={`gothic-heading ${
                 isSoldOut 
                   ? "bg-muted text-muted-foreground cursor-not-allowed" 
                   : "bg-accent hover:bg-accent/90 text-accent-foreground"
               }`}
             >
-              {isOrdering ? "Reserving..." : 
-               isSoldOut ? "Sold Out" : 
-               "Reserve Copy"}
+              {isSoldOut ? "Sold Out" : "Check Back Soon"}
             </Button>
           </div>
         </div>

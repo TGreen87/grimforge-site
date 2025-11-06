@@ -14,7 +14,7 @@ Key references
 ## Required (Runtime)
 - `NEXT_PUBLIC_SUPABASE_URL` — Supabase project URL
 - `NEXT_PUBLIC_SUPABASE_ANON_KEY` — Public anon key
-- `SUPABASE_SERVICE_ROLE_KEY` (or `SUPABASE_SERVICE_ROLE`) — Server-side operations (e.g., `/api/checkout`)
+- `SUPABASE_SERVICE_ROLE_KEY` (or `SUPABASE_SERVICE_ROLE`) — Server-side operations (legacy checkout, admin tasks) that require elevated Supabase access.
 - `STRIPE_SECRET_KEY` — Enables Stripe Checkout session creation
 - `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` — (Optional until wallet support enabled) Publishable key used by the cart modal; rotate alongside the secret.
 - `OPENAI_API_KEY` — Powers Supabase edge functions and the in-admin copilot. Store it in Netlify + `.env.local`; the assistant will refuse to load without it.
@@ -39,6 +39,12 @@ Key references
 - `ASSISTANT_ALLOW_PREVIEW` — Set to `1` to bypass Supabase auth on any host (otherwise only Netlify branch deploys are implicitly trusted).
 - `ASSISTANT_ALLOW_LOCALHOST` — Defaults to `0` in this repo so the shared `dev` branch stays locked down. Raise to `1` only if you intentionally run trusted local builds.
 
+## Shopify Headless Storefront
+- `SHOPIFY_STORE_DOMAIN` — Storefront domain (e.g., `grimforge.myshopify.com`). **Required** to enable the headless client.
+- `SHOPIFY_STOREFRONT_API_TOKEN` — Storefront API access token with Storefront API scope. **Required** for live cart mutations.
+- `SHOPIFY_API_VERSION` — (Optional) GraphQL API version, defaults to `2025-07`. Override only when Shopify promotes a newer stable version.
+- Healthcheck: `/api/health/shopify` returns `{ ok, hasDomain, hasToken, version }` so ops can confirm configuration without exposing secrets.
+
 ## Where to set them
 - Netlify Site settings → Environment variables → add at “All deploy contexts”, so Branch Deploys inherit them.
 - Local (optional): only create `.env.local` when you explicitly need to run the app on your machine. Copy from `.env.example`, add secrets, and keep the file untracked.
@@ -48,20 +54,22 @@ Key references
    - Node version is shown
    - `NEXT_PUBLIC_SITE_URL` reflects the intended host (branch URL during QA or production domain once live)
    - Supabase URL/ANON/SERVICE flags show “yes”
-2) Shipping API (optional): `POST /api/shipping/quote` returns either AusPost options (configured:true) or Stripe static fallback (configured:false).
-3) Checkout API: `POST /api/checkout` returns 200 with `{ checkoutUrl }` when `STRIPE_SECRET_KEY` and service role are present; otherwise it returns 500. For dev, add the provided temporary key to Netlify (`STRIPE_SECRET_KEY=sk_live_...YYv`) and remove it after testing.
+2) Shopify healthcheck: hit `/api/health/shopify` on the deploy — `ok: true` indicates both domain and token are present, and the version field reflects the active API version.
+3) Shopify checkout migration: legacy `/api/checkout` and `/api/shipping/quote` routes were removed on 2025-11-06. Ensure the Shopify env block above stays populated before launch.
 
-### Stripe key rotation & webhooks
+### Stripe key rotation & webhooks (legacy)
+> The instructions in this section describe the pre-Shopify Stripe checkout flow and are archived for reference. Skip unless you are resurrecting the legacy implementation.
+
 1. Create a new secret + publishable key pair from the Stripe dashboard (Developers → API keys).
 2. Update Netlify env (`STRIPE_SECRET_KEY`, `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`) and redeploy `dev`.
 3. (Optional) Update local `.env.local` if you maintain a workstation build; otherwise rely on the deploy.
-4. Re-run `/api/checkout` (see checklist) and capture the Stripe session ID in `docs/NEXT-STEPS.md` for traceability.
+4. Re-run `/api/checkout` (legacy) and capture the Stripe session ID in `docs/NEXT-STEPS.md` for traceability.
 5. Once confirmed, revoke the old secret key in Stripe.
 
 If you enable the webhook endpoint (`/api/stripe/webhook`):
 - Add the webhook secret from Stripe → Developers → Webhooks → “Reveal secret” and set `STRIPE_WEBHOOK_SECRET` in Netlify and `.env.local`.
 - Subscribe to `checkout.session.completed`, `payment_intent.succeeded`, and `payment_intent.payment_failed` events; the handler updates order status and payment state automatically.
-- Until the publishable key is available, checkout falls back to the hosted Stripe page after shipping details are collected inside the modal. Once you add `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`, update the cart modal to show wallet buttons (see `src/components/CheckoutModal.tsx`).
+- The bespoke checkout modal has been retired. Shopify takes over wallet handling as part of the new storefront rollout.
 
 ### Supabase account sanity check
 - The shared admin/customer login `codex@greenaiautomation.ai` exists in `auth.users` with id `3355eb56-1519-4a64-9bc1-a1d0bd21bc19` and carries the `admin` role in `public.user_roles`.
@@ -71,10 +79,7 @@ If you enable the webhook endpoint (`/api/stripe/webhook`):
 - Product slug `/products/{slug}` 500 with data present:
   - Ensure `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` exist; then redeploy Branch.
   - RLS: confirm policy `products_select_active` exists; product row `active = true`.
-- `/api/checkout` returns 500 “Failed to create order”:
-  - Confirm `STRIPE_SECRET_KEY` is set; and a service key exists (`SUPABASE_SERVICE_ROLE_KEY` or `SUPABASE_SERVICE_ROLE`). Redeploy and retry.
-- Shipping shows only static options:
-  - This is expected when AusPost envs are absent; checkout still works and charges the selected static rate.
+- Legacy checkout issues (e.g., `/api/checkout` 500s or missing AusPost quotes) no longer apply after the 2025-11-06 Shopify migration.
 
 ## Smoke commands
 - Remote smoke (Puppeteer):

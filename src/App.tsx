@@ -4,7 +4,6 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { HelmetProvider } from "react-helmet-async";
-import { CartProvider } from "@/contexts/CartContext";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { WishlistProvider } from "@/contexts/WishlistContext";
 import ErrorBoundary from "@/components/ErrorBoundary";
@@ -33,22 +32,20 @@ const App = () => {
           <TooltipProvider>
             <AuthProvider>
               <WishlistProvider>
-                <CartProvider>
-                  <Toaster />
-                  <Sonner />
-                  <PWAPrompt />
-                  <PerformanceMonitor />
-                  <BrowserRouter>
-                    <Routes>
-                      <Route path="/" element={<Index />} />
-                      <Route path="/admin" element={<AdminDashboard />} />
-                      <Route path="/product/:id" element={<ProductDetail />} />
-                      <Route path="/legal/:page" element={<LegalPages />} />
-                      {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-                      <Route path="*" element={<NotFound />} />
-                    </Routes>
-                  </BrowserRouter>
-                </CartProvider>
+                <Toaster />
+                <Sonner />
+                <PWAPrompt />
+                <PerformanceMonitor />
+                <BrowserRouter>
+                  <Routes>
+                    <Route path="/" element={<Index />} />
+                    <Route path="/admin" element={<AdminDashboard />} />
+                    <Route path="/product/:id" element={<ProductDetail />} />
+                    <Route path="/legal/:page" element={<LegalPages />} />
+                    {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+                    <Route path="*" element={<NotFound />} />
+                  </Routes>
+                </BrowserRouter>
               </WishlistProvider>
             </AuthProvider>
           </TooltipProvider>

@@ -5,9 +5,8 @@ import { useRouter } from "next/navigation";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { ShoppingCart, Eye, Heart } from "lucide-react";
+import { Eye, Heart } from "lucide-react";
 import Link from "next/link";
-import { useCart } from "@/contexts/CartContext";
 import { useWishlist } from "@/contexts/WishlistContext";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
@@ -27,7 +26,6 @@ interface ProductCardProps {
 
 const ProductCard = ({ id, slug, title, artist, format, price, image, limited, preOrder }: ProductCardProps) => {
   const router = useRouter();
-  const { addItem } = useCart();
   const { addItem: addToWishlist, removeItem: removeFromWishlist, isInWishlist } = useWishlist();
   const { toast } = useToast();
   const priceNumber = useMemo(() => parseFloat(price.replace('$', '')), [price]);
@@ -48,28 +46,6 @@ const ProductCard = ({ id, slug, title, artist, format, price, image, limited, p
     const filename = withoutQuery.split('/').pop() ?? id
     return filename.replace(/\.[^/.]+$/, '') || id
   }, [image, id])
-
-  const addToCart = () => {
-    addItem({
-      id,
-      title,
-      artist,
-      format,
-      price: Number.isFinite(priceNumber) ? priceNumber : 0,
-      image,
-    });
-
-    toast({
-      title: "Added to cart",
-      description: `${artist} - ${title} has been summoned to your cart`,
-      duration: 2000,
-    });
-  };
-
-  const handleAddToCartClick = (event?: React.MouseEvent<HTMLButtonElement>) => {
-    event?.stopPropagation();
-    addToCart();
-  };
 
   const toggleWishlist = () => {
     if (isWishlisted) {
@@ -175,16 +151,17 @@ const ProductCard = ({ id, slug, title, artist, format, price, image, limited, p
                 )}
                 onClick={(event) => handleWishlistClick(event)}
                 aria-label={`${isWishlisted ? 'Remove from' : 'Add to'} wishlist: ${artist} - ${title}`}
-              >
-                <Heart className={cn('h-3.5 w-3.5 md:h-4 md:w-4', isWishlisted ? 'fill-current' : undefined)} />
-              </Button>
+                >
+                  <Heart className={cn('h-3.5 w-3.5 md:h-4 md:w-4', isWishlisted ? 'fill-current' : undefined)} />
+                </Button>
               <Button
                 size="default"
-                className="h-11 w-11 sm:h-10 sm:w-10 bg-accent hover:bg-accent/90 p-0"
-                onClick={(event) => handleAddToCartClick(event)}
-                aria-label={`Add to cart: ${artist} - ${title}`}
+                variant="outline"
+                disabled
+                className="h-11 w-24 sm:h-10 sm:w-24 cursor-not-allowed text-xs text-muted-foreground"
+                aria-label="Shopify checkout coming soon"
               >
-                <ShoppingCart className="h-3.5 w-3.5 md:h-4 md:w-4" />
+                Shopify soon
               </Button>
             </div>
           </div>
@@ -206,13 +183,9 @@ const ProductCard = ({ id, slug, title, artist, format, price, image, limited, p
             </span>
           </div>
           <div className="mt-3 flex flex-wrap items-center gap-2">
-            <Button
-              size="sm"
-              className="flex-1 min-w-[120px] bg-accent hover:bg-accent/90 text-sm"
-              onClick={(event) => handleAddToCartClick(event)}
-            >
-              Quick add
-            </Button>
+            <span className="flex-1 min-w-[120px] rounded border border-dashed border-border px-3 py-2 text-center text-xs text-muted-foreground">
+              Shopify cart integration coming soon
+            </span>
             <Button
               size="icon"
               variant={isWishlisted ? "secondary" : "outline"}

@@ -41,7 +41,7 @@ Acceptance:
 ### Phase 1 — Product Detail MVP
 - Data: fetch product by `slug` from Supabase (variants + inventory where present). [implemented]
 - UI: title/artist, image, price, availability; basic variant selector. [done]
-- Action: “Buy Now” that POSTs to `/api/checkout` and redirects to Stripe Checkout. [done]
+- Action: “Buy Now” that POSTs to `/api/checkout` and redirects to Stripe Checkout. [done — retired 2025-11-06 in favour of Shopify storefront]
 - SEO: metadata + product JSON‑LD. [metadata done; JSON‑LD pending]
 
 Acceptance:
@@ -72,13 +72,13 @@ Acceptance:
 Acceptance:
 - Client errors persist (Supabase) with essential context; can be filtered by time/user. [partially met]
 
-### Phase 4.1 — Shipping (AusPost)
-- Add AusPost quote service and API: `src/services/shipping/auspost.ts`, `POST /api/shipping/quote`. [done]
-- Checkout accepts a selected shipping option (`shipping_rate_data` or `{ shipping: ... }`) and composes Stripe Checkout accordingly, charging the customer. [done]
-- Degrade to static Stripe rates when AusPost env is absent. [done]
+### Phase 4.1 — Shipping (AusPost) — Legacy
+- Add AusPost quote service and API: `src/services/shipping/auspost.ts`, `POST /api/shipping/quote`. [done — retired 2025-11-06]
+- Checkout accepts a selected shipping option (`shipping_rate_data` or `{ shipping: ... }`) and composes Stripe Checkout accordingly, charging the customer. [done — retired 2025-11-06]
+- Degrade to static Stripe rates when AusPost env is absent. [done — retired 2025-11-06]
 
 Acceptance:
-- With `AUSPOST_API_KEY` and origin configured, shipping options return from `/api/shipping/quote` for AU and international; when not configured, static Stripe rates are returned. Checkout reflects the chosen option (customer pays shipping).
+- With `AUSPOST_API_KEY` and origin configured, shipping options return from `/api/shipping/quote` for AU and international; when not configured, static Stripe rates are returned. Checkout reflects the chosen option (customer pays shipping). [legacy reference only]
 
 ### Phase 5 — Admin Gating (Prod Only)
 - Keep previews relaxed; on production, require `user_roles.role = 'admin'` server-side.

@@ -10,7 +10,7 @@ Consult `AGENTS.md` for contributor expectations and deployment discipline. Use 
 - Netlify Branch Deploys (`dev`, `main`) respond 200; `/status` on `dev` shows Supabase URL/anon/service keys present under Node 22. Keep relying on deploys for QA instead of local builds.
 - Admin login loop on production is resolved (2025-10-24); both `dev` and `main` allow owner sign-in. Leave the QA checklist preflight in place for regression detection.
 - Copilot infrastructure is live, but OpenAI credentials/actions still need a full smoke on `dev` before giving the owner the green light.
-- Checkout currently uses Stripe’s built-in shipping options (Standard/Express) defined in `lib/stripe.ts`; AusPost API remains optional until we revisit live quoting.
+- Checkout migration: bespoke Stripe + AusPost shipping flow retired 2025-11-06; align new tasks with Shopify storefront APIs once available.
 - Local `npm run build`, `npm run lint`, and `npm test` continue to fail (SWC crash, admin `no-explicit-any`, Stripe/AusPost mocks). Document outcomes when you touch them, but default to remote validation.
 - Storytelling surfaces and Journal behave as expected with Supabase data; continue hiding sections when tables are empty.
 

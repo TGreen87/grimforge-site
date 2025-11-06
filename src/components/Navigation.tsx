@@ -1,10 +1,9 @@
 'use client'
 
-import { ShoppingCart, Search, Menu } from "lucide-react";
+import { Search } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
-import CartDrawer from "./CartDrawer";
 import WishlistDrawer from "./WishlistDrawer";
 import AdvancedSearch from "./AdvancedSearch";
 import AuthModal from "./AuthModal";
@@ -101,7 +100,6 @@ const Navigation = () => {
             <Search className="h-4 w-4" />
           </Button>
           <WishlistDrawer />
-          <CartDrawer />
           {isAuthenticated ? (
             <>
               <a href="/admin" className="hidden md:block text-sm underline-offset-4 hover:underline" onClick={(e) => { e.preventDefault(); window.location.href = '/admin' }}>

@@ -1,10 +1,9 @@
 import { useState } from "react";
-import { Heart, X, ShoppingCart } from "lucide-react";
+import { Heart, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Badge } from "@/components/ui/badge";
 import { useWishlist } from "@/contexts/WishlistContext";
-import { useCart, type CartItem } from "@/contexts/CartContext";
 import { useToast } from "@/hooks/use-toast";
 
 interface WishlistItem {
@@ -19,27 +18,8 @@ interface WishlistItem {
 
 const WishlistDrawer = () => {
   const { items, removeItem, getTotalItems } = useWishlist();
-  const { addItem: addToCart } = useCart();
   const { toast } = useToast();
   const [isOpen, setIsOpen] = useState(false);
-
-  const handleMoveToCart = (item: WishlistItem) => {
-    addToCart({
-      id: item.id,
-      title: item.title,
-      artist: item.artist,
-      format: item.format,
-      price: item.price,
-      image: item.image
-    });
-    
-    removeItem(item.id);
-    
-    toast({
-      title: "Moved to Cart",
-      description: `${item.title} has been moved from wishlist to cart.`,
-    });
-  };
 
   const handleRemoveItem = (item: WishlistItem) => {
     removeItem(item.id);
@@ -55,8 +35,6 @@ const WishlistDrawer = () => {
       currency: 'USD'
     }).format(price);
   };
-
-  const totalValue = items.reduce((sum, item) => sum + item.price, 0);
 
   return (
     <Sheet open={isOpen} onOpenChange={setIsOpen}>
@@ -107,17 +85,8 @@ const WishlistDrawer = () => {
                       <span className="text-sm font-medium text-accent">{formatPrice(item.price)}</span>
                     </div>
                     <div className="flex gap-1 mt-2">
-                      <Button 
-                        size="sm" 
-                        variant="outline"
-                        className="text-xs h-7"
-                        onClick={() => handleMoveToCart(item)}
-                      >
-                        <ShoppingCart className="h-3 w-3 mr-1" />
-                        Add to Cart
-                      </Button>
-                      <Button 
-                        size="sm" 
+                      <Button
+                        size="sm"
                         variant="ghost"
                         className="text-xs h-7 px-2"
                         onClick={() => handleRemoveItem(item)}
@@ -130,21 +99,8 @@ const WishlistDrawer = () => {
               ))}
               
               {items.length > 0 && (
-                <div className="border-t border-border pt-4 mt-4">
-                  <div className="flex justify-between items-center mb-4">
-                    <span className="font-medium">Total Value:</span>
-                    <span className="font-bold text-lg text-accent">{formatPrice(totalValue)}</span>
-                  </div>
-                  <Button 
-                    className="w-full"
-                    onClick={() => {
-                      items.forEach(item => handleMoveToCart(item));
-                      setIsOpen(false);
-                    }}
-                  >
-                    <ShoppingCart className="h-4 w-4 mr-2" />
-                    Move All to Cart
-                  </Button>
+                <div className="border-t border-border pt-4 mt-4 text-sm text-muted-foreground">
+                  Cart perks are moving to Shopify soon. For now, keep wishlisted items handy and purchase them once the new store launches.
                 </div>
               )}
             </div>

@@ -2,7 +2,9 @@
 
 _Last updated: 2025-10-24_
 
-**Current approach:** We are relying solely on Stripe’s static shipping rates (Standard/Express) defined in `lib/stripe.ts`. Keep this guide for future reference—if AusPost credentials are absent (our current configuration), the fallback described below powers the live checkout.
+> **2025-11-06 update:** The bespoke AusPost shipping pipeline and associated API routes were removed as part of the Shopify migration. Keep this guide for archival purposes only until the new Shopify-native shipping flow is documented.
+
+**Historical approach:** We were relying on Stripe’s static shipping rates (Standard/Express) defined in `lib/stripe.ts`. Keep this guide for future reference—if AusPost credentials return, the fallback described below powers the legacy checkout.
 
 This repo includes a safe scaffold for quoting Australia Post rates and passing a selected option into Stripe Checkout. See `docs/README.md` for related integration guides. It degrades gracefully to static Stripe rates when AusPost env is not configured.
 

@@ -10,7 +10,6 @@ import RecommendationEngine from "@/components/RecommendationEngine";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useCart } from "@/contexts/CartContext";
 import { useWishlist } from "@/contexts/WishlistContext";
 import { useToast } from "@/hooks/use-toast";
 
@@ -42,7 +41,6 @@ const productDatabase: Record<string, Product> = {};
 
 const ProductDetail = () => {
   const { id } = useParams<{ id: string }>();
-  const { addItem } = useCart();
   const { addItem: addToWishlist, removeItem: removeFromWishlist, isInWishlist } = useWishlist();
   const { toast } = useToast();
   const [selectedImage, setSelectedImage] = useState(0);
@@ -115,20 +113,9 @@ const ProductDetail = () => {
 
 
   const handleAddToCart = () => {
-    for (let i = 0; i < quantity; i++) {
-      addItem({
-        id: product.id,
-        title: product.title,
-        artist: product.artist,
-        format: product.format,
-        price: product.price,
-        image: product.image
-      });
-    }
-    
     toast({
-      title: "Added to Cart",
-      description: `${quantity}x ${product.title} has been added to your dark collection.`,
+      title: "Shopify checkout coming soon",
+      description: "Cart actions will relaunch once the new Shopify experience ships.",
     });
   };
 
