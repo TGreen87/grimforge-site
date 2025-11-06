@@ -4,6 +4,7 @@ export const CART_CREATE = /* GraphQL */ `
       cart {
         id
         checkoutUrl
+        totalQuantity
       }
       userErrors {
         field
@@ -28,4 +29,3 @@ export const CART_LINES_ADD = /* GraphQL */ `
     }
   }
 `
-

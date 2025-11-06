@@ -46,3 +46,4 @@ See `docs/README.md` for the full documentation index and session logs.
 - Push after lint/type/test + Puppeteer and record results in the latest `docs/SESSION-*.md`. When baseline suites are red, note the failing commands with reasons in the session log before pushing.
 - Confirm the Netlify branch deploy (`https://dev--obsidianriterecords.netlify.app`) before promoting to `main`; production deploy happens only after explicit “Go live on main”.
 - Update `docs/NEXT-STEPS.md`, `docs/IMPLEMENTATION-PLAN.md`, and `docs/CONTINUE-PROMPT.md` whenever scope or plan shifts. Reflect new automation (assistant undo tokens, plan previews) in both docs and QA checklists the same day they ship.
+- Whenever a user pastes prompts or snippets that reference external APIs/frameworks, consult the official developer documentation first to validate variable names, required headers, and formatting before coding changes or replies.
