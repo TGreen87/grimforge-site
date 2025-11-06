@@ -37,7 +37,7 @@ export const CheckoutButton = forwardRef<HTMLButtonElement, CheckoutButtonProps>
     }
   }, [isReady])
 
-  const resolvedDisabled = disabled ?? locked || !isReady || isPending
+  const resolvedDisabled = (disabled ?? locked) || !isReady || isPending
   const label = !isReady ? missingEnvLabel : locked && !error ? emptyCartLabel : children
 
   const handleClick: React.MouseEventHandler<HTMLButtonElement> = (event) => {
@@ -103,4 +103,3 @@ export const CheckoutButton = forwardRef<HTMLButtonElement, CheckoutButtonProps>
 })
 
 CheckoutButton.displayName = 'CheckoutButton'
-
