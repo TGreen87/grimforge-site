@@ -1,6 +1,6 @@
 "use client";
-import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
-import { storageKeys, getJSON, setJSON } from "@/src/lib/storage";
+
+import { ReactNode, createContext, useContext } from "react";
 
 export interface CartItem {
   id: string;
@@ -10,10 +10,10 @@ export interface CartItem {
   price: number;
   image: string;
   quantity: number;
-  variantId?: string; // for multi-item checkout
+  variantId?: string;
 }
 
-interface CartContextType {
+type CartContextType = {
   items: CartItem[];
   addItem: (item: Omit<CartItem, "quantity">) => void;
   removeItem: (id: string) => void;
@@ -21,95 +21,28 @@ interface CartContextType {
   getTotalItems: () => number;
   getTotalPrice: () => number;
   clearCart: () => void;
-}
+};
 
-export const CartContext = createContext<CartContextType | undefined>(undefined);
-
-export const useCart = () => {
-  const context = useContext(CartContext);
-  if (context === undefined) {
-    throw new Error('useCart must be used within a CartProvider');
+const noop = () => {
+  if (process.env.NODE_ENV !== "production") {
+    console.warn("Cart interactions are disabled in headless mode.");
   }
-  return context;
 };
 
-export const CartProvider = ({ children }: { children: ReactNode }) => {
-  const [items, setItems] = useState<CartItem[]>([]);
-
-  useEffect(() => {
-    // Only run on client side
-    if (typeof window === 'undefined') return;
-    
-    // Initialize from localStorage on client side
-    const storedItems = getJSON<CartItem[]>(storageKeys.cart, []);
-    const sanitized = Array.isArray(storedItems)
-      ? storedItems.filter((item) => Boolean(item.variantId) && item.quantity > 0)
-      : [];
-    if (sanitized.length !== storedItems.length) {
-      setJSON(storageKeys.cart, sanitized);
-    }
-    setItems(sanitized);
-  }, []);
-
-  useEffect(() => {
-    // Only save to localStorage on client side
-    if (typeof window === 'undefined') return;
-    
-    setJSON(storageKeys.cart, items);
-  }, [items]);
-  const addItem = (newItem: Omit<CartItem, "quantity">) => {
-    setItems(currentItems => {
-      const existingItem = currentItems.find(item => item.id === newItem.id);
-      if (existingItem) {
-        return currentItems.map(item =>
-          item.id === newItem.id
-            ? { ...item, quantity: item.quantity + 1 }
-            : item
-        );
-      }
-      return [...currentItems, { ...newItem, quantity: 1 }];
-    });
-  };
-
-  const removeItem = (id: string) => {
-    setItems(currentItems => currentItems.filter(item => item.id !== id));
-  };
-
-  const updateQuantity = (id: string, quantity: number) => {
-    if (quantity <= 0) {
-      removeItem(id);
-      return;
-    }
-    setItems(currentItems =>
-      currentItems.map(item =>
-        item.id === id ? { ...item, quantity } : item
-      )
-    );
-  };
-
-  const getTotalItems = () => {
-    return items.reduce((total, item) => total + item.quantity, 0);
-  };
-
-  const getTotalPrice = () => {
-    return items.reduce((total, item) => total + (item.price * item.quantity), 0);
-  };
-
-  const clearCart = () => {
-    setItems([]);
-  };
-
-  return (
-    <CartContext.Provider value={{
-      items,
-      addItem,
-      removeItem,
-      updateQuantity,
-      getTotalItems,
-      getTotalPrice,
-      clearCart
-    }}>
-      {children}
-    </CartContext.Provider>
-  );
+const defaultCartContext: CartContextType = {
+  items: [],
+  addItem: noop,
+  removeItem: noop,
+  updateQuantity: noop,
+  getTotalItems: () => 0,
+  getTotalPrice: () => 0,
+  clearCart: noop,
 };
+
+export const CartContext = createContext<CartContextType>(defaultCartContext);
+
+export const useCart = () => useContext(CartContext);
+
+export const CartProvider = ({ children }: { children: ReactNode }) => (
+  <CartContext.Provider value={defaultCartContext}>{children}</CartContext.Provider>
+);
