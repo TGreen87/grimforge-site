@@ -2,7 +2,7 @@
 
 import { forwardRef, useState, useTransition } from 'react'
 import { Button, type ButtonProps } from '@/components/ui/button'
-import { shopifyEnv } from '@/lib/shopify/env'
+import { useShopifyReady } from './useShopifyReady'
 
 interface AddToCartButtonProps extends ButtonProps {
   missingEnvLabel?: string
@@ -10,8 +10,6 @@ interface AddToCartButtonProps extends ButtonProps {
   quantity?: number
   buyerCountryCode?: string
 }
-
-const isShopifyReady = shopifyEnv.isConfigured
 
 export const AddToCartButton = forwardRef<HTMLButtonElement, AddToCartButtonProps>((props, ref) => {
   const {
@@ -24,6 +22,7 @@ export const AddToCartButton = forwardRef<HTMLButtonElement, AddToCartButtonProp
     ...rest
   } = props
 
+  const isShopifyReady = useShopifyReady()
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
   const [isPending, startTransition] = useTransition()

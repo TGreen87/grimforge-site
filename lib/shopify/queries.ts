@@ -30,6 +30,16 @@ export const CART_LINES_ADD = /* GraphQL */ `
   }
 `
 
+export const CART_QUERY = /* GraphQL */ `
+  query CartFetch($cartId: ID!) {
+    cart(id: $cartId) {
+      id
+      checkoutUrl
+      totalQuantity
+    }
+  }
+`
+
 export const PRODUCTS_QUERY = /* GraphQL */ `
   query ProductsList($first: Int!) {
     products(first: $first) {

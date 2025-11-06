@@ -3,6 +3,7 @@ import Image from 'next/image'
 import { shopifyEnv } from '@/lib/shopify/env'
 import { shopifyFetch } from '@/lib/shopify/client'
 import { PRODUCTS_QUERY } from '@/lib/shopify/queries'
+import { CheckoutButton } from '@/components/shopify/CheckoutButton'
 
 interface ProductsResponse {
   products: {
@@ -61,6 +62,9 @@ export default async function ProductsPage() {
         <p className="mt-4 max-w-xl text-sm text-muted-foreground">
           Shopify is not configured yet. Add `SHOPIFY_STORE_DOMAIN` and `SHOPIFY_STOREFRONT_API_TOKEN` to enable live products.
         </p>
+        <div className="mt-6 max-w-xs">
+          <CheckoutButton data-testid="checkout-button" className="w-full" />
+        </div>
       </main>
     )
   }
@@ -72,6 +76,9 @@ export default async function ProductsPage() {
       <div className="mb-10 text-center">
         <h1 className="blackletter text-4xl text-bone">Catalogue</h1>
         <p className="mt-3 text-muted-foreground">Freshly pulled from the Shopify headless Storefront.</p>
+        <div className="mt-6 flex justify-center">
+          <CheckoutButton data-testid="checkout-button" className="w-full max-w-xs" />
+        </div>
       </div>
 
       {products.length === 0 ? (
@@ -118,4 +125,3 @@ export default async function ProductsPage() {
     </main>
   )
 }
-

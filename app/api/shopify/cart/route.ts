@@ -2,7 +2,7 @@ import { randomUUID } from 'crypto'
 import { NextRequest, NextResponse } from 'next/server'
 import { shopifyEnv } from '@/lib/shopify/env'
 import { shopifyFetch } from '@/lib/shopify/client'
-import { CART_CREATE, CART_LINES_ADD } from '@/lib/shopify/queries'
+import { CART_CREATE, CART_LINES_ADD, CART_QUERY } from '@/lib/shopify/queries'
 
 const CART_COOKIE_NAME = 'sfy_cart_id'
 const CART_COOKIE_MAX_AGE = 60 * 60 * 24 * 90 // 90 days
@@ -34,6 +34,14 @@ interface CartLinesAddResponse {
     } | null
     userErrors: Array<{ message: string; field?: string[] | null }>
   }
+}
+
+interface CartQueryResponse {
+  cart: {
+    id: string
+    checkoutUrl: string
+    totalQuantity: number
+  } | null
 }
 
 function normalizeCountryCode(code?: string) {
@@ -76,6 +84,17 @@ function notConfigured(correlationId: string) {
   )
 }
 
+function cartNotFound(correlationId: string) {
+  return NextResponse.json(
+    {
+      code: 'SHOPIFY_CART_NOT_FOUND',
+      message: 'No active Shopify cart found for this session.',
+      correlationId,
+    },
+    { status: 404 },
+  )
+}
+
 export async function POST(request: NextRequest) {
   const correlationId = randomUUID()
 
@@ -91,13 +110,13 @@ export async function POST(request: NextRequest) {
   }
 
   const variantId = typeof payload.variantId === 'string' ? payload.variantId.trim() : ''
-  if (!variantId) {
-    return invalidRequest('variantId is required.', correlationId)
-  }
+  const hasVariant = variantId.length > 0
 
   const quantityRaw = payload.quantity ?? 1
-  const quantity = Number.isInteger(quantityRaw) && quantityRaw > 0 ? quantityRaw : NaN
-  if (!Number.isInteger(quantity)) {
+  const quantity = hasVariant
+    ? (Number.isInteger(quantityRaw) && quantityRaw > 0 ? quantityRaw : NaN)
+    : 0
+  if (hasVariant && !Number.isInteger(quantity)) {
     return invalidRequest('quantity must be a positive integer.', correlationId)
   }
 
@@ -105,6 +124,38 @@ export async function POST(request: NextRequest) {
   const existingCartId = request.cookies.get(CART_COOKIE_NAME)?.value ?? ''
 
   try {
+    if (!hasVariant) {
+      if (!existingCartId) {
+        return cartNotFound(correlationId)
+      }
+
+      const response = await shopifyFetch<CartQueryResponse>(CART_QUERY, {
+        cartId: existingCartId,
+      })
+
+      const cart = response.cart
+      if (!cart) {
+        return cartNotFound(correlationId)
+      }
+
+      const nextResponse = NextResponse.json({
+        cartId: cart.id,
+        checkoutUrl: cart.checkoutUrl,
+        totalQuantity: cart.totalQuantity,
+        correlationId,
+      })
+      nextResponse.cookies.set({
+        name: CART_COOKIE_NAME,
+        value: cart.id,
+        httpOnly: true,
+        sameSite: 'lax',
+        path: '/',
+        maxAge: CART_COOKIE_MAX_AGE,
+        secure: isProduction,
+      })
+      return nextResponse
+    }
+
     if (!existingCartId) {
       const response = await shopifyFetch<CartCreateResponse>(CART_CREATE, {
         input: {
