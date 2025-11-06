@@ -29,3 +29,70 @@ export const CART_LINES_ADD = /* GraphQL */ `
     }
   }
 `
+
+export const PRODUCTS_QUERY = /* GraphQL */ `
+  query ProductsList($first: Int!) {
+    products(first: $first) {
+      edges {
+        node {
+          id
+          handle
+          title
+          featuredImage {
+            url
+            altText
+          }
+          variants(first: 1) {
+            edges {
+              node {
+                id
+                title
+                price {
+                  amount
+                  currencyCode
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+`
+
+export const PRODUCT_BY_HANDLE_QUERY = /* GraphQL */ `
+  query ProductByHandle($handle: String!) {
+    product(handle: $handle) {
+      id
+      handle
+      title
+      description
+      featuredImage {
+        url
+        altText
+      }
+      images(first: 8) {
+        edges {
+          node {
+            id
+            url
+            altText
+          }
+        }
+      }
+      variants(first: 8) {
+        edges {
+          node {
+            id
+            title
+            price {
+              amount
+              currencyCode
+            }
+            availableForSale
+          }
+        }
+      }
+    }
+  }
+`
