@@ -53,6 +53,8 @@ Key references
 - `SHOPIFY_STORE_DOMAIN` example `obsidianriterecords.myshopify.com`
 - `SHOPIFY_STOREFRONT_API_TOKEN` Storefront access token
 - `SHOPIFY_ADMIN_API_TOKEN` Admin API access token with `write_products` scope
+- `SHOPIFY_CLIENT_ID` Dev Dashboard app client ID (needed for OAuth token exchange)
+- `SHOPIFY_CLIENT_SECRET` Dev Dashboard app client secret
 - `SHOPIFY_API_VERSION` recommended `2025-10`  
 - `NEXT_PUBLIC_SITE_URL`  
 - Supabase: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, and server keys for admin actions
@@ -73,6 +75,7 @@ Key references
 - Set `SHOPIFY_ADMIN_API_TOKEN` (same contexts as the storefront token) once you create a Headless custom app with `write_products` scope. The admin product APIs refuse to run without it.
 - Use `npm run shopify:seed` (or `netlify env:run shopify:seed`) after configuring the token to create a demo product/variant in Shopify for smoke testing.
 - All Admin Panel product creates call Shopify automatically via `/api/admin/products`. Keep Netlify + local envs aligned so the sync never drifts.
+- When regenerating credentials, also update `SHOPIFY_CLIENT_ID`/`SHOPIFY_CLIENT_SECRET` (from the Dev Dashboard app version) and keep the OAuth callback set to `https://dev--obsidianriterecords.netlify.app/api/shopify/oauth/callback` so the Authorization Code Grant flow succeeds.
 
 ### Stripe key rotation & webhooks (legacy)
 > The instructions in this section describe the pre-Shopify Stripe checkout flow and are archived for reference. Skip unless you are resurrecting the legacy implementation.

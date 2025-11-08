@@ -39,12 +39,30 @@ function formatDescriptionHtml(value?: string | null) {
   return paragraphs.join("");
 }
 
-function buildShopifyProductInput(payload: ProductPayload, sku: string) {
+function buildShopifyProductSetInput(payload: ProductPayload, sku: string) {
   const optionName = payload.format ? "Format" : undefined;
-  const variantOptions = optionName && payload.format ? [payload.format] : undefined;
   const price = Number(payload.price ?? 0).toFixed(2);
 
-  const input: Record<string, unknown> = {
+  const productOptions = optionName && payload.format
+    ? [
+        {
+          name: optionName,
+          values: [{ name: payload.format }],
+        },
+      ]
+    : undefined;
+
+  const variantInput: Record<string, unknown> = {
+    price,
+    sku,
+    title: payload.format ? `${payload.title} - ${payload.format}` : payload.title,
+  };
+
+  if (payload.format) {
+    variantInput.option1 = payload.format;
+  }
+
+  return {
     title: payload.title,
     handle: payload.slug,
     descriptionHtml: formatDescriptionHtml(payload.description),
@@ -52,24 +70,11 @@ function buildShopifyProductInput(payload: ProductPayload, sku: string) {
     productType: payload.format,
     vendor: payload.artist,
     tags: payload.tags?.length ? payload.tags : undefined,
-    options: optionName ? [optionName] : undefined,
+    productOptions,
     variants: [
-      {
-        title: payload.format || "Standard Edition",
-        sku,
-        price,
-        requiresShipping: true,
-        inventoryPolicy: payload.pre_order ? "CONTINUE" : "DENY",
-        options: variantOptions,
-      },
+      variantInput,
     ],
-  };
-
-  if (payload.image) {
-    input.images = [{ src: payload.image }];
-  }
-
-  return input;
+  } satisfies Record<string, unknown>;
 }
 
 async function rollbackProduct(adminClient: ReturnType<typeof createServiceClient>, productId: string, variantId: string) {
@@ -207,7 +212,7 @@ export async function POST(request: NextRequest) {
 
   let shopifyProduct: ShopifyProductNode;
   try {
-    const shopifyInput = buildShopifyProductInput(payload, sku);
+    const shopifyInput = buildShopifyProductSetInput(payload, sku);
     shopifyProduct = await createShopifyProduct(shopifyInput);
   } catch (error) {
     console.error("Shopify sync failed", error);
@@ -237,7 +242,7 @@ export async function POST(request: NextRequest) {
           id: shopifyProduct.id,
           handle: shopifyProduct.handle,
           status: shopifyProduct.status,
-          primaryVariantId: shopifyProduct.variants?.edges?.[0]?.node.id ?? null,
+          primaryVariantId: shopifyProduct.variants?.nodes?.[0]?.id ?? null,
         },
       },
     },

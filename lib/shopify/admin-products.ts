@@ -1,40 +1,36 @@
 import { shopifyAdminFetch } from './admin-client'
 
-const PRODUCT_CREATE_MUTATION = /* GraphQL */ `
-  mutation ProductCreate($input: ProductInput!) {
-    productCreate(input: $input) {
+const PRODUCT_SET_MUTATION = /* GraphQL */ `
+  mutation ProductSet($input: ProductSetInput!, $sync: Boolean!) {
+    productSet(input: $input, synchronous: $sync) {
       product {
         id
         handle
         status
         title
         variants(first: 25) {
-          edges {
-            node {
-              id
-              title
-              sku
-              price
-            }
+          nodes {
+            id
+            title
+            sku
+            price
           }
         }
       }
       userErrors {
         field
         message
-        code
       }
     }
   }
 `
 
-interface ProductCreateResponse {
-  productCreate: {
+interface ProductSetResponse {
+  productSet: {
     product: ShopifyProductNode | null
     userErrors: Array<{
       field?: string[] | null
       message: string
-      code?: string | null
     }>
   }
 }
@@ -52,27 +48,26 @@ export interface ShopifyProductNode {
   title: string
   status: string
   variants: {
-    edges: Array<{
-      node: ShopifyProductVariantNode
-    }>
+    nodes: ShopifyProductVariantNode[]
   }
 }
 
 export async function createShopifyProduct(input: Record<string, unknown>) {
-  const response = await shopifyAdminFetch<ProductCreateResponse>(PRODUCT_CREATE_MUTATION, { input })
-  const { product, userErrors } = response.productCreate
+  const response = await shopifyAdminFetch<ProductSetResponse>(PRODUCT_SET_MUTATION, {
+    input,
+    sync: true,
+  })
+  const { product, userErrors } = response.productSet
 
   if (userErrors?.length) {
     const first = userErrors[0]
     const location = first.field?.join('.')
-    const code = first.code ? ` (${first.code})` : ''
-    throw new Error(`Shopify productCreate failed${location ? ` at ${location}` : ''}: ${first.message}${code}`)
+    throw new Error(`Shopify productSet failed${location ? ` at ${location}` : ''}: ${first.message}`)
   }
 
   if (!product) {
-    throw new Error('Shopify productCreate returned no product payload.')
+    throw new Error('Shopify productSet returned no product payload.')
   }
 
   return product
 }
-

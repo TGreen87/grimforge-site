@@ -16,26 +16,28 @@ async function main() {
     productType: 'Vinyl',
     vendor: 'Obsidian Rite Records',
     tags: ['demo', 'lp', 'shopify'],
-    options: ['Format'],
-    images: [
+    productOptions: [
       {
-        src: 'https://images.unsplash.com/photo-1511379938547-c1f69419868d?auto=format&fit=crop&w=1200&q=80',
+        name: 'Format',
+        values: [{ name: 'Vinyl' }],
       },
     ],
     variants: [
       {
-        title: 'Vinyl',
         sku: 'ORR-DEMO-LP',
         price: '32.00',
-        requiresShipping: true,
-        inventoryPolicy: 'DENY',
-        options: ['Vinyl'],
+        optionValues: [
+          {
+            optionName: 'Format',
+            name: 'Vinyl',
+          },
+        ],
       },
     ],
   }
 
   const product = await createShopifyProduct(productInput)
-  const primaryVariant = product.variants?.edges?.[0]?.node
+  const primaryVariant = product.variants?.nodes?.[0]
 
   console.log('Created Shopify product:')
   console.log(`  Product ID: ${product.id}`)
@@ -47,4 +49,3 @@ main().catch((error) => {
   console.error('Shopify seed failed:', error)
   process.exit(1)
 })
-
