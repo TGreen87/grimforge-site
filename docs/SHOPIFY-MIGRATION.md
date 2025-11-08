@@ -54,3 +54,27 @@ This playbook captures everything required to move Obsidian Rite Records from th
 - Review logs in `/api/shopify/cart` for error rates. Add Sentry hooks if needed.
 - Schedule a weekly smoke using the Playwright script and record outcomes in `docs/SESSION-*.md`.
 
+# Shopify Migration Playbook
+
+**Last updated:** 8 Nov 2025 AEST
+
+## Goals
+- Replace legacy Stripe/cart code with Shopify headless cart and checkout.
+- Keep Admin Panel as the content and tooling UI, while Shopify remains the product and inventory truth.
+
+## Steps
+1. Configure environment variables in Netlify and `.env.local`.
+2. Products page `/products` fetches the first page of Shopify products with featured image and price.
+3. Product detail `/products/[handle]` fetches handle, images and variants.
+4. `/api/shopify/cart` implements:
+   - Create cart and add line when `{ variantId, quantity }` present.
+   - Return checkout URL for empty body if a valid cart exists.
+5. UI buttons:
+   - `AddToCartButton` adds one variant.
+   - `CheckoutButton` gets `checkoutUrl` and redirects.
+6. E2E smoke: Playwright test stubs the API and asserts redirect.
+7. Remove deprecated Stripe and AusPost code once Shopify checkout is live.
+
+## Reference
+- Storefront API version window: 2025-10. :contentReference[oaicite:9]{index=9}
+- Hydrogen docs for reference patterns. :contentReference[oaicite:10]{index=10}

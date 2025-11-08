@@ -40,10 +40,20 @@ Key references
 - `ASSISTANT_ALLOW_LOCALHOST` — Defaults to `0` in this repo so the shared `dev` branch stays locked down. Raise to `1` only if you intentionally run trusted local builds.
 
 ## Shopify Headless Storefront
-- `SHOPIFY_STORE_DOMAIN` — Storefront domain (e.g., `grimforge.myshopify.com`). **Required** to enable the headless client.
+- `SHOPIFY_STORE_DOMAIN` — Storefront domain (e.g., `obsidianriterecords.myshopify.com`). **Required** to enable the headless client.
 - `SHOPIFY_STOREFRONT_API_TOKEN` — Storefront API access token with Storefront API scope. **Required** for live cart mutations.
 - `SHOPIFY_API_VERSION` — (Optional) GraphQL API version, defaults to `2025-07`. Override only when Shopify promotes a newer stable version.
 - Healthcheck: `/api/health/shopify` returns `{ ok, hasDomain, hasToken, version }` so ops can confirm configuration without exposing secrets.
+# Environment Quickstart
+
+**Do not commit secrets. Use Netlify env for deploys and `.env.local` only for local dev.**
+
+## Required variables
+- `SHOPIFY_STORE_DOMAIN` example `obsidianriterecords.myshopify.com`
+- `SHOPIFY_STOREFRONT_API_TOKEN` Storefront access token
+- `SHOPIFY_API_VERSION` recommended `2025-10`  
+- `NEXT_PUBLIC_SITE_URL`  
+- Supabase: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, and server keys for admin actions
 
 ## Where to set them
 - Netlify Site settings → Environment variables → add at “All deploy contexts”, so Branch Deploys inherit them.
