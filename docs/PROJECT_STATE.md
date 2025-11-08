@@ -24,16 +24,21 @@ Notable files detected in repo:
   - POST `/api/shopify/cart` with `{ variantId, quantity }` creates a Shopify Cart (if needed), adds a line, sets a secure cookie `sfy_cart_id`, and returns `{ cartId, checkoutUrl, totalQuantity }`.
   - POST `/api/shopify/cart` with `{}` and a valid cookie returns the checkout URL, for direct “Go to checkout”.
 - Admin Panel remains the day-to-day UI for the business. Product and inventory are synchronized from Shopify, not stored as an independent truth in ORR.
+  - `/api/admin/products` now refuses to create records unless the Shopify Admin token is present; it mirrors every new product + primary variant into Shopify via `productCreate` before returning to the client, so the owner never has to double-enter catalog data.
 
 ## 4. Environments and Configuration
 Set these only via Netlify or local `.env.local` for development. Never commit secrets.
 - `SHOPIFY_STORE_DOMAIN` example `mystore.myshopify.com`
 - `SHOPIFY_STOREFRONT_API_TOKEN` example `shpat_...` or partner Storefront token
 - `SHOPIFY_API_VERSION` recommended `2025-10` as of now
+- `SHOPIFY_ADMIN_API_TOKEN` Headless custom-app token with `write_products` scope so the admin panel can push catalog updates directly into Shopify
 - Supabase credentials for admin
 - Existing Stripe keys are legacy and can be removed once Shopify is live for checkout
 
 ## 5. Endpoint Contract
+- `POST /api/admin/products`
+  - Requires Supabase admin auth and `SHOPIFY_ADMIN_API_TOKEN`.
+  - Validates the local product payload, creates Supabase `products`, `variants`, and `inventory` rows, then calls Shopify `productCreate` so the canonical catalog lives in Shopify.
 - `POST /api/shopify/cart`
   - Body `{ variantId: string, quantity: number }` → creates cart if missing, adds line, sets `sfy_cart_id` cookie, returns `{ cartId, checkoutUrl, totalQuantity }`.
   - Body `{}` → if cookie exists, fetches cart and returns checkout URL. If no cart, respond 404 with `{ code: 'SHOPIFY_CART_NOT_FOUND' }`.
@@ -47,6 +52,7 @@ Set these only via Netlify or local `.env.local` for development. Never commit s
 
 ## 7. Testing
 - A Playwright smoke test navigates to `/products`, enables a test override, mocks `/api/shopify/cart` and asserts redirect is called with a checkout URL.
+- `npm run shopify:seed` (after setting the admin token) injects a demo product + variant into Shopify so storefront QA has real data before the owner adds catalog entries.
 
 ## 8. Version Check
 Validated as of 8 Nov 2025 AEST. Source links attached.

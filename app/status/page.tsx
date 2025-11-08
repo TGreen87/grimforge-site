@@ -25,6 +25,9 @@ export default async function StatusPage() {
   const supaUrlPresent = Boolean(env.NEXT_PUBLIC_SUPABASE_URL || env.SUPABASE_URL)
   const supaAnonPresent = Boolean(env.NEXT_PUBLIC_SUPABASE_ANON_KEY || env.SUPABASE_ANON_KEY)
   const supaServicePresent = Boolean(env.SUPABASE_SERVICE_ROLE_KEY || env.SUPABASE_SERVICE_ROLE)
+  const shopifyDomain = env.SHOPIFY_STORE_DOMAIN || null
+  const shopifyStorefrontToken = Boolean(env.SHOPIFY_STOREFRONT_API_TOKEN)
+  const shopifyAdminToken = Boolean(env.SHOPIFY_ADMIN_API_TOKEN)
 
   return (
     <main className="container mx-auto max-w-2xl px-4 py-10">
@@ -38,9 +41,11 @@ export default async function StatusPage() {
         <Item label="Supabase URL present" value={supaUrlPresent ? 'yes' : 'no'} />
         <Item label="Supabase ANON present" value={supaAnonPresent ? 'yes' : 'no'} />
         <Item label="Supabase SERVICE_ROLE present" value={supaServicePresent ? 'yes' : 'no'} />
+        <Item label="Shopify domain" value={shopifyDomain} />
+        <Item label="Shopify Storefront token" value={shopifyStorefrontToken ? 'yes' : 'no'} />
+        <Item label="Shopify Admin token" value={shopifyAdminToken ? 'yes' : 'no'} />
       </div>
       <p className="text-xs text-muted-foreground mt-3">This page is safe: no secret values are printed, only presence.</p>
     </main>
   )
 }
-

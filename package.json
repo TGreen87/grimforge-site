@@ -22,7 +22,8 @@
     "test:e2e:report": "playwright show-report",
     "test:puppeteer": "node scripts/puppeteer-smoke.mjs",
     "audit:a11y": "node scripts/accessibility-report.mjs",
-    "assistant:sync": "tsx scripts/assistant-sync.ts"
+    "assistant:sync": "tsx scripts/assistant-sync.ts",
+    "shopify:seed": "tsx scripts/seed-shopify-product.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.0",

@@ -10,6 +10,7 @@
 - ORR Admin Panel manages editorial content, announcements and back-office workflows.
 - Products, inventory, prices and orders live in Shopify.  
 - Admin Panel can present a synced view by calling Shopify Storefront or Admin APIs. Storefront API suffices for read paths for the site. Admin API is used for operations like product creation, media uploads and inventory changes when needed. This project aims to minimize Admin API writes and keep core catalog management in Shopify Admin to reduce complexity.
+- `/api/admin/products` calls Shopify `productCreate` behind the scenes (requires `SHOPIFY_ADMIN_API_TOKEN`), so owner workflows stay inside the ORR Admin Panel even though Shopify remains the canonical catalog.
 
 ## Auth and Roles
 - Supabase Auth provides login for internal users.

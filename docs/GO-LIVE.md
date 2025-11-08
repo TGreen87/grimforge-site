@@ -8,10 +8,11 @@ This checklist tracks the final steps to launch the Shopify-backed storefront.
 - Netlify → Environment variables:
   - `SHOPIFY_STORE_DOMAIN`
   - `SHOPIFY_STOREFRONT_API_TOKEN`
+  - `SHOPIFY_ADMIN_API_TOKEN` (Headless custom app token with write_products scope)
   - `SHOPIFY_API_VERSION` (optional; defaults to `2025-07`)
   - Existing Supabase + assistant keys remain required for admin tooling.
 - Health endpoints:
-  - `/api/health/shopify` → expect `{ ok: true, hasDomain: true, hasToken: true }`.
+  - `/api/health/shopify` → expect `{ ok: true, hasDomain: true, hasToken: true, hasAdminToken: true }`.
   - `/status` → verify Supabase anon/service role still read as “yes”.
 - Document env confirmation in the latest `docs/SESSION-*.md`.
 
@@ -48,4 +49,3 @@ This checklist tracks the final steps to launch the Shopify-backed storefront.
 - Schedule weekly Playwright smoke + `/api/health/shopify` check for the first month.
 - Review Shopify reports for abandoned checkouts and fulfilment metrics.
 - Capture any support issues in `docs/NEXT-STEPS.md` and adjust the playbook as needed.
-

@@ -42,6 +42,7 @@ Key references
 ## Shopify Headless Storefront
 - `SHOPIFY_STORE_DOMAIN` — Storefront domain (e.g., `obsidianriterecords.myshopify.com`). **Required** to enable the headless client.
 - `SHOPIFY_STOREFRONT_API_TOKEN` — Storefront API access token with Storefront API scope. **Required** for live cart mutations.
+- `SHOPIFY_ADMIN_API_TOKEN` — Admin API access token generated from the Headless channel’s custom app. Required for creating/updating products from the ORR Admin Panel.
 - `SHOPIFY_API_VERSION` — (Optional) GraphQL API version, defaults to `2025-07`. Override only when Shopify promotes a newer stable version.
 - Healthcheck: `/api/health/shopify` returns `{ ok, hasDomain, hasToken, version }` so ops can confirm configuration without exposing secrets.
 # Environment Quickstart
@@ -51,6 +52,7 @@ Key references
 ## Required variables
 - `SHOPIFY_STORE_DOMAIN` example `obsidianriterecords.myshopify.com`
 - `SHOPIFY_STOREFRONT_API_TOKEN` Storefront access token
+- `SHOPIFY_ADMIN_API_TOKEN` Admin API access token with `write_products` scope
 - `SHOPIFY_API_VERSION` recommended `2025-10`  
 - `NEXT_PUBLIC_SITE_URL`  
 - Supabase: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, and server keys for admin actions
@@ -66,6 +68,11 @@ Key references
    - Supabase URL/ANON/SERVICE flags show “yes”
 2) Shopify healthcheck: hit `/api/health/shopify` on the deploy — `ok: true` indicates both domain and token are present, and the version field reflects the active API version.
 3) Shopify checkout migration: legacy `/api/checkout` and `/api/shipping/quote` routes were removed on 2025-11-06. Ensure the Shopify env block above stays populated before launch.
+
+### Shopify Admin sync
+- Set `SHOPIFY_ADMIN_API_TOKEN` (same contexts as the storefront token) once you create a Headless custom app with `write_products` scope. The admin product APIs refuse to run without it.
+- Use `npm run shopify:seed` (or `netlify env:run shopify:seed`) after configuring the token to create a demo product/variant in Shopify for smoke testing.
+- All Admin Panel product creates call Shopify automatically via `/api/admin/products`. Keep Netlify + local envs aligned so the sync never drifts.
 
 ### Stripe key rotation & webhooks (legacy)
 > The instructions in this section describe the pre-Shopify Stripe checkout flow and are archived for reference. Skip unless you are resurrecting the legacy implementation.

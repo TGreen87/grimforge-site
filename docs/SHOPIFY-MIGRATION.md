@@ -64,6 +64,7 @@ This playbook captures everything required to move Obsidian Rite Records from th
 
 ## Steps
 1. Configure environment variables in Netlify and `.env.local`.
+   - Include `SHOPIFY_ADMIN_API_TOKEN` from the Headless custom app so admin product creates can call Shopify.
 2. Products page `/products` fetches the first page of Shopify products with featured image and price.
 3. Product detail `/products/[handle]` fetches handle, images and variants.
 4. `/api/shopify/cart` implements:
@@ -74,6 +75,7 @@ This playbook captures everything required to move Obsidian Rite Records from th
    - `CheckoutButton` gets `checkoutUrl` and redirects.
 6. E2E smoke: Playwright test stubs the API and asserts redirect.
 7. Remove deprecated Stripe and AusPost code once Shopify checkout is live.
+8. Admin Panel product CRUD uses `/api/admin/products` → Shopify `productCreate`. Keep the admin token set and run `npm run shopify:seed` after rotating credentials so QA has demo catalog data.
 
 ## Reference
 - Storefront API version window: 2025-10. :contentReference[oaicite:9]{index=9}
