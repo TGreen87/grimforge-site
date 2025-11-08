@@ -95,12 +95,25 @@ function cartNotFound(correlationId: string) {
   )
 }
 
+function getBuyerIp(request: NextRequest) {
+  const forwardedFor = request.headers.get('x-forwarded-for')
+  if (forwardedFor) {
+    const ip = forwardedFor.split(',')[0]?.trim()
+    if (ip) {
+      return ip
+    }
+  }
+  return request.ip ?? undefined
+}
+
 export async function POST(request: NextRequest) {
   const correlationId = randomUUID()
 
   if (!shopifyEnv.isConfigured) {
     return notConfigured(correlationId)
   }
+
+  const buyerIp = getBuyerIp(request)
 
   let payload: RequestPayload
   try {
@@ -129,9 +142,13 @@ export async function POST(request: NextRequest) {
         return cartNotFound(correlationId)
       }
 
-      const response = await shopifyFetch<CartQueryResponse>(CART_QUERY, {
-        cartId: existingCartId,
-      })
+      const response = await shopifyFetch<CartQueryResponse>(
+        CART_QUERY,
+        {
+          cartId: existingCartId,
+        },
+        { buyerIp },
+      )
 
       const cart = response.cart
       if (!cart) {
@@ -157,23 +174,27 @@ export async function POST(request: NextRequest) {
     }
 
     if (!existingCartId) {
-      const response = await shopifyFetch<CartCreateResponse>(CART_CREATE, {
-        input: {
-          lines: [
-            {
-              quantity,
-              merchandiseId: variantId,
-            },
-          ],
-          ...(buyerCountryCode
-            ? {
-                buyerIdentity: {
-                  countryCode: buyerCountryCode,
-                },
-              }
-            : {}),
+      const response = await shopifyFetch<CartCreateResponse>(
+        CART_CREATE,
+        {
+          input: {
+            lines: [
+              {
+                quantity,
+                merchandiseId: variantId,
+              },
+            ],
+            ...(buyerCountryCode
+              ? {
+                  buyerIdentity: {
+                    countryCode: buyerCountryCode,
+                  },
+                }
+              : {}),
+          },
         },
-      })
+        { buyerIp },
+      )
 
       const { cart, userErrors } = response.cartCreate
       if (userErrors.length) {
@@ -202,15 +223,19 @@ export async function POST(request: NextRequest) {
       return nextResponse
     }
 
-    const response = await shopifyFetch<CartLinesAddResponse>(CART_LINES_ADD, {
-      cartId: existingCartId,
-      lines: [
-        {
-          quantity,
-          merchandiseId: variantId,
-        },
-      ],
-    })
+    const response = await shopifyFetch<CartLinesAddResponse>(
+      CART_LINES_ADD,
+      {
+        cartId: existingCartId,
+        lines: [
+          {
+            quantity,
+            merchandiseId: variantId,
+          },
+        ],
+      },
+      { buyerIp },
+    )
 
     const { cart, userErrors } = response.cartLinesAdd
     if (userErrors.length) {

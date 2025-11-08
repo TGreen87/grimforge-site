@@ -1,5 +1,9 @@
 import { assertShopifyConfigured, shopifyEnv } from './env'
 
+interface ShopifyFetchOptions {
+  buyerIp?: string
+}
+
 export interface ShopifyGraphQLError {
   message: string
   extensions?: Record<string, unknown>
@@ -13,18 +17,25 @@ export interface ShopifyGraphQLResponse<T> {
 export async function shopifyFetch<TResponse, TVariables = Record<string, unknown>>(
   query: string,
   variables?: TVariables,
+  options: ShopifyFetchOptions = {},
 ): Promise<TResponse> {
   assertShopifyConfigured()
 
   const { domain, version, token } = shopifyEnv
   const endpoint = `https://${domain}/api/${version}/graphql.json`
 
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+    'Shopify-Storefront-Private-Token': token,
+  }
+
+  if (options.buyerIp) {
+    headers['Shopify-Storefront-Buyer-IP'] = options.buyerIp
+  }
+
   const response = await fetch(endpoint, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'X-Shopify-Storefront-Access-Token': token,
-    },
+    headers,
     body: JSON.stringify({
       query,
       variables,
@@ -51,4 +62,3 @@ export async function shopifyFetch<TResponse, TVariables = Record<string, unknow
 
   return payload.data
 }
-
