@@ -15,6 +15,7 @@ export function getStripe(): Stripe {
 // Stripe configuration constants
 export const STRIPE_CONFIG = {
   currency: 'AUD' as const,
+  automaticTax: false,
   shippingOptions: [
     {
       shipping_rate_data: {

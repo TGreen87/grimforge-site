@@ -117,10 +117,9 @@ const ProductDetail = () => {
   const handleAddToCart = () => {
     for (let i = 0; i < quantity; i++) {
       addItem({
-        id: product.id,
+        productId: product.id,
+        variantId: product.id,
         title: product.title,
-        artist: product.artist,
-        format: product.format,
         price: product.price,
         image: product.image
       });

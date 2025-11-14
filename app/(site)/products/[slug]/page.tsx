@@ -152,6 +152,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
                 </div>
 
                 <VariantClientBlock
+                  productId={product.id}
                   variants={product.variants}
                   initialPrice={Number(initialPrice ?? 0)}
                   productMeta={{

@@ -1,9 +1,10 @@
 'use client'
 
 import { useMemo, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import BuyNowButton from '@/components/BuyNowButton'
 import VariantSelector from './variant-selector'
-import { useCart } from '@/src/contexts/CartContext'
+import { useCart } from '@/contexts/CartContext'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { useToast } from '@/hooks/use-toast'
@@ -17,15 +18,17 @@ interface ProductMeta {
 }
 
 interface Props {
+  productId: string
   variants: VariantWithInventory[]
   initialPrice: number
   productMeta: ProductMeta
 }
 
-export default function VariantClientBlock({ variants, initialPrice, productMeta }: Props) {
+export default function VariantClientBlock({ productId, variants, initialPrice, productMeta }: Props) {
   const [selected, setSelected] = useState<VariantWithInventory | null>(variants[0] ?? null)
   const { addItem } = useCart()
   const { toast } = useToast()
+  const router = useRouter()
 
   const { price, available, canBuy } = useMemo(() => {
     const current = selected ?? variants[0] ?? null
@@ -44,13 +47,12 @@ export default function VariantClientBlock({ variants, initialPrice, productMeta
 
   const addVariantToCart = (variant: VariantWithInventory) => {
     addItem({
-      id: variant.id,
-      title: productMeta.title || 'Item',
-      artist: productMeta.artist || '',
-      format: variant.format || productMeta.format || 'vinyl',
+      productId,
+      variantId: variant.id,
+      title: variant.name ? `${productMeta.title} – ${variant.name}` : productMeta.title || 'Item',
       price,
       image: productMeta.image,
-      variantId: variant.id,
+      quantity: 1,
     })
   }
 
@@ -70,12 +72,8 @@ export default function VariantClientBlock({ variants, initialPrice, productMeta
     }
 
     addVariantToCart(current)
-    toast({ title: 'Preparing checkout…', description: 'Review shipping details to complete your order.' })
-
-    // Wait for cart state to update before opening modal
-    requestAnimationFrame(() => {
-      window.dispatchEvent(new Event('checkout:open'))
-    })
+    toast({ title: 'Redirecting to cart…', description: 'Confirm your shipping and complete payment via Stripe.' })
+    router.push('/cart')
   }
 
   return (

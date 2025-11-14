@@ -1,6 +1,6 @@
 'use client'
 
-import { memo, KeyboardEvent, useMemo } from "react";
+import { memo, KeyboardEvent, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -12,6 +12,7 @@ import { useWishlist } from "@/contexts/WishlistContext";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import ThreeDTilt from "@/components/fx/ThreeDTilt";
+import { getSupabaseBrowserClient } from "@/integrations/supabase/browser";
 
 interface ProductCardProps {
   id: string;
@@ -30,6 +31,7 @@ const ProductCard = ({ id, slug, title, artist, format, price, image, limited, p
   const { addItem } = useCart();
   const { addItem: addToWishlist, removeItem: removeFromWishlist, isInWishlist } = useWishlist();
   const { toast } = useToast();
+  const [isAdding, setIsAdding] = useState(false);
   const priceNumber = useMemo(() => parseFloat(price.replace('$', '')), [price]);
   
   // Prefer slug for navigation; fallback to a slugified title route handled by product page
@@ -49,26 +51,54 @@ const ProductCard = ({ id, slug, title, artist, format, price, image, limited, p
     return filename.replace(/\.[^/.]+$/, '') || id
   }, [image, id])
 
-  const addToCart = () => {
-    addItem({
-      id,
-      title,
-      artist,
-      format,
-      price: Number.isFinite(priceNumber) ? priceNumber : 0,
-      image,
-    });
+  const addToCart = async () => {
+    setIsAdding(true);
+    try {
+      const supabase = getSupabaseBrowserClient();
+      const { data, error } = await supabase
+        .from('variants')
+        .select('id')
+        .eq('product_id', id)
+        .eq('active', true)
+        .order('created_at', { ascending: true })
+        .limit(1)
+        .maybeSingle();
 
-    toast({
-      title: "Added to cart",
-      description: `${artist} - ${title} has been summoned to your cart`,
-      duration: 2000,
-    });
+      if (error) throw error;
+      if (!data?.id) {
+        throw new Error('Variant unavailable. View the product for more details.');
+      }
+
+      addItem({
+        productId: id,
+        variantId: data.id,
+        title: `${artist} - ${title}`,
+        price: Number.isFinite(priceNumber) ? priceNumber : 0,
+        image,
+        quantity: 1,
+      });
+
+      toast({
+        title: "Added to cart",
+        description: `${artist} - ${title} has been summoned to your cart`,
+        duration: 2000,
+      });
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Unable to add to cart right now.';
+      toast({
+        title: 'Unable to add to cart',
+        description: message,
+        variant: 'destructive',
+      });
+    } finally {
+      setIsAdding(false);
+    }
   };
 
-  const handleAddToCartClick = (event?: React.MouseEvent<HTMLButtonElement>) => {
+  const handleAddToCartClick = async (event?: React.MouseEvent<HTMLButtonElement>) => {
     event?.stopPropagation();
-    addToCart();
+    if (isAdding) return;
+    await addToCart();
   };
 
   const toggleWishlist = () => {
@@ -182,6 +212,7 @@ const ProductCard = ({ id, slug, title, artist, format, price, image, limited, p
                 size="default"
                 className="h-11 w-11 sm:h-10 sm:w-10 bg-accent hover:bg-accent/90 p-0"
                 onClick={(event) => handleAddToCartClick(event)}
+                disabled={isAdding}
                 aria-label={`Add to cart: ${artist} - ${title}`}
               >
                 <ShoppingCart className="h-3.5 w-3.5 md:h-4 md:w-4" />
@@ -210,8 +241,9 @@ const ProductCard = ({ id, slug, title, artist, format, price, image, limited, p
               size="sm"
               className="flex-1 min-w-[120px] bg-accent hover:bg-accent/90 text-sm"
               onClick={(event) => handleAddToCartClick(event)}
+              disabled={isAdding}
             >
-              Quick add
+              {isAdding ? 'Adding…' : 'Quick add'}
             </Button>
             <Button
               size="icon"

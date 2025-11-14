@@ -4,8 +4,9 @@ import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Badge } from "@/components/ui/badge";
 import { useWishlist } from "@/contexts/WishlistContext";
-import { useCart, type CartItem } from "@/contexts/CartContext";
+import { useCart } from "@/contexts/CartContext";
 import { useToast } from "@/hooks/use-toast";
+import { getSupabaseBrowserClient } from "@/integrations/supabase/browser";
 
 interface WishlistItem {
   id: string;
@@ -22,23 +23,51 @@ const WishlistDrawer = () => {
   const { addItem: addToCart } = useCart();
   const { toast } = useToast();
   const [isOpen, setIsOpen] = useState(false);
+  const [movingId, setMovingId] = useState<string | null>(null);
 
-  const handleMoveToCart = (item: WishlistItem) => {
-    addToCart({
-      id: item.id,
-      title: item.title,
-      artist: item.artist,
-      format: item.format,
-      price: item.price,
-      image: item.image
-    });
-    
-    removeItem(item.id);
-    
-    toast({
-      title: "Moved to Cart",
-      description: `${item.title} has been moved from wishlist to cart.`,
-    });
+  const handleMoveToCart = async (item: WishlistItem) => {
+    setMovingId(item.id);
+    try {
+      const supabase = getSupabaseBrowserClient();
+      const { data, error } = await supabase
+        .from('variants')
+        .select('id')
+        .eq('product_id', item.id)
+        .eq('active', true)
+        .order('created_at', { ascending: true })
+        .limit(1)
+        .maybeSingle();
+
+      if (error) throw error;
+      if (!data?.id) {
+        throw new Error('Variant unavailable for this release. View the product to see more options.');
+      }
+
+      addToCart({
+        productId: item.id,
+        variantId: data.id,
+        title: `${item.artist} - ${item.title}`,
+        price: item.price,
+        image: item.image,
+        quantity: 1,
+      });
+
+      removeItem(item.id);
+
+      toast({
+        title: "Moved to Cart",
+        description: `${item.title} has been moved from wishlist to cart.`,
+      });
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Unable to add this item to the cart right now.';
+      toast({
+        title: 'Unable to move item',
+        description: message,
+        variant: 'destructive',
+      });
+    } finally {
+      setMovingId(null);
+    }
   };
 
   const handleRemoveItem = (item: WishlistItem) => {
@@ -112,9 +141,10 @@ const WishlistDrawer = () => {
                         variant="outline"
                         className="text-xs h-7"
                         onClick={() => handleMoveToCart(item)}
+                        disabled={movingId === item.id}
                       >
                         <ShoppingCart className="h-3 w-3 mr-1" />
-                        Add to Cart
+                        {movingId === item.id ? 'Moving…' : 'Add to Cart'}
                       </Button>
                       <Button 
                         size="sm" 
@@ -137,13 +167,16 @@ const WishlistDrawer = () => {
                   </div>
                   <Button 
                     className="w-full"
-                    onClick={() => {
-                      items.forEach(item => handleMoveToCart(item));
+                    disabled={movingId !== null}
+                    onClick={async () => {
+                      for (const wishlistItem of items) {
+                        await handleMoveToCart(wishlistItem);
+                      }
                       setIsOpen(false);
                     }}
                   >
                     <ShoppingCart className="h-4 w-4 mr-2" />
-                    Move All to Cart
+                    {movingId ? 'Moving…' : 'Move All to Cart'}
                   </Button>
                 </div>
               )}

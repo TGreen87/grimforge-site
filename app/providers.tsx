@@ -3,7 +3,7 @@
 
 import React, { ReactNode, Suspense, useEffect } from 'react'
 import { AuthProvider } from '@/src/contexts/AuthContext'
-import { CartProvider } from '@/src/contexts/CartContext'
+import { CartProvider } from '@/contexts/CartContext'
 import { WishlistProvider } from '@/src/contexts/WishlistContext'
 import ClientErrorLogger from '@/src/components/ClientErrorLogger'
 import AnalyticsClient from '@/src/components/AnalyticsClient'

@@ -62,12 +62,12 @@ const PreOrderCard = ({
     
     const priceNumber = parseFloat(price.replace('$', ''));
     addItem({
-      id: `preorder-${id}`,
+      productId: id,
+      variantId: null,
       title: `[PREORDER] ${title}`,
-      artist,
-      format,
       price: priceNumber,
-      image
+      image,
+      quantity: 1,
     });
     
     toast({

@@ -1,17 +1,15 @@
+import Link from "next/link";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetClose } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useCart } from "@/contexts/CartContext";
-import { useAuth } from "@/contexts/AuthContext";
 import { ShoppingCart, Minus, Plus, X } from "lucide-react";
-import CheckoutModal from "./CheckoutModal";
-import AuthModal from "./AuthModal";
 
 const CartDrawer = () => {
   const { items, getTotalItems, getTotalPrice, updateQuantity, removeItem } = useCart();
-  const { isAuthenticated } = useAuth();
 
-  const formatPrice = (price: number) => `$${price.toFixed(2)}`;
+  const formatPrice = (priceCents: number) => `$${(priceCents / 100).toFixed(2)}`;
+  const getKey = (variantId: string | null, productId: string) => variantId ?? productId;
 
   return (
     <Sheet>
@@ -41,11 +39,13 @@ const CartDrawer = () => {
               </div>
             ) : (
               <div className="space-y-4">
-                {items.map((item) => (
-                  <div key={item.id} className="flex items-center space-x-4 p-4 bg-card rounded border border-border">
-                    <img 
-                      src={item.image} 
-                      alt={`${item.artist} - ${item.title}`}
+                {items.map((item) => {
+                  const key = getKey(item.variantId, item.productId);
+                  return (
+                    <div key={key} className="flex items-center space-x-4 p-4 bg-card rounded border border-border">
+                      <img 
+                        src={item.image} 
+                      alt={item.title}
                       className="w-16 h-16 object-cover rounded"
                     />
                     
@@ -53,8 +53,9 @@ const CartDrawer = () => {
                       <h4 className="gothic-heading text-sm font-semibold text-bone truncate">
                         {item.title}
                       </h4>
-                      <p className="text-xs text-muted-foreground">{item.artist}</p>
-                      <p className="text-xs text-frost uppercase">{item.format}</p>
+                      <p className="text-xs text-muted-foreground">
+                        Qty: {item.quantity}
+                      </p>
                     </div>
                     
                     <div className="flex items-center space-x-2">
@@ -62,7 +63,7 @@ const CartDrawer = () => {
                         variant="outline"
                         size="sm"
                         className="h-8 w-8 p-0 border-frost text-frost hover:bg-frost hover:text-background"
-                        onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                        onClick={() => updateQuantity(key, item.quantity - 1)}
                       >
                         <Minus className="h-3 w-3" />
                       </Button>
@@ -75,7 +76,7 @@ const CartDrawer = () => {
                         variant="outline"
                         size="sm"
                         className="h-8 w-8 p-0 border-frost text-frost hover:bg-frost hover:text-background"
-                        onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                        onClick={() => updateQuantity(key, item.quantity + 1)}
                       >
                         <Plus className="h-3 w-3" />
                       </Button>
@@ -84,7 +85,7 @@ const CartDrawer = () => {
                         variant="ghost"
                         size="sm"
                         className="h-8 w-8 p-0 text-destructive hover:text-destructive"
-                        onClick={() => removeItem(item.id)}
+                        onClick={() => removeItem(key)}
                       >
                         <X className="h-3 w-3" />
                       </Button>
@@ -92,11 +93,11 @@ const CartDrawer = () => {
                     
                     <div className="text-right">
                       <p className="text-sm font-bold text-accent">
-                        {formatPrice(item.price * item.quantity)}
+                        {formatPrice(item.priceCents * item.quantity)}
                       </p>
                     </div>
                   </div>
-                ))}
+                })}
               </div>
             )}
           </div>
@@ -111,21 +112,11 @@ const CartDrawer = () => {
                 </span>
               </div>
               
-              {isAuthenticated ? (
-                <CheckoutModal>
-                  <Button className="w-full bg-accent hover:bg-accent/90 text-accent-foreground gothic-heading">
-                    Checkout
-                  </Button>
-                </CheckoutModal>
-              ) : (
-                <AuthModal
-                  trigger={
-                    <Button className="w-full bg-accent hover:bg-accent/90 text-accent-foreground gothic-heading">
-                      Sign in to checkout
-                    </Button>
-                  }
-                />
-              )}
+              <SheetClose asChild>
+                <Button asChild className="w-full bg-accent hover:bg-accent/90 text-accent-foreground gothic-heading">
+                  <Link href="/cart">View cart & checkout</Link>
+                </Button>
+              </SheetClose>
               
               <SheetClose asChild>
                 <Button variant="outline" className="w-full border-frost text-frost hover:bg-frost hover:text-background">
