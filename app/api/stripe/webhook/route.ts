@@ -96,6 +96,8 @@ export async function POST(req: NextRequest) {
             stripe_checkout_session_id: session.id,
             stripe_customer_id: typeof session.customer === 'string' ? session.customer : null,
             shipping_details: session.shipping_details || null,
+            shipping_total: shippingDetails ? (shippingDetails.amount_shipping ?? 0) / 100 : null,
+            tax_total: shippingDetails ? (shippingDetails.amount_tax ?? 0) / 100 : null,
           }
 
           await updateOrder(
@@ -105,8 +107,6 @@ export async function POST(req: NextRequest) {
               payment_status: 'paid',
               status: 'processing',
               stripe_payment_intent_id: typeof session.payment_intent === 'string' ? session.payment_intent : null,
-              shipping: (shippingDetails?.amount_shipping ?? 0) / 100,
-              tax: (shippingDetails?.amount_tax ?? 0) / 100,
               total: (session.amount_total ?? 0) / 100,
             },
             metadataPatch

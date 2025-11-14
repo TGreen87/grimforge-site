@@ -119,6 +119,14 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Cart is empty.' }, { status: 400 })
   }
 
+  const insertedMetadata = {
+    source: 'web_checkout',
+    env: process.env.NODE_ENV,
+    branch: process.env.NETLIFY_BRANCH || process.env.VERCEL_GIT_COMMIT_REF || 'dev_stripe',
+    shipping_estimate: 0,
+    tax_estimate: 0,
+  }
+
   const { data: order, error: orderError } = await supabase
     .from('orders')
     .insert({
@@ -126,22 +134,16 @@ export async function POST(req: NextRequest) {
       status: 'pending',
       payment_status: 'pending',
       subtotal: subtotalCents / 100,
-      shipping: 0,
-      tax: 0,
       total: subtotalCents / 100,
       currency: STRIPE_CONFIG.currency,
-      metadata: {
-        source: 'web_checkout',
-        env: process.env.NODE_ENV,
-        branch: process.env.NETLIFY_BRANCH || process.env.VERCEL_GIT_COMMIT_REF || 'dev_stripe',
-      },
+      metadata: insertedMetadata,
     })
     .select('id, metadata')
     .single()
 
   if (orderError || !order?.id) {
-    console.error('Failed to create order', orderError)
-    return NextResponse.json({ error: 'Unable to create order.' }, { status: 500 })
+    console.error('Checkout order insert error', orderError)
+    return NextResponse.json({ error: 'Unable to create order.', detail: orderError?.message }, { status: 500 })
   }
 
   const orderItemsPayload = validatedItems.map((item) => ({
@@ -189,12 +191,13 @@ export async function POST(req: NextRequest) {
     cancel_url: `${baseUrl}/cart?canceled=true`,
   })
 
+  const currentMetadata = order.metadata ?? insertedMetadata
   await supabase
     .from('orders')
     .update({
       stripe_session_id: session.id,
       metadata: {
-        ...(order.metadata ?? {}),
+        ...currentMetadata,
         stripe_checkout_url: session.url,
       },
     })
