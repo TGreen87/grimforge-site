@@ -97,6 +97,7 @@ const CartDrawer = () => {
                       </p>
                     </div>
                   </div>
+                  )
                 })}
               </div>
             )}
