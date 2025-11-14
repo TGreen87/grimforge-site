@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useMemo, useState, type ReactNode } from "react";
+import { createContext, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 
 export type CartItem = {
   variantId: string | null;
@@ -36,8 +36,42 @@ function resolveKey(variantId: string | null | undefined, productId: string) {
   return variantId ?? productId;
 }
 
+const STORAGE_KEY = 'orr-cart-items'
+
 export const CartProvider = ({ children }: { children: ReactNode }) => {
-  const [items, setItems] = useState<CartItem[]>([]);
+  const [items, setItems] = useState<CartItem[]>([])
+  const didHydrate = useRef(false)
+
+  useEffect(() => {
+    if (didHydrate.current) return
+    didHydrate.current = true
+    try {
+      const stored = typeof window !== 'undefined' ? window.localStorage.getItem(STORAGE_KEY) : null
+      if (stored) {
+        const parsed = JSON.parse(stored) as CartItem[]
+        if (Array.isArray(parsed)) {
+          setItems(parsed.filter((item) => item && typeof item === 'object'))
+        }
+      }
+    } catch (error) {
+      if (process.env.NODE_ENV !== 'production') {
+        console.warn('CartProvider: unable to read stored cart', error)
+      }
+    }
+  }, [])
+
+  useEffect(() => {
+    if (!didHydrate.current) return
+    try {
+      if (typeof window !== 'undefined') {
+        window.localStorage.setItem(STORAGE_KEY, JSON.stringify(items))
+      }
+    } catch (error) {
+      if (process.env.NODE_ENV !== 'production') {
+        console.warn('CartProvider: unable to persist cart', error)
+      }
+    }
+  }, [items])
 
   const addItem = (input: AddCartItemInput) => {
     if (!input.productId) return;
