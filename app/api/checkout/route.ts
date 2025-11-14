@@ -22,6 +22,12 @@ function centsFromPrice(value: number | string | null) {
   return Math.round(parsed * 100)
 }
 
+function normalizeInventory(relationship: any) {
+  if (!relationship) return null
+  if (Array.isArray(relationship)) return relationship[0] ?? null
+  return relationship
+}
+
 export async function POST(req: NextRequest) {
   let payload: any
   try {
@@ -56,12 +62,12 @@ export async function POST(req: NextRequest) {
 
   const { data: variants, error: variantsError } = await supabase
     .from('variants')
-    .select('id, product_id, name, price, active, image, products(title, image), inventory:inventory(available)')
+    .select('id, product_id, name, price, products(title, image), inventory:inventory(available)')
     .in('id', normalizedItems.map((item) => item.variantId))
 
   if (variantsError) {
-    console.error('Failed to load variants', variantsError)
-    return NextResponse.json({ error: 'Unable to load products right now.' }, { status: 500 })
+    console.error('Checkout variant fetch error', variantsError)
+    return NextResponse.json({ error: 'Unable to load products right now.', detail: variantsError.message }, { status: 500 })
   }
 
   const variantMap = new Map<string, any>()
@@ -85,11 +91,11 @@ export async function POST(req: NextRequest) {
 
   for (const item of normalizedItems) {
     const variant = variantMap.get(item.variantId)
-    if (!variant || variant.active === false) {
+    if (!variant) {
       return NextResponse.json({ error: 'One of your items is no longer available.' }, { status: 400 })
     }
-
-    const available = Number(variant?.inventory?.available ?? 0)
+    const inventory = normalizeInventory(variant?.inventory)
+    const available = Number(inventory?.available ?? Number.POSITIVE_INFINITY)
     if (Number.isFinite(available) && available < item.quantity) {
       return NextResponse.json({ error: 'Not enough stock for one of your selected formats.' }, { status: 400 })
     }
@@ -105,7 +111,7 @@ export async function POST(req: NextRequest) {
       quantity: item.quantity,
       unitAmount,
       displayName: variant.products?.title || variant.name || 'Release',
-      image: variant.image || variant.products?.image,
+      image: variant.products?.image || null,
     })
   }
 
