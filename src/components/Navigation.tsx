@@ -4,19 +4,22 @@ import { ShoppingCart, Search, Menu } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
-import CartDrawer from "./CartDrawer";
 import WishlistDrawer from "./WishlistDrawer";
 import AdvancedSearch from "./AdvancedSearch";
 import AuthModal from "./AuthModal";
 import UserMenu from "./UserMenu";
 import { useAuth } from "@/contexts/AuthContext";
+import { useCart } from "@/contexts/CartContext";
 import { brand } from "@/config/brand";
 import { useActiveSection } from "@/hooks/useActiveSection";
 import MobileMenu from "./MobileMenu";
 import { navLinks } from "@/config/nav";
+import { Badge } from "@/components/ui/badge";
  
 const Navigation = () => {
   const { isAuthenticated } = useAuth();
+  const { getTotalItems } = useCart();
+  const cartCount = getTotalItems();
   const sectionIds = ["catalog", "vinyl", "cassettes", "cds", "grimoire", "preorders"];
   const activeId = useActiveSection(sectionIds);
  
@@ -101,7 +104,16 @@ const Navigation = () => {
             <Search className="h-4 w-4" />
           </Button>
           <WishlistDrawer />
-          <CartDrawer />
+          <Button asChild variant="ghost" size="sm" className="relative text-foreground hover:text-accent">
+            <Link href="/cart" aria-label="View cart" className="relative flex items-center">
+              <ShoppingCart className="h-4 w-4" />
+              {cartCount > 0 && (
+                <Badge className="absolute -top-2 -right-2 h-5 w-5 flex items-center justify-center p-0 bg-accent text-accent-foreground text-xs">
+                  {cartCount}
+                </Badge>
+              )}
+            </Link>
+          </Button>
           {isAuthenticated ? (
             <>
               <a href="/admin" className="hidden md:block text-sm underline-offset-4 hover:underline" onClick={(e) => { e.preventDefault(); window.location.href = '/admin' }}>
