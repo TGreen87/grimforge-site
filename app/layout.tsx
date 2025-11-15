@@ -8,6 +8,7 @@ import VoidToggle from '@/components/fx/VoidToggle'
 import AudioBed from '@/components/fx/AudioBed'
 import GrimnessControlPanel from '@/components/grimness/GrimnessControlPanel'
 import GrimnessPageTransition from '@/components/fx/GrimnessPageTransition'
+import NavigationFallback from '@/components/fx/NavigationFallback'
 import './globals.css'
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-body' })
@@ -38,6 +39,7 @@ export default function RootLayout({
       </head>
       <body className={`${inter.variable} ${marcellus.variable} font-sans overflow-x-hidden`}>
         <GrimnessProvider>
+          <NavigationFallback />
           <VoidToggle />
           <AudioBed />
           <GrimnessControlPanel />
