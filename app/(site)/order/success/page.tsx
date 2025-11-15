@@ -1,5 +1,4 @@
 import Link from 'next/link'
-import { Button } from '@/components/ui/button'
 import ClearCartEffect from '@/components/cart/ClearCartEffect'
 
 interface SuccessPageProps {
@@ -24,12 +23,18 @@ export default function OrderSuccessPage({ searchParams }: SuccessPageProps) {
           <p className="mt-2 text-xs text-muted-foreground">Stripe session: {sessionId}</p>
         ) : null}
         <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center">
-          <Button asChild variant="outline" className="uppercase tracking-[0.3em]">
-            <Link href="/">Continue browsing</Link>
-          </Button>
-          <Button asChild>
-            <Link href="/status">View site status</Link>
-          </Button>
+          <Link
+            href="/"
+            className="inline-flex items-center justify-center rounded-full border border-border px-6 py-3 text-sm uppercase tracking-[0.3em] text-bone hover:bg-border/30"
+          >
+            Continue browsing
+          </Link>
+          <Link
+            href="/status"
+            className="inline-flex items-center justify-center rounded-full bg-accent px-6 py-3 text-sm font-semibold text-accent-foreground hover:bg-accent/90"
+          >
+            View site status
+          </Link>
         </div>
       </div>
     </main>
