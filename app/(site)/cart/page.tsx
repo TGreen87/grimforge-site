@@ -1,7 +1,6 @@
 'use client'
 
 import { useMemo, useState } from 'react'
-import Link from 'next/link'
 import { useCart, type CartItem } from '@/contexts/CartContext'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -108,7 +107,7 @@ export default function CartPage() {
           <CardContent className="space-y-4 text-muted-foreground">
             <p>Add a release from the catalog, then return here to complete payment via Stripe Checkout.</p>
             <Button asChild>
-              <Link href="/">Return to catalog</Link>
+              <a href="/">Return to catalog</a>
             </Button>
           </CardContent>
         </Card>

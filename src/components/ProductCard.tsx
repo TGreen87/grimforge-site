@@ -1,12 +1,10 @@
 'use client'
 
 import { memo, KeyboardEvent, useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ShoppingCart, Eye, Heart } from "lucide-react";
-import Link from "next/link";
 import { useCart } from "@/contexts/CartContext";
 import { useWishlist } from "@/contexts/WishlistContext";
 import { useToast } from "@/hooks/use-toast";
@@ -27,7 +25,6 @@ interface ProductCardProps {
 }
 
 const ProductCard = ({ id, slug, title, artist, format, price, image, limited, preOrder }: ProductCardProps) => {
-  const router = useRouter();
   const { addItem } = useCart();
   const { addItem: addToWishlist, removeItem: removeFromWishlist, isInWishlist } = useWishlist();
   const { toast } = useToast();
@@ -131,13 +128,19 @@ const ProductCard = ({ id, slug, title, artist, format, price, image, limited, p
     toggleWishlist();
   };
 
+  const navigateToProduct = () => {
+    if (typeof window !== 'undefined') {
+      window.location.assign(href);
+    }
+  };
+
   const handleCardClick = () => {
-    router.push(href);
+    navigateToProduct();
   };
   const handleCardKey = (e: KeyboardEvent) => {
     if (e.key === 'Enter' || e.key === ' ') {
       e.preventDefault();
-      router.push(href);
+      navigateToProduct();
     }
   };
 
@@ -186,7 +189,7 @@ const ProductCard = ({ id, slug, title, artist, format, price, image, limited, p
 
             {/* Hover Actions - Touch optimized */}
             <div className="absolute inset-0 flex items-center justify-center gap-2 bg-background/80 opacity-0 transition-opacity duration-300 group-hover:opacity-100 group-focus-within:opacity-100">
-              <Link href={href} onClick={(e) => e.stopPropagation()}>
+              <a href={href} onClick={(e) => e.stopPropagation()}>
                 <Button
                   size="default"
                   variant="outline"
@@ -195,7 +198,7 @@ const ProductCard = ({ id, slug, title, artist, format, price, image, limited, p
                 >
                   <Eye className="h-3.5 w-3.5 md:h-4 md:w-4" />
                 </Button>
-              </Link>
+              </a>
               <Button
                 size="default"
                 variant={isWishlisted ? "default" : "outline"}
@@ -224,9 +227,9 @@ const ProductCard = ({ id, slug, title, artist, format, price, image, limited, p
         {/* Product Info - Mobile optimized */}
         <div className="space-y-1.5 md:space-y-2">
           <h3 className="gothic-heading text-sm md:text-base font-semibold text-bone line-clamp-1 break-words">
-            <Link href={href} onClick={(e)=>e.stopPropagation()} className="hover:underline break-words" aria-label={`View details for ${artist} - ${title}`}>
+            <a href={href} onClick={(e)=>e.stopPropagation()} className="hover:underline break-words" aria-label={`View details for ${artist} - ${title}`}>
               {title}
-            </Link>
+            </a>
           </h3>
           <p className="text-muted-foreground text-xs md:text-sm">
             {artist}
@@ -260,7 +263,7 @@ const ProductCard = ({ id, slug, title, artist, format, price, image, limited, p
               className="h-9 w-9 text-muted-foreground hover:text-accent"
               onClick={(event) => {
                 event.stopPropagation();
-                router.push(href);
+                navigateToProduct();
               }}
             >
               <Eye className="h-4 w-4" />

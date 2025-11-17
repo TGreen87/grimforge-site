@@ -2,7 +2,6 @@
 
 import React from "react";
 import { motion, useReducedMotion } from "framer-motion";
-import Link from "next/link";
 import { Play, Pause, Volume2, VolumeX } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -218,10 +217,10 @@ export function CampaignHeroClient({ campaign }: { campaign: CampaignHeroData })
         {renderHighlightList('items-center sm:items-center sm:text-base')}
         <div className="mt-10 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
           <Button asChild size="lg" className="gothic-heading text-sm sm:text-base">
-            <Link href={primaryHref}>{campaign.ctaPrimaryLabel ?? 'Listen & buy'}</Link>
+            <a href={primaryHref}>{campaign.ctaPrimaryLabel ?? 'Listen & buy'}</a>
           </Button>
           <Button variant="outline" asChild size="lg" className="gothic-heading text-sm sm:text-base">
-            <Link href={secondaryHref}>{campaign.ctaSecondaryLabel ?? 'Browse catalog'}</Link>
+            <a href={secondaryHref}>{campaign.ctaSecondaryLabel ?? 'Browse catalog'}</a>
           </Button>
         </div>
       </motion.div>
@@ -257,10 +256,10 @@ export function CampaignHeroClient({ campaign }: { campaign: CampaignHeroData })
           {renderHighlightList('items-start sm:text-base')}
           <div className="mt-8 flex flex-col gap-3 sm:flex-row">
             <Button asChild size="lg" className="gothic-heading text-sm sm:text-base">
-              <Link href={primaryHref}>{campaign.ctaPrimaryLabel ?? 'Listen & buy'}</Link>
+              <a href={primaryHref}>{campaign.ctaPrimaryLabel ?? 'Listen & buy'}</a>
             </Button>
             <Button variant="outline" asChild size="lg" className="gothic-heading text-sm sm:text-base">
-              <Link href={secondaryHref}>{campaign.ctaSecondaryLabel ?? 'Browse catalog'}</Link>
+              <a href={secondaryHref}>{campaign.ctaSecondaryLabel ?? 'Browse catalog'}</a>
             </Button>
           </div>
           {renderAudioControls('mt-6', 'inline')}
@@ -328,10 +327,10 @@ export function CampaignHeroClient({ campaign }: { campaign: CampaignHeroData })
         {renderHighlightList('items-center sm:items-start sm:text-base')}
         <div className="mt-8 flex flex-col gap-3 sm:flex-row">
           <Button asChild size="lg" className="gothic-heading text-sm sm:text-base">
-            <Link href={primaryHref}>{campaign.ctaPrimaryLabel ?? 'Listen & buy'}</Link>
+            <a href={primaryHref}>{campaign.ctaPrimaryLabel ?? 'Listen & buy'}</a>
           </Button>
           <Button variant="outline" asChild size="lg" className="gothic-heading text-sm sm:text-base">
-            <Link href={secondaryHref}>{campaign.ctaSecondaryLabel ?? 'Browse catalog'}</Link>
+            <a href={secondaryHref}>{campaign.ctaSecondaryLabel ?? 'Browse catalog'}</a>
           </Button>
         </div>
         {renderAudioControls('mt-6 flex flex-wrap gap-3', 'inline')}

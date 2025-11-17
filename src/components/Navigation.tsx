@@ -1,7 +1,6 @@
 'use client'
 
 import { ShoppingCart, Search, Menu } from "lucide-react";
-import Link from "next/link";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import WishlistDrawer from "./WishlistDrawer";
@@ -45,7 +44,7 @@ const Navigation = () => {
       <div className="container mx-auto px-3 sm:px-4 h-14 sm:h-16 flex items-center justify-between">
         {/* Logo - Desktop Only */}
         <div className="hidden md:flex items-center">
-          <Link href="/" className="flex items-center hover:opacity-80 transition-opacity">
+          <a href="/" className="flex items-center hover:opacity-80 transition-opacity">
             <div className="relative h-8 w-auto">
               <Image
                 src="/ORR_Logo.png"
@@ -57,12 +56,12 @@ const Navigation = () => {
                 priority
               />
             </div>
-          </Link>
+          </a>
         </div>
 
         {/* Mobile Logo */}
         <div className="flex md:hidden items-center">
-          <Link href="/" className="flex items-center hover:opacity-80 transition-opacity">
+          <a href="/" className="flex items-center hover:opacity-80 transition-opacity">
             <div className="relative h-6 w-auto">
               <Image
                 src="/ORR_Logo.png"
@@ -74,7 +73,7 @@ const Navigation = () => {
                 priority
               />
             </div>
-          </Link>
+          </a>
         </div>
 
         {/* Desktop Navigation */}
@@ -105,14 +104,14 @@ const Navigation = () => {
           </Button>
           <WishlistDrawer />
           <Button asChild variant="ghost" size="sm" className="relative text-foreground hover:text-accent">
-            <Link href="/cart" aria-label="View cart" className="relative flex items-center">
+            <a href="/cart" aria-label="View cart" className="relative flex items-center">
               <ShoppingCart className="h-4 w-4" />
               {cartCount > 0 && (
                 <Badge className="absolute -top-2 -right-2 h-5 w-5 flex items-center justify-center p-0 bg-accent text-accent-foreground text-xs">
                   {cartCount}
                 </Badge>
               )}
-            </Link>
+            </a>
           </Button>
           {isAuthenticated ? (
             <>

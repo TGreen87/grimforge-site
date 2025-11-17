@@ -1,5 +1,4 @@
 import { getSupabaseServerClient } from '@/integrations/supabase/server'
-import Link from 'next/link'
 
 interface ArticleRow {
   id: string
@@ -28,7 +27,7 @@ export default async function ArticlesIndex() {
       <h1 className="blackletter text-4xl md:text-6xl mb-6 text-bone">Articles</h1>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {rows.map((a) => (
-          <Link key={a.id} href={`/articles/${a.slug}`} className="block border border-border rounded bg-card/60 hover:border-accent transition-colors overflow-hidden">
+          <a key={a.id} href={`/articles/${a.slug}`} className="block border border-border rounded bg-card/60 hover:border-accent transition-colors overflow-hidden">
             {a.image_url && <img src={a.image_url} alt={a.title} className="w-full h-48 object-cover rounded-t" />}
             <div className="p-4">
               <h2 className="gothic-heading text-xl text-bone mb-2">{a.title}</h2>
@@ -37,7 +36,7 @@ export default async function ArticlesIndex() {
               </p>
               <p className="text-sm text-muted-foreground line-clamp-3">{a.excerpt || ''}</p>
             </div>
-          </Link>
+          </a>
         ))}
         {rows.length === 0 && (
           <p className="text-muted-foreground">No published articles yet.</p>

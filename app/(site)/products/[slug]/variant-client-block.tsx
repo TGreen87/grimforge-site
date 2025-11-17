@@ -1,7 +1,6 @@
 'use client'
 
 import { useMemo, useState } from 'react'
-import { useRouter } from 'next/navigation'
 import BuyNowButton from '@/components/BuyNowButton'
 import VariantSelector from './variant-selector'
 import { useCart } from '@/contexts/CartContext'
@@ -28,7 +27,6 @@ export default function VariantClientBlock({ productId, variants, initialPrice, 
   const [selected, setSelected] = useState<VariantWithInventory | null>(variants[0] ?? null)
   const { addItem } = useCart()
   const { toast } = useToast()
-  const router = useRouter()
 
   const { price, available, canBuy } = useMemo(() => {
     const current = selected ?? variants[0] ?? null
@@ -73,7 +71,9 @@ export default function VariantClientBlock({ productId, variants, initialPrice, 
 
     addVariantToCart(current)
     toast({ title: 'Redirecting to cart…', description: 'Confirm your shipping and complete payment via Stripe.' })
-    router.push('/cart')
+    if (typeof window !== 'undefined') {
+      window.location.assign('/cart')
+    }
   }
 
   return (

@@ -1,7 +1,6 @@
 'use client'
 
 import { Facebook, Instagram, Mail } from "lucide-react";
-import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { brand } from "@/config/brand";
 import NewsletterSignup from "@/components/NewsletterSignup";
@@ -60,11 +59,11 @@ const Footer = () => {
           <div className="space-y-4">
             <h3 className="gothic-heading text-bone">Catalog</h3>
             <ul className="space-y-2 text-sm text-muted-foreground">
-              <li>{atHome ? <a href="#catalog" className="hover:text-accent transition-colors text-left">New arrivals</a> : <Link href="/#catalog" className="hover:text-accent transition-colors text-left">New arrivals</Link>}</li>
-              <li>{atHome ? <a href="#vinyl" className="hover:text-accent transition-colors text-left">Vinyl Records</a> : <Link href="/#vinyl" className="hover:text-accent transition-colors text-left">Vinyl Records</Link>}</li>
-              <li>{atHome ? <a href="#cassettes" className="hover:text-accent transition-colors text-left">Cassettes</a> : <Link href="/#cassettes" className="hover:text-accent transition-colors text-left">Cassettes</Link>}</li>
-              <li>{atHome ? <a href="#cds" className="hover:text-accent transition-colors text-left">Compact Discs</a> : <Link href="/#cds" className="hover:text-accent transition-colors text-left">Compact Discs</Link>}</li>
-              <li>{atHome ? <a href="#catalog" className="hover:text-accent transition-colors text-left">Limited editions</a> : <Link href="/#catalog" className="hover:text-accent transition-colors text-left">Limited editions</Link>}</li>
+              <li><a href={atHome ? '#catalog' : '/#catalog'} className="hover:text-accent transition-colors text-left">New arrivals</a></li>
+              <li><a href={atHome ? '#vinyl' : '/#vinyl'} className="hover:text-accent transition-colors text-left">Vinyl Records</a></li>
+              <li><a href={atHome ? '#cassettes' : '/#cassettes'} className="hover:text-accent transition-colors text-left">Cassettes</a></li>
+              <li><a href={atHome ? '#cds' : '/#cds'} className="hover:text-accent transition-colors text-left">Compact Discs</a></li>
+              <li><a href={atHome ? '#catalog' : '/#catalog'} className="hover:text-accent transition-colors text-left">Limited editions</a></li>
             </ul>
           </div>
 
@@ -72,11 +71,11 @@ const Footer = () => {
           <div className="space-y-4">
             <h3 className="gothic-heading text-bone">Information</h3>
             <ul className="space-y-2 text-sm text-muted-foreground">
-              <li><Link href="/legal/shipping" className="hover:text-accent transition-colors">Shipping Info</Link></li>
-              <li><Link href="/legal/returns" className="hover:text-accent transition-colors">Returns</Link></li>
-              <li><Link href="/legal/size-guide" className="hover:text-accent transition-colors">Size Guide</Link></li>
-              <li><Link href="/legal/care" className="hover:text-accent transition-colors">Care Instructions</Link></li>
-              <li><Link href="/legal/contact" className="hover:text-accent transition-colors">Contact</Link></li>
+              <li><a href="/legal/shipping" className="hover:text-accent transition-colors">Shipping Info</a></li>
+              <li><a href="/legal/returns" className="hover:text-accent transition-colors">Returns</a></li>
+              <li><a href="/legal/size-guide" className="hover:text-accent transition-colors">Size Guide</a></li>
+              <li><a href="/legal/care" className="hover:text-accent transition-colors">Care Instructions</a></li>
+              <li><a href="/legal/contact" className="hover:text-accent transition-colors">Contact</a></li>
             </ul>
           </div>
 
@@ -94,15 +93,15 @@ const Footer = () => {
             © 2025 Obsidian Rite Records. All rights reserved.
           </p>
           <div className="flex space-x-6 mt-4 md:mt-0">
-            <Link href="/legal/privacy" className="text-sm text-muted-foreground hover:text-accent transition-colors">
+            <a href="/legal/privacy" className="text-sm text-muted-foreground hover:text-accent transition-colors">
               Privacy Policy
-            </Link>
-            <Link href="/legal/terms" className="text-sm text-muted-foreground hover:text-accent transition-colors">
+            </a>
+            <a href="/legal/terms" className="text-sm text-muted-foreground hover:text-accent transition-colors">
               Terms of Service
-            </Link>
-            <Link href="/legal/shipping" className="text-sm text-muted-foreground hover:text-accent transition-colors">
+            </a>
+            <a href="/legal/shipping" className="text-sm text-muted-foreground hover:text-accent transition-colors">
               Shipping Info
-            </Link>
+            </a>
           </div>
         </div>
       </div>

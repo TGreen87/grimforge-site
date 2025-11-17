@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ArrowRight, Calendar, User } from "lucide-react";
@@ -124,13 +123,13 @@ export default function GrimoireSection({ articles }: GrimoireSectionProps) {
               {renderMeta(featured)}
             </CardHeader>
             <CardFooter className="flex justify-end gap-2 border-t border-border/60 bg-background/40 p-6">
-              <Link
+              <a
                 href={`/articles/${featured.slug}`}
                 className="inline-flex items-center gap-2 rounded-md border border-frost px-4 py-2 text-sm font-medium text-frost transition-colors hover:bg-frost hover:text-background"
               >
                 Read article
                 <ArrowRight className="h-4 w-4" />
-              </Link>
+              </a>
             </CardFooter>
           </div>
         </Card>
@@ -159,13 +158,13 @@ export default function GrimoireSection({ articles }: GrimoireSectionProps) {
                   {renderMeta(article)}
                 </CardContent>
                 <CardFooter className="p-6 pt-0">
-                  <Link
+                  <a
                     href={`/articles/${article.slug}`}
                     className="inline-flex items-center gap-2 text-sm font-medium text-accent transition-colors hover:text-accent/80"
                   >
                     Read article
                     <ArrowRight className="h-4 w-4" />
-                  </Link>
+                  </a>
                 </CardFooter>
               </Card>
             ))}
@@ -173,13 +172,13 @@ export default function GrimoireSection({ articles }: GrimoireSectionProps) {
         ) : null}
 
         <div className="text-center">
-          <Link
+          <a
             href="/articles"
             className="inline-flex items-center gap-2 rounded-md border border-frost px-5 py-3 text-sm font-medium text-frost transition-colors hover:bg-frost hover:text-background"
           >
             View all articles
             <ArrowRight className="h-4 w-4" />
-          </Link>
+          </a>
         </div>
       </div>
     </section>

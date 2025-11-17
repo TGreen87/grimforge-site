@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from "react";
-import Link from "next/link";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -79,13 +78,13 @@ const UserMenu = () => {
         
         {user.role === "admin" && (
           <DropdownMenuItem asChild>
-            <Link 
+            <a 
               href="/admin" 
               className="text-accent hover:bg-secondary cursor-pointer flex items-center w-full"
             >
               <Crown className="mr-2 h-4 w-4" />
               <span>Admin Dashboard</span>
-            </Link>
+            </a>
           </DropdownMenuItem>
         )}
         
