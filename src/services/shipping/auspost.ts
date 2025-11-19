@@ -36,6 +36,21 @@ export type QuoteParams = {
   items: ShippingItem[]
 }
 
+interface AusPostService {
+  code?: string
+  product_id?: string
+  service_code?: string
+  name?: string
+  price?: string | number
+  delivery_time?: string
+}
+
+interface AusPostResponse {
+  services?: {
+    service?: AusPostService[]
+  }
+}
+
 // Env accessors kept here to isolate configuration.
 function getConfig() {
   const apiKey = process.env.AUSPOST_API_KEY || ''
@@ -106,20 +121,20 @@ export async function quoteAusPostRates(params: QuoteParams): Promise<ShippingOp
         cache: 'no-store',
       })
       if (!res.ok) throw new Error(`AusPost domestic service fetch failed: ${res.status}`)
-      const data = (await res.json()) as any
-      const services: any[] = data?.services?.service || []
+      const data = (await res.json()) as AusPostResponse
+      const services = data?.services?.service || []
       const options: ShippingOption[] = services
         .filter((s) => allowDomestic(String(s.name || s.code || '')))
         .map((s) => ({
-        carrier: 'AUSPOST',
-        service_code: String(s.code || s.product_id || s.service_code || s.name || 'DOM'),
-        display_name: labelFor(String(s.name || s.code || 'AusPost')),
-        amount_cents: Math.round(Number(s.price) * 100) || 0,
-        currency: 'AUD',
-        eta_min_days: s.delivery_time && parseInt(String(s.delivery_time).split('-')[0]) || undefined,
-        eta_max_days: s.delivery_time && parseInt(String(s.delivery_time).split('-').pop()!) || undefined,
-      }))
-      return options.filter(o => o.amount_cents > 0).sort((a,b)=>a.amount_cents-b.amount_cents)
+          carrier: 'AUSPOST',
+          service_code: String(s.code || s.product_id || s.service_code || s.name || 'DOM'),
+          display_name: labelFor(String(s.name || s.code || 'AusPost')),
+          amount_cents: Math.round(Number(s.price) * 100) || 0,
+          currency: 'AUD',
+          eta_min_days: s.delivery_time && parseInt(String(s.delivery_time).split('-')[0]) || undefined,
+          eta_max_days: s.delivery_time && parseInt(String(s.delivery_time).split('-').pop()!) || undefined,
+        }))
+      return options.filter(o => o.amount_cents > 0).sort((a, b) => a.amount_cents - b.amount_cents)
     } else {
       // AusPost Postage Assessment: International Parcel Service
       // Docs: https://developers.auspost.com.au/apis/international-postage
@@ -133,18 +148,18 @@ export async function quoteAusPostRates(params: QuoteParams): Promise<ShippingOp
         cache: 'no-store',
       })
       if (!res.ok) throw new Error(`AusPost intl service fetch failed: ${res.status}`)
-      const data = (await res.json()) as any
-      const services: any[] = data?.services?.service || []
+      const data = (await res.json()) as AusPostResponse
+      const services = data?.services?.service || []
       const options: ShippingOption[] = services
         .filter((s) => allowInternational(String(s.name || s.code || '')))
         .map((s) => ({
-        carrier: 'AUSPOST',
-        service_code: String(s.code || s.product_id || s.service_code || s.name || 'INTL'),
-        display_name: labelFor(String(s.name || s.code || 'AusPost')),
-        amount_cents: Math.round(Number(s.price) * 100) || 0,
-        currency: 'AUD',
-      }))
-      return options.filter(o => o.amount_cents > 0).sort((a,b)=>a.amount_cents-b.amount_cents)
+          carrier: 'AUSPOST',
+          service_code: String(s.code || s.product_id || s.service_code || s.name || 'INTL'),
+          display_name: labelFor(String(s.name || s.code || 'AusPost')),
+          amount_cents: Math.round(Number(s.price) * 100) || 0,
+          currency: 'AUD',
+        }))
+      return options.filter(o => o.amount_cents > 0).sort((a, b) => a.amount_cents - b.amount_cents)
     }
   } catch (e) {
     // Silent degrade to empty on error; caller should fallback

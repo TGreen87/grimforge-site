@@ -95,7 +95,7 @@ export async function POST(req: NextRequest) {
           const metadataPatch = {
             stripe_checkout_session_id: session.id,
             stripe_customer_id: typeof session.customer === 'string' ? session.customer : null,
-            shipping_details: session.shipping_details || null,
+            shipping_details: (session as any).shipping_details || null,
             shipping_total: shippingDetails ? (shippingDetails.amount_shipping ?? 0) / 100 : null,
             tax_total: shippingDetails ? (shippingDetails.amount_tax ?? 0) / 100 : null,
           }

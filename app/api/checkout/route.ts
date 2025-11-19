@@ -52,7 +52,7 @@ export async function POST(req: NextRequest) {
       variantId: typeof item?.variantId === 'string' ? item.variantId : null,
       quantity: Number.isFinite(item?.quantity) ? Math.floor(Number(item.quantity)) : 0,
     }))
-    .filter((item) => item.variantId && item.quantity > 0) as { variantId: string; quantity: number }[]
+    .filter((item: { variantId: string; quantity: number }) => item.variantId && item.quantity > 0) as { variantId: string; quantity: number }[]
 
   if (!normalizedItems.length) {
     return NextResponse.json({ error: 'No valid items were provided' }, { status: 400 })
