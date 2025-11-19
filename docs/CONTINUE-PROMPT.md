@@ -1,77 +1,58 @@
 ## Continuation Prompt (New Chat)
 
-_Last updated: 2025-10-24_
+_Last updated: 2025-11-20_
 
 Paste the following into a fresh Codex session whenever you need to resume work on grimforge-site with MCP tools enabled.
 
 ---
 
-**Context Snapshot**
-- Documentation map lives in `docs/README.md`; start there to orient before coding.
-- Assistant pipelines/specs live in `docs/AGENT-PIPELINES.md`; review before modifying copilot actions.
-- Repo: `grimforge-site` — Next.js 15 App Router storefront with Refine/AntD admin.
-- Working branch: `dev` (single-branch workflow, see `AGENTS.md`).
-- Branch deploy: https://dev--obsidianriterecords.netlify.app (treat as QA surface).
-- Remote-first: rely on Netlify deploys for verification; run local commands only when fixing suites or capturing logs.
-- Core docs: `AGENTS.md`, `docs/IMPLEMENTATION-PLAN.md`, `docs/NEXT-STEPS.md`, `docs/QA-CHECKLIST.md`, `docs/PRODUCTION-LAUNCH-CHECKLIST.md`.
-- MCP setup: Supabase MCP reads `supabase/config.toml` (service-role token `sbp_*`); Puppeteer MCP runs via Docker `docker run --rm --init -e DOCKER_CONTAINER=true mcp/puppeteer`.
-- Seed & policies: `docs/SUPABASE-SEED.md`. Shipping/AusPost behaviour documented in `docs/SHIPPING-AUSPOST.md`.
-- Feature flags: campaign hero (`NEXT_PUBLIC_FEATURE_HERO_CAMPAIGN`), admin bulk tools, Slack alerts; defaults noted in `docs/NEXT-STEPS.md`.
-- Before coding, skim `docs/IMPLEMENTATION-PLAN.md` to understand phased priorities; keep `docs/NEXT-STEPS.md` in sync with any new decisions.
+### 1. Project Overview & Analysis
+- **Type**: Next.js 15 App Router e-commerce site with Supabase (Auth/DB), Stripe (Payments), and Refine/AntD (Admin).
+- **State**: Transitional. Moving from a legacy SPA (in `src/`) to App Router (`app/`).
+    - **Cleanup**: `src/__legacy_pages`, `src/App.tsx`, `src/main.tsx` were deleted on 2025-11-20.
+    - **Migrations**: `supabase/migrations/20250122_rls_test_matrix.sql` was moved to `tests/sql/`.
+- **Branch Strategy**:
+    - `dev_stripe`: **Active feature branch** for payments and current development. Work here.
+    - `main`: Production/Live.
+    - **Workflow**: No PRs. Push directly to `dev_stripe` to trigger Netlify branch deploys.
+- **Testing Strategy**: **Remote-first**.
+    - Local environment is unstable for full e2e.
+    - Rely on Netlify branch deploys (e.g., `https://dev-stripe--obsidianriterecords.netlify.app`) for verification.
+    - Use the **Browser Tool** to verify the deployed site.
 
-**Goals When Restarting**
-1. Confirm branch deploy health: homepage 200, `/status` env flags, seeded product slug reachable.
-2. Verify owner login on `https://obsidianriterecords.com/admin/login`; compare against `dev` and log any loop/backdoor issues.
-3. Run the remote Puppeteer smoke (`BASE_URL=https://dev--obsidianriterecords.netlify.app npm run test:puppeteer`) per `docs/QA-CHECKLIST.md`; capture screenshots in `docs/qa-screenshots/`.
-4. Validate catalog quick actions (hover/focus add-to-cart + wishlist) and admin critical flows (product create/save, dashboard alerts, Slack test button where creds allow).
-5. Cycle campaign hero layouts (Classic/Split/Minimal) and ensure badges, highlights, and media controls behave; note reduced-motion fallback.
-6. Confirm product detail gallery (thumbnails + lightbox) and sticky buy module behaviour across breakpoints.
-7. Confirm dashboard revenue goal card progress + settings save behaviour.
-8. Validate checkout sheet: multi-step flow, wallet row remains disabled without a Stripe publishable key, and totals recalc correctly.
-9. Verify storytelling surfaces: `/admin/story` CRUD works, storefront hides timeline/testimonials/newsletter when tables are empty, and shows real content when populated.
-10. Confirm homepage Journal renders featured + secondary articles when Supabase has published entries (fallback copy otherwise).
-11. Exercise the admin copilot: add structured context, upload a sample asset, and confirm the assistant responds with citations and logs (no destructive actions in preview).
-12. Download scoped CSVs from the needs fulfilment panel exports when counts >0 (awaiting fulfilment, low stock, pending payments).
-13. Run `npm run audit:a11y` (point the script at the branch URL) to capture Lighthouse accessibility reports for home + admin dashboards; log failures if the script crashes.
-14. Update task trackers (`docs/NEXT-STEPS.md`, latest `docs/SESSION-YYYY-MM-DD.md`) with findings.
+### 2. Current Status (2025-11-20)
+- **Build**: `npm run build` **PASSES** on `dev_stripe` (Edge Runtime errors were resolved).
+- **Lint/Type-Check**: **PASSES** (fixed `auspost.ts`, `useActiveSection.ts`, `checkout/route.ts`, `webhook/route.ts`).
+- **Tests**: `npm test` **FAILS** (12+ files).
+    - *Reason*: Known issues with admin typings and Stripe/AusPost mocks.
+    - *Action*: Ignore local test failures unless specifically tasked to fix them.
+- **Browser Tool**:
+    - *Issue*: Failed repeatedly with `ECONNREFUSED` in the previous session.
+    - *Status*: User stated they "fixed the browser" (profile/extension issue), so it *should* work now. **Verify this first.**
 
-**Playbook**
-1. **Tool readiness** — Ensure Supabase + Puppeteer MCP servers are running; request restart if unavailable.
-2. **Public checks**
-   - Load homepage; record status + `<title>`; screenshot `home.png`.
-   - Trigger vinyl anchor (header/foot link) and verify URL `/#vinyl`; screenshot `vinyl.png`.
-   - Fetch `/robots.txt`, `/sitemap.xml`; confirm 200.
-   - Optional: toggle campaign hero flag via query (`/?previewCampaign=slug`) if testing visuals.
-   - Confirm Journal section: capture `journal.png` when articles exist or note fallback copy if empty.
-   - Note preorder module shows disabled email input/button (“Email list opens soon”).
-3. **Admin checks**
-   - Visit `/admin/login`; pause for manual auth if needed.
-   - Create or verify `test-vinyl-dark-rituals` via `/admin/products/create` (fields: slug, title, artist, format, price 45.99, stock 10, Active).
-   - Confirm order dashboard alerts respect thresholds; run Slack “Send test alert” if webhook configured.
-   - Screenshot key confirmations (`admin-product-created.png`, `dashboard-alert.png`).
-   - Visit `/admin/story`; add/remove timeline/testimonial rows as needed and ensure the storefront reflects changes after refresh.
-   - Use the needs fulfilment export icons to download scoped CSV snapshots when counts are non-zero; note filenames.
-   - Run `npm run audit:a11y` with `SITE_URL` set to the branch deploy when you need fresh Lighthouse reports; archive the generated JSON outputs in `docs/qa-screenshots/` and note any crashes.
-   - Open the copilot drawer, populate structured context, upload a sample asset, and ensure uploads land in Supabase (`assistant-media`) with confirmation toast.
-4. **Product slug** — Load `/products/test-vinyl-dark-rituals`; ensure hydration (price + CTA); screenshot `product.png`.
-5. **Optional flows**
-   - Checkout smoke: capture shipping modal (`checkout-shipping.png`) and Stripe redirect (`stripe.png`).
-   - Toggle campaign layout + badge/highlight fields to align with storefront variants; record screenshots if visuals changed.
-   - Adjust revenue goal target/period in `/admin/settings`, confirm dashboard reflects updates after refresh.
-   - Walk through product gallery thumbnails/lightbox and capture `product-gallery.png` if visuals changed.
-   - Run bulk order action or packing slip download if relevant to current sprint.
-6. **Wrap-up** — Update docs/notes, file issues, and refresh `docs/NEXT-STEPS.md` and session log with outcomes.
-   - Cross-check `docs/IMPLEMENTATION-PLAN.md` milestones; adjust status if scope changed.
+### 3. Integrations
+- **Stripe**:
+    - Configured in `lib/stripe.ts`.
+    - Checkout flow: `app/api/checkout/route.ts` -> Stripe Hosted Checkout.
+    - Webhook: `app/api/stripe/webhook/route.ts` handles `checkout.session.completed`.
+    - Mode: Currently in **Test Mode**.
+- **Supabase**:
+    - Configured in `lib/supabase`.
+    - RLS policies are active.
 
-**Constraints & Tips**
-- Never log secrets or credentials. Use owner-provided accounts for admin flows.
-- Keep work scoped to QA unless explicitly tasked with code changes.
-- AusPost creds optional; if absent, `/api/shipping/quote` should report `configured:false` and fallback to Stripe static rates.
-- Respect automation defaults: when you touch code, plan for lint/type-check/test fixes and document outcomes—local runs are optional unless you are actively debugging the failures outlined in `AGENTS.md`.
+### 4. Immediate Goals (Next Session)
+1.  **Verify Browser Tool**: Run a simple check (e.g., load google.com) to confirm the tool is active.
+2.  **Remote Verification**:
+    - Visit https://dev-stripe--obsidianriterecords.netlify.app.
+    - Confirm site loads (200 OK).
+3.  **Stripe Checkout Smoke Test**:
+    - Add a product to cart -> Checkout -> Verify Stripe Test Mode page loads.
+4.  **Admin Typings (Optional)**: If requested, address the remaining "admin typings" debt to get `npm test` green.
 
-**Deliverables**
-- Pass/fail summary referencing screenshot filenames.
-- Noted regressions, missing copy, or env issues with links to supporting evidence.
-- Updated backlog/session notes capturing decisions and outstanding follow-ups.
+### 5. Playbook
+1.  **Check Environment**: Run `git status` to confirm you are on `dev_stripe`.
+2.  **Browser Check**: Run a simple browser task to confirm the tool is active.
+3.  **Deploy Check**: Use the browser to visit the `dev_stripe` URL.
+4.  **Code Health**: `npm run build` should pass. `npm run type-check` should pass.
 
 ---
