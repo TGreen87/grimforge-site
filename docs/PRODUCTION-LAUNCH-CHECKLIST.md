@@ -1,29 +1,26 @@
 # Production Launch Checklist
 
-_Last updated: 2025-10-24_
+_Last updated: 2025-11-20_
 
 This document tracks every action required to ship grimforge-site to production once Stripe/AusPost keys are available. Update the status column and add notes as you complete tasks. Reference `docs/README.md` for related ops guides.
 
 | Status | Area | Task | Owner Notes |
 |--------|------|------|-------------|
-| ☐ | Keys | Add `STRIPE_SECRET_KEY`, `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`, `STRIPE_WEBHOOK_SECRET` to Netlify (mirror in `.env.local` only if you need a local run); redeploy `dev`. |  |
-| ☑ | Auth | Confirm owner login succeeds on `https://obsidianriterecords.com/admin/login`; compare against `dev` if it loops. | Resolved 2025-10-24 |
-| — | Shipping | AusPost credentials not required; confirm Stripe static rates cover Standard/Express tiers. | Decision: rely on Stripe shipping (2025-10-24) |
-| ☐ | Checkout | Run `/api/checkout` manual test with real publishable key; confirm Stripe session, verify totals and shipping. |  |
-| ☐ | Checkout | Capture Stripe landing page screenshot for owner documentation. |  |
-| ☐ | Webhooks | Stripe dashboard → Events: verify webhook delivery success (`checkout.session.completed`, `payment_intent.*`). |  |
-| ☐ | Shipping | Test AusPost quote with domestic (VIC → NSW) and international (AU → NZ) addresses; note rates. |  |
-| ☐ | Content | Replace `public/og-image.jpg` with final hero artwork; re-run `npx linkinator`. |  |
-| ☐ | Content | Final proofread of `/legal/*` pages (tone, links). |  |
-| ☐ | Documentation | Produce owner-facing “Admin quick start” (adding product, stock, checkout flow). |  |
-| ☐ | Assistant | On the `dev` deploy, run copilot smoke (upload asset, analytics summary, undo token) and log results in the session file. |  |
-| ☐ | QA | Remote smoke via `BASE_URL=https://dev--obsidianriterecords.netlify.app npm run test:puppeteer` (after keys). Attach screenshots in `docs/qa-screenshots/`. |  |
-| ☐ | QA | With hero flag on, smoke Classic/Split/Minimal layouts, verify badge/highlights, reduced-motion fallback, and media controls. |  |
-| ☐ | QA | Dashboard revenue goal card shows correct progress and saving a new target/period persists across refresh. |  |
-| ☐ | QA | Story content (timeline/testimonials/newsletter) reflects Supabase entries and `/admin/story` updates publish instantly; verify sections stay hidden when tables are empty. |  |
-| ☐ | QA | Homepage Journal shows featured + secondary articles (or “Editorial features return soon” fallback when none published). |  |
-| ☐ | QA | Manual smoke on production preview (`/`, `/products/<slug>`, `/admin/dashboard`) post-deploy. |  |
-| ☐ | Release | Merge `dev → main`; monitor Netlify deploy; announce go-live. |  |
+| ☐ | Keys | Add **live** `STRIPE_SECRET_KEY`, `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`, `STRIPE_WEBHOOK_SECRET` to Netlify for `main` (and optionally `dev_stripe` for rehearsal). |  |
+| ☑ | Auth | Confirm owner login succeeds on `https://obsidianriterecords.com/admin/login`; compare against `dev_stripe` if needed. | Verified previously; re-check after final deploy |
+| — | Shipping | AusPost credentials not required for launch; default to Stripe Standard/Express shipping options. | Decision: Stripe static shipping for launch (2025-11-20) |
+| ☐ | Checkout | With live keys, run a $1 (or minimum-price) live payment: add product → /cart → Stripe → ensure order row + inventory decrement + webhook success. |  |
+| ☐ | Checkout | Update success/cancel URLs in checkout handler to `https://obsidianriterecords.com/order/success` and `/cart` once live. |  |
+| ☐ | Webhooks | In Stripe Dashboard, create live endpoint for `/api/stripe/webhook`; subscribe to `checkout.session.completed`, `payment_intent.payment_failed`; confirm at least one successful delivery. |  |
+| ☐ | Catalog | All launch products have active variants with price and on_hand > 0; test vinyl retired/hidden. |  |
+| ☐ | Content | Hero/campaign points to real product slug; OG/social images swapped to final art. |  |
+| ☐ | Legal | Final proofread of `/legal/*`; confirm footer links work. |  |
+| ☐ | Documentation | Owner handbook + quickstart updated for live Stripe steps, product/variant creation, and shipping info visibility. |  |
+| ☐ | Notifications | Decide on owner notifications: Stripe receipts enabled and/or Supabase trigger/email for new paid orders. |  |
+| ☐ | QA | Manual smoke on production deploy: `/`, `/products/<slug>`, add-to-cart + checkout, `/order/success`, `/admin/dashboard`. |  |
+| ☐ | QA | Success page CTAs navigate without right-click; nav/logo/cart links work. |  |
+| ☐ | QA | Optional: remote smoke (`BASE_URL=https://obsidianriterecords.com npm run test:puppeteer`) if time allows. |  |
+| ☐ | Release | Announce go-live after production smoke passes; set reminder for post-launch monitoring (webhooks, payouts, inventory). |  |
 
 ## Additional Notes
 - Treat Netlify branch deploys as the canonical verification surface; document remote checks in session notes before attempting local reproductions.

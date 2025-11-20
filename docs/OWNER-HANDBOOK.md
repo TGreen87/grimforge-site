@@ -1,83 +1,75 @@
 # Owner Quick Start Handbook
 
-_Last updated: 2025-10-24_
+_Last updated: 2025-11-20_
 
-This guide walks through the core day-to-day tasks for running Obsidian Rite Records without touching code. Use `docs/README.md` for the full documentation index when onboarding new owners or assistants.
+This guide covers day-to-day tasks for Obsidian Rite Records without touching code. Use `docs/README.md` for the full documentation index.
 
 ## 1. Signing in
-1. Visit `https://dev--obsidianriterecords.netlify.app/admin/login` (or production `/admin/login` once live).
-2. Enter the email/password provided to you. If you forget the password, use Supabase Auth to reset it.
-3. After login you will land on the **Dashboard**.
+1. Go to `https://obsidianriterecords.com/admin/login` (or `dev_stripe` branch deploy for QA).
+2. Use your owner credentials. If you forget the password, reset via Supabase Auth.
+3. You should land on the **Dashboard**.
 
 ## 2. Dashboard tour
-- **Cards** show total revenue (paid orders), orders awaiting action, low-stock alerts, and Stripe payout status.
-- **Recent orders** lists the last six sales with quick links to view details.
-- **Low stock** cards link straight to the stock unit that needs attention.
-- Header buttons let you jump to “Add product”, “View orders”, and “Receive stock”.
+- Cards: revenue (paid orders), awaiting fulfilment, low stock, payouts.
+- Recent orders: last six sales with a Stripe link.
+- Low stock: jump straight to the stock unit.
+- Header buttons: Add product, Orders, Receive stock.
 
-## 3. Adding a new release
-1. Prepare cover art (square image) and description.
-2. Navigate to **Products → New product**.
-3. Fill out the form sections:
-   - **Basics** – Title, Artist, URL link (lowercase words with dashes).
-   - **Format & Pricing** – Choose format (Vinyl/CD/etc.), enter price.
-   - **Inventory** – Enter initial stock or leave 0 and receive later.
-   - **Media & Metadata** – Paste the image URL.
-   - **Publishing** – Toggle **Active** on when ready for the public.
-4. Click **Save**. The product now appears on the storefront.
+## 3. Adding a new release (variant required)
+1. Prepare cover art (square) and description.
+2. Go to **Products → New product**.
+3. Fill **Basics** (Title, Artist, URL slug).
+4. Create a **Variant** (required for checkout): set format (Vinyl/CD/etc.), price, and initial stock (`on_hand`). Toggle **Active**.
+5. Add the image URL under Media, then toggle **Product Active** when ready.
+6. Save. The product + variant should appear on the storefront and can be added to cart.
 
 ### Adding different editions
-- Go to **Stock Units (Variants)** and click **Create** to add limited/alternate editions.
-- Each variant can have its own SKU, price, and stock.
+- Go to **Stock Units (Variants)** → **Create**. Each variant can have its own SKU, price, and stock.
 
 ## 4. Receiving stock
 1. Go to **Inventory**.
 2. Find the variant and click **Receive**.
-3. Enter the quantity and optional notes (e.g., “Box 1 of 2 delivered 18 Sep”).
-4. Submit. Available and on-hand counts update automatically.
+3. Enter quantity and optional notes (e.g., “Box 1 of 2 delivered 18 Nov”).
+4. Submit; available/on-hand counts update automatically.
 
 ## 5. Reviewing orders
-- Go to **Orders**.
-- Use the payment filter (All / Paid / Pending / Failed) to focus on actionable orders.
-- Click **Stripe** to open the payment in the Stripe dashboard.
-- Change the order status directly in the table (Pending → Processing → Shipped → Delivered).
-- Drag cards in the board view if you prefer Kanban style.
+- Go to **Orders**. Filters: Paid / Pending / Failed.
+- Paid orders include shipping details from Stripe Checkout and a Stripe link.
+- Update status: Pending → Processing → Shipped → Delivered.
+- Board view: drag cards to change status if preferred.
 
 ## 6. Customer profiles
-- Go to **Customers**.
-- Each card/table row shows total spend, last order date, and addresses.
-- Click **Notes** to jot down reminders (VIP, special shipping instructions, etc.).
+- Shows total spend, last order date, addresses, notes.
+- Use Notes for special shipping instructions or VIP flags.
 
-## 7. Checkout & marketing opt-in
-- Checkout modal collects customer shipping details and marketing preferences.
-- Marketing opt-in is recorded automatically and visible on the customer profile.
+## 7. Checkout & addresses
+- Stripe Checkout collects email + shipping address.
+- After payment, orders store shipping details; use them for fulfilment.
+- Stripe can send customer receipts automatically (enable in Stripe Dashboard if desired).
 
 ## 8. Refunds or payment issues
-1. Open the order in **Orders** and click **Stripe**.
-2. Handle refund/void in Stripe.
-3. Update the order status to “Cancelled” or “Refunded”.
+1. Open the order in **Orders**, click **Stripe**.
+2. Refund/void in Stripe.
+3. Update order status to “Cancelled” or “Refunded”.
 
-## 9. Managing storefront campaigns
-- Go to **Campaigns** in the admin menu.
-- Use the layout selector to choose between **Classic** (full-bleed), **Split** (copy plus spotlight media), or **Minimal** (static banner).
-- Add optional badge text to surface labels like “New pressing”.
-- Enter highlight bullets (one per line) to show short selling points beneath the hero copy.
-- Upload a background video for motion; visitors with reduced-motion preferences will see the hero image fallback automatically.
+## 9. Managing campaigns (homepage hero)
+- Go to **Campaigns**. Pick layout (Classic/Split/Minimal).
+- Point CTA to a live product slug.
+- Optional badge + highlight bullets. Reduced-motion visitors see the static image fallback.
 
 ## 10. Weekly health checks
-- Run through the dashboard to confirm revenue, low stock, and payouts look correct.
-- Visit `/admin/analytics` for the past week’s traffic, top pages, and referrers (data comes from our own tracker—no Plausible account needed yet).
-- Visit `/status` to ensure required environment variables are set.
-- Optional: run the remote smoke (`BASE_URL=https://dev--obsidianriterecords.netlify.app npm run test:puppeteer`) or review the latest screenshots in `docs/qa-screenshots/` if you need visual confirmation.
+- Dashboard: revenue/fulfilment/payouts/low stock.
+- `/status`: confirm env vars present.
+- Optional: run branch smoke or review latest screenshots in `docs/qa-screenshots/`.
 
-## 11. Using the admin copilot
-- Click the robot icon in the admin header (or press `⌘⇧C` / `Ctrl+Shift+C`).
-- Ask workflow questions (“How do I receive stock?”) or request analytics summaries (“What were top pages this week?”). The assistant cites internal docs so you can verify.
-- When the copilot suggests an automation (e.g., “Create product draft”), click **Review & Run** to confirm the parameters. Draft products stay inactive until you publish them yourself, and every run is logged in the audit trail.
+## 11. Admin copilot (optional)
+- Robot icon in header (`⌘⇧C` / `Ctrl+Shift+C`).
+- Ask workflow questions or analytics summaries. Undo tokens and logs are recorded.
+- Paused if OpenAI keys are absent; check `AGENTS.md`.
 
 ## 12. Troubleshooting
-- Can’t see a product? Ensure the **Active** toggle is on and stock is above zero.
-- Totals look wrong? Verify Stripe keys are set and check recent webhook events.
-- Shipping only shows a generic rate? AusPost keys may be missing; static rates are expected until they’re provided.
+- Product not visible: ensure Product Active = on, variant Active = on, and stock > 0.
+- Checkout issues: check Stripe keys and webhook status; inspect recent webhook events in Stripe Dashboard.
+- Shipping only shows flat rates: AusPost keys missing; static Stripe rates are expected until provided.
 
-Happy selling! Keep this handbook alongside `docs/ADMIN-WORKFLOWS.md` for deeper workflows. Reference `docs/README.md` whenever new guides are added.
+Happy selling!

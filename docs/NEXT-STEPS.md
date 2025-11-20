@@ -1,76 +1,56 @@
 # Next Steps (Dev Branch)
 
-Last modified: 2025-10-24
+Last modified: 2025-11-20
 
-This backlog captures the active workstreams after the storefront storytelling cleanup and Journal integration. Ship everything on `dev`; promote to `main` only after the full QA loop completes.
+This backlog reflects the Stripe checkout launch work on `dev_stripe`. Use Netlify branch deploys for all QA. Promote to `main` only after the launch checklist is green.
 
 Consult `AGENTS.md` for contributor expectations and deployment discipline. Use `docs/README.md` for the documentation index.
 
-## Snapshot — 2025-10-24
-- Netlify Branch Deploys (`dev`, `main`) respond 200; `/status` on `dev` shows Supabase URL/anon/service keys present under Node 22. Keep relying on deploys for QA instead of local builds.
-- Admin login loop on production is resolved (2025-10-24); both `dev` and `main` allow owner sign-in. Leave the QA checklist preflight in place for regression detection.
-- Copilot infrastructure is live, but OpenAI credentials/actions still need a full smoke on `dev` before giving the owner the green light.
-- Checkout currently uses Stripe’s built-in shipping options (Standard/Express) defined in `lib/stripe.ts`; AusPost API remains optional until we revisit live quoting.
-- Local `npm run build`, `npm run lint`, and `npm test` continue to fail (SWC crash, admin `no-explicit-any`, Stripe/AusPost mocks). Document outcomes when you touch them, but default to remote validation.
-- Storytelling surfaces and Journal behave as expected with Supabase data; continue hiding sections when tables are empty.
+## Snapshot — 2025-11-20
+- Branches: `dev_stripe` (active), `main` (prod). Both are currently aligned at commit `496e33f` (Stripe/Supabase SDKs upgraded).
+- Checkout: Stripe Checkout works in test mode with server-side validation + webhook inventory decrement. Navigation uses native anchors to avoid Netlify router issues.
+- Builds: Netlify builds are green. Local lint/type-check may still warn about admin typings; tests remain red due to mocks.
+- Data: Cart is client-side; server re-validates inventory. Products must have at least one active variant with stock and price.
+- Webhooks: Implemented at `app/api/stripe/webhook`; success updates orders + inventory snapshots.
 
 ## Immediate Execution Queue (Priority A)
-1. **Assistant smoke on deploy**
-   - Confirm OpenAI env vars (`OPENAI_API_KEY`, `ASSISTANT_CHAT_MODEL`, `ASSISTANT_PIPELINE_MODEL`) exist in Netlify; redeploy `dev` if they were recently updated.
-   - On the live branch deploy, open the copilot drawer, upload a sample asset, run a low-risk action (analytics summary), and verify undo tokens/write logs succeed.
-   - Log outcomes and any blockers in the latest session file.
-2. **Launch readiness sweep**
-   - Populate storytelling content in Supabase (timeline/testimonials/newsletter) and capture updated storefront/admin screenshots directly from the branch deploy.
-    - Choose ESP approach for newsletter CTA; hide the CTA until ready.
-   - Run remote smoke via Puppeteer (`BASE_URL=` branch URL) or manual checks and archive results in `docs/qa-screenshots/`.
-3. **Test & lint stabilisation**
-   - Plan targeted fixes for admin `no-explicit-any` debt and Stripe/AusPost mocks so that `npm run lint` / `npm test` can pass when we bring them back online.
-   - Document each attempt (command + failure summary) in the session log until suites are green.
-   - Once mocks are stable, re-enable the assistant undo specs.
-4. **UI polish for launch**
-   - Dashboard: surface automation status (lint/test/env badges) and recent changes panel.
-   - Campaign editor: add live preview/diff to help owners verify hero copy before publishing.
-   - Storytelling admin: add drag-and-drop ordering and richer empty states.
+1) **Launch readiness (Stripe live)**
+   - Configure live Stripe keys (secret + publishable) and live webhook secret on Netlify for `main` (and `dev_stripe` for rehearsal).
+   - Set success/cancel URLs to `https://obsidianriterecords.com/order/success` and `/cart` in the checkout handler once live keys are in place.
+   - Create a live-mode webhook endpoint in Stripe pointing to `/api/stripe/webhook` on production; subscribe to `checkout.session.completed` and `payment_intent.payment_failed`.
+   - Run a live $1 test (or minimal real product) to confirm order creation + webhook update.
+
+2) **Catalog data readiness**
+   - In Supabase admin: ensure every product has ≥1 active variant with price and on_hand > 0; deactivate placeholder test vinyl before launch.
+   - Add real products/variants via the admin panel; verify they appear on the storefront and can be added to cart.
+   - Set hero/campaign content to point at a live product slug.
+
+3) **Admin QA smoke**
+   - /admin login, create a product with variant + stock, mark active, confirm it renders on the storefront and cart/checkout works.
+   - Orders view loads; webhook-updated orders show status paid/processing; shipping details are visible (from Stripe session).
+
+4) **Docs & owner playbooks**
+   - Update Owner Handbook and Launch Checklist (this file, PRODUCTION-LAUNCH-CHECKLIST) with live-key steps and admin product/variant steps.
+   - Archive stale session logs (done); keep `SESSION-2025-11-20.md` as the latest reference.
 
 ## Short-Term Enhancements (Priority B)
-- Storefront
-  - Populate campaign hero presets with real release copy once assets approved.
-  - Add owner-configurable highlight articles to the Journal grid (fallback to automatic order when none chosen).
-  - Introduce optional newsletter footnote once ESP integration is settled.
-- Orders Workflow
-  - AusPost label hook (pending credentials).
-  - Branded PDF packing slips (follow-up to HTML export) for bulk actions.
-- Analytics & Observability
-  - [x] Ship first-party analytics logger + admin overview.
-  - [ ] Add structured logging for `/api/client-logs` and admin RPCs (tie into audit/event stream).
-  - [ ] Revisit Plausible/Umami once traffic warrants advanced reporting (can ingest the beacon feed).
+- Add explicit cart toast when add-to-cart fails because no active variant exists; prompt the user to open the product page.
+- Add an admin health widget: missing active variants, zero-stock active products, and webhook error log count.
+- Optional: enable Stripe wallet buttons once live publishable key is present.
+- Optional: add email/PDF confirmation to owner on new paid order (using Stripe email receipts or a Supabase function).
 
 ## Research / Decisions (Priority C)
-- Pick lightweight animation helper for list transitions (`auto-animate` vs `motion.dev`).
-- Confirm image hosting plan (Supabase Storage hardening vs. Cloudinary) for campaign hero/media.
-- Determine marketing automation cadence once ESP selected (welcome drips vs. monthly digest).
+- AusPost vs. Stripe static rates for launch; default remains Stripe static until keys are provided.
+- ESP choice for newsletter; CTA currently passive.
+- Observability: whether to add Plausible/Umami or keep first-party beacon only.
 
-## Dependencies & Blockers
-- Stripe publishable key: required to enable wallet buttons in checkout.
-- AusPost API credentials: optional—Stripe static rates are the default until we opt back into AusPost.
-- ESP/API keys: required to enable newsletter opt-in and remove read-only inputs.
-- Slack webhook + alert thresholds: required to finish dashboard automation slice.
+## Blockers / External
+- Live Stripe keys + webhook secret need to be supplied by owner.
+- ESP credentials if newsletter opt-in should become active.
 
-- [ ] Extend Puppeteer smoke to cover Journal feature card + fallback when no articles exist.
-- [x] Add baseline Vitest coverage for dashboard RPC mappers (`mapRevenueSeries`, `mapLowStockTrend`).
-- [ ] Schedule Lighthouse/aXe runs post visual refresh (hero + Journal) to baseline performance/accessibility.
-- [ ] Evaluate Playwright + axe integration to complement Lighthouse in automated QA.
-- [ ] Reduce ESLint `no-explicit-any` debt — storefront product detail & article metadata now typed (2025-09-22); bring admin dashboards/contexts in line next.
-- [ ] Add Vitest coverage for assistant upload endpoint & future pipeline orchestrators.
-- [ ] Add Playwright/Puppeteer smoke covering “upload media → publish product” once pipeline lands (after env fixes).
-- [ ] Document lint/test results in session log once suites pass.
-- [ ] Re-enable assistant undo Vitest suites (currently skipped) once checkout/Stripe mocks are restored; add assertions for plan preview copy + undo expiry.
-
-## Documentation & Ops
-- [x] Capture assistant pipeline specs (`docs/AGENT-PIPELINES.md`) and update workflows to mention structured context panel.
-- [x] Keep `docs/AGENT-PIPELINES.md` in sync as `create_product_full` / `draft_article` ship (note model prompts, fallbacks).
-- [ ] Capture screenshots of the new Journal layout once real articles are published.
-- [ ] Refresh `docs/PRODUCTION-LAUNCH-CHECKLIST.md` after ESP integration lands.
-- [ ] Log assistant pipeline milestones in the next session log + QA checklist once orchestration lands.
+## Tracking
+- [ ] Extend Puppeteer smoke to cover Journal fallback and success page CTAs.
+- [ ] Reduce ESLint `no-explicit-any` debt in admin to unblock lint/test.
+- [ ] Refresh Lighthouse/a11y after product list is real.
 
 Keep this doc updated as tasks complete (`[x]`) or plans shift.
