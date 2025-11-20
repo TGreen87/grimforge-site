@@ -30,7 +30,7 @@ export function useActiveSection(sectionIds: string[], offset = 80) {
     elements.forEach((el) => observer.observe(el));
 
     return () => observer.disconnect();
-  }, [sectionIds, offset]);
+  }, [sectionIds.join("|"), offset]);
 
   return active;
 }

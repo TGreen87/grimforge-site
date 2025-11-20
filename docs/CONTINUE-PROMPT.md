@@ -2,57 +2,38 @@
 
 _Last updated: 2025-11-20_
 
-Paste the following into a fresh Codex session whenever you need to resume work on grimforge-site with MCP tools enabled.
+Paste this at the top of a fresh Codex session to resume work on **grimforge-site**.
 
 ---
 
-### 1. Project Overview & Analysis
-- **Type**: Next.js 15 App Router e-commerce site with Supabase (Auth/DB), Stripe (Payments), and Refine/AntD (Admin).
-- **State**: Transitional. Moving from a legacy SPA (in `src/`) to App Router (`app/`).
-    - **Cleanup**: `src/__legacy_pages`, `src/App.tsx`, `src/main.tsx` were deleted on 2025-11-20.
-    - **Migrations**: `supabase/migrations/20250122_rls_test_matrix.sql` was moved to `tests/sql/`.
-- **Branch Strategy**:
-    - `dev_stripe`: **Active feature branch** for payments and current development. Work here.
-    - `main`: Production/Live.
-    - **Workflow**: No PRs. Push directly to `dev_stripe` to trigger Netlify branch deploys.
-- **Testing Strategy**: **Remote-first**.
-    - Local environment is unstable for full e2e.
-    - Rely on Netlify branch deploys (e.g., `https://dev-stripe--obsidianriterecords.netlify.app`) for verification.
-    - Use the **Browser Tool** to verify the deployed site.
+### Project Snapshot
+- **Stack**: Next.js 15 App Router, Supabase (Auth/DB/RLS), Stripe Checkout, Netlify branch deploys, Refine/AntD admin.
+- **Branches**: `dev_stripe` = active feature branch; `main` = production. No PRs—push directly.
+- **Deploys**: https://dev-stripe--obsidianriterecords.netlify.app (QA) and https://obsidianriterecords.com (prod).
+- **Data**: Products/inventory live in Supabase; Stripe is payments-only.
 
-### 2. Current Status (2025-11-20)
-- **Build**: `npm run build` **PASSES** on `dev_stripe` (Edge Runtime errors were resolved).
-- **Lint/Type-Check**: **PASSES** (fixed `auspost.ts`, `useActiveSection.ts`, `checkout/route.ts`, `webhook/route.ts`).
-- **Tests**: `npm test` **FAILS** (12+ files).
-    - *Reason*: Known issues with admin typings and Stripe/AusPost mocks.
-    - *Action*: Ignore local test failures unless specifically tasked to fix them.
-- **Browser Tool**:
-    - *Issue*: Failed repeatedly with `ECONNREFUSED` in the previous session.
-    - *Status*: User stated they "fixed the browser" (profile/extension issue), so it *should* work now. **Verify this first.**
+### Current Health (truthful)
+- **Netlify build**: Last `dev_stripe` deploy succeeded after navigation fixes.
+- **Lint / Type-check**: Admin typings still known to fail locally; run if changing TS and note any blockers.
+- **Tests**: `npm test` still red due to mocks/admin types—document failures, don’t rely on green.
+- **Browser tool**: Should work; if not, note the error and proceed via Netlify manual checks.
 
-### 3. Integrations
-- **Stripe**:
-    - Configured in `lib/stripe.ts`.
-    - Checkout flow: `app/api/checkout/route.ts` -> Stripe Hosted Checkout.
-    - Webhook: `app/api/stripe/webhook/route.ts` handles `checkout.session.completed`.
-    - Mode: Currently in **Test Mode**.
-- **Supabase**:
-    - Configured in `lib/supabase`.
-    - RLS policies are active.
+### Key Rules
+1. Work on `dev_stripe`; promote to `main` after QA. No PRs.
+2. Prefer remote verification on branch deploys; avoid local `npm run dev` unless debugging.
+3. Keep sensitive keys out of commits. Use existing env vars on Netlify.
+4. When touching payments: Checkout creation under `app/api/checkout/route.ts`; webhook in `app/api/stripe/webhook/route.ts`; never expose service keys client-side.
 
-### 4. Immediate Goals (Next Session)
-1.  **Verify Browser Tool**: Run a simple check (e.g., load google.com) to confirm the tool is active.
-2.  **Remote Verification**:
-    - Visit https://dev-stripe--obsidianriterecords.netlify.app.
-    - Confirm site loads (200 OK).
-3.  **Stripe Checkout Smoke Test**:
-    - Add a product to cart -> Checkout -> Verify Stripe Test Mode page loads.
-4.  **Admin Typings (Optional)**: If requested, address the remaining "admin typings" debt to get `npm test` green.
+### Recent Decisions
+- Navigation reliability issue on Netlify was mitigated by falling back to native anchors. All CTAs now use `<a>` or `window.location.assign()`.
+- Cart flow: client cart in context/localStorage; server re-validates inventory on POST `/api/checkout` before creating Stripe session and `orders`/`order_items` snapshots.
+- Webhook updates order status and decrements inventory via existing schema (`orders`, `order_items`, `decrement_inventory`).
+- Legacy Vite/SPA files under `src/__legacy_pages` were removed; they were not used by App Router.
 
-### 5. Playbook
-1.  **Check Environment**: Run `git status` to confirm you are on `dev_stripe`.
-2.  **Browser Check**: Run a simple browser task to confirm the tool is active.
-3.  **Deploy Check**: Use the browser to visit the `dev_stripe` URL.
-4.  **Code Health**: `npm run build` should pass. `npm run type-check` should pass.
+### Quick Re-start Checklist
+- `git status` (ensure on `dev_stripe`).
+- Visit the dev deploy; run: add item → `/cart` → Checkout → Stripe test card 4242.
+- Verify `/order/success` CTAs navigate normally (anchors, no right-click needed).
+- If changing migrations, keep files under `supabase/migrations/` (not `tests/sql`).
+- Update `docs/SESSION-YYYY-MM-DD.md` with outcomes and note any failing commands.
 
----
