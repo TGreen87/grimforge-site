@@ -12,7 +12,13 @@ export async function GET() {
       .order('created_at', { ascending: false })
       .limit(10)
 
-    if (error) throw error
+    if (error) {
+      // Handle table missing (migration not yet applied) gracefully
+      if ((error as any)?.code === '42P01') {
+        return NextResponse.json({ events: [], warning: 'missing_table' })
+      }
+      throw error
+    }
 
     return NextResponse.json({ events: data ?? [] })
   } catch (error) {

@@ -15,7 +15,7 @@ export function CatalogHealthCard({ summary }: { summary: CatalogHealthSummary }
       <CardHeader className="pb-3">
         <CardTitle className="flex items-center gap-2 text-base">
           Catalog health
-          {!hasIssues && <Badge variant="secondary">Healthy</Badge>}
+          {!hasIssues && <Badge variant="secondary">All good</Badge>}
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-3 text-sm text-muted-foreground">
@@ -23,7 +23,7 @@ export function CatalogHealthCard({ summary }: { summary: CatalogHealthSummary }
           <div className="space-y-1">
             <div className="flex items-center gap-2 text-foreground">
               <Badge variant="destructive">Action</Badge>
-              Products without an active variant
+              Products that need a purchase option
             </div>
             <ul className="space-y-1">
               {summary.missingVariants.slice(0, 4).map((p) => (
@@ -34,6 +34,7 @@ export function CatalogHealthCard({ summary }: { summary: CatalogHealthSummary }
                 </li>
               ))}
             </ul>
+            <p className="text-xs">Open the product and add an option (variant) with a price and stock, then save.</p>
           </div>
         ) : (
           <p>No products are missing active variants.</p>
@@ -43,7 +44,7 @@ export function CatalogHealthCard({ summary }: { summary: CatalogHealthSummary }
           <div className="space-y-1">
             <div className="flex items-center gap-2 text-foreground">
               <Badge variant="outline">Stock</Badge>
-              Active variants at zero stock
+              Active items that are out of stock
             </div>
             <ul className="space-y-1">
               {summary.zeroStock.slice(0, 4).map((v) => (
@@ -53,6 +54,7 @@ export function CatalogHealthCard({ summary }: { summary: CatalogHealthSummary }
                 </li>
               ))}
             </ul>
+            <p className="text-xs">Receive stock in Inventory or set the product to inactive until restock.</p>
           </div>
         ) : (
           <p>No active variants are at zero stock.</p>

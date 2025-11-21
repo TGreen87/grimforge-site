@@ -13,6 +13,7 @@ interface WebhookHealthRow {
 export function WebhookHealth() {
   const [events, setEvents] = useState<WebhookHealthRow[]>([])
   const [error, setError] = useState<string | null>(null)
+  const [warning, setWarning] = useState<string | null>(null)
 
   useEffect(() => {
     fetch('/api/admin/webhook-events')
@@ -22,6 +23,9 @@ export function WebhookHealth() {
       })
       .then((data) => {
         setEvents(Array.isArray(data?.events) ? data.events.slice(0, 5) : [])
+        if (data?.warning === 'missing_table') {
+          setWarning('Webhook log not created yet. Migration will add it automatically. You can still test checkout.')
+        }
       })
       .catch((err: unknown) => {
         const message = err instanceof Error ? err.message : 'Unable to load webhook events'
@@ -37,7 +41,7 @@ export function WebhookHealth() {
 
   if (!events.length) {
     return <Callout variant="info" title="Webhook status">
-      <p>No recent webhook events recorded.</p>
+      <p>{warning ?? 'No recent webhook events recorded. Run a checkout to see them here.'}</p>
     </Callout>
   }
 
