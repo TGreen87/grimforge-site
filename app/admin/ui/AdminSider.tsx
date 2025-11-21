@@ -38,7 +38,8 @@ export default function AdminSider({ collapsed = false, onCollapse }: { collapse
       title: 'System',
       items: [
         { key: '/admin/analytics', icon: <LineChartOutlined />, label: 'Analytics' },
-        { key: '/admin/audit-logs', icon: <FileSearchOutlined />, label: 'Audit Logs' }
+        { key: '/admin/audit-logs', icon: <FileSearchOutlined />, label: 'Audit Logs' },
+        { key: '/admin/webhooks', icon: <FileSearchOutlined />, label: 'Webhooks' }
       ],
     }
   ];
