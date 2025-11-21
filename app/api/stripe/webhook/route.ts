@@ -139,7 +139,28 @@ export async function POST(req: NextRequest) {
     }
   } catch (err) {
     console.error('Error handling Stripe webhook', err)
+    try {
+      await supabase.from('stripe_events').insert({
+        event_id: event.id ?? null,
+        type: event.type ?? 'unknown',
+        status: 'error',
+        payload: event as any,
+      })
+    } catch (logError) {
+      console.error('Failed to log stripe event', logError)
+    }
     return NextResponse.json({ error: 'Webhook handler failed' }, { status: 500 })
+  }
+
+  try {
+    await supabase.from('stripe_events').insert({
+      event_id: event.id ?? null,
+      type: event.type ?? 'unknown',
+      status: 'ok',
+      payload: event as any,
+    })
+  } catch (logError) {
+    console.error('Failed to log stripe event', logError)
   }
 
   return NextResponse.json({ received: true })
