@@ -63,7 +63,7 @@ const ProductCard = ({ id, slug, title, artist, format, price, image, limited, p
 
       if (error) throw error;
       if (!data?.id) {
-        throw new Error('Variant unavailable. View the product for more details.');
+        throw new Error('No active variant found. Open the product page to choose a format.');
       }
 
       addItem({

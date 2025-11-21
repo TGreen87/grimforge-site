@@ -1,0 +1,18 @@
+{
+  "clients": [
+    {
+      "name": "supabase",
+      "type": "supabase",
+      "config": "./supabase/config.toml"
+    },
+    {
+      "name": "browser",
+      "type": "puppeteer",
+      "config": {
+        "launchOptions": {
+          "headless": true
+        }
+      }
+    }
+  ]
+}

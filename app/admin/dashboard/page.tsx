@@ -16,6 +16,7 @@ import AnnouncementCard from './components/announcement-card'
 import { AlertWatcher } from './components/alert-watcher'
 import AlertSummaryBanner from './components/alert-summary-banner'
 import RevenueGoalCard from './components/revenue-goal-card'
+import { CatalogHealthCard, type CatalogHealthSummary } from './components/catalog-health-card'
 
 interface OrderRecord {
   id: string
@@ -319,6 +320,70 @@ async function fetchAdminSettings(): Promise<AdminSettings> {
   return defaults
 }
 
+async function fetchCatalogHealth(): Promise<CatalogHealthSummary> {
+  const supabase = createServiceClient()
+
+  const [productsRes, inventoryRes] = await Promise.all([
+    supabase.from('products').select('id, title, active'),
+    supabase
+      .from('inventory')
+      .select(`
+        variant_id,
+        available,
+        variants:variant_id!inner (
+          id,
+          active,
+          product_id,
+          products:product_id!inner (id, title, active)
+        )
+      `)
+      .lte('available', 0),
+  ])
+
+  const activeProducts = (productsRes.data ?? []).filter((p) => p.active)
+  const zeroStockActive = (inventoryRes.data ?? []).filter((row) => {
+    const variant = Array.isArray(row.variants) ? row.variants[0] : row.variants
+    const product = variant && Array.isArray((variant as any)?.products) ? (variant as any).products[0] : (variant as any)?.products
+    return (
+      variant?.active === true &&
+      product?.active === true &&
+      (row.available ?? 0) <= 0
+    )
+  })
+
+  const productsWithActiveVariants = new Set<string>()
+  zeroStockActive.forEach((row) => {
+    const variant = Array.isArray(row.variants) ? row.variants[0] : row.variants
+    const product = variant && Array.isArray((variant as any)?.products) ? (variant as any).products[0] : (variant as any)?.products
+    if (product?.id) productsWithActiveVariants.add(product.id)
+  })
+
+  // To catch products that have active variants with stock, fetch minimal variant list
+  const { data: activeVariants } = await supabase
+    .from('variants')
+    .select('id, product_id, active')
+    .eq('active', true)
+
+  activeVariants?.forEach((v) => {
+    if (v.product_id) productsWithActiveVariants.add(v.product_id)
+  })
+
+  const missingVariants = activeProducts.filter((p) => !productsWithActiveVariants.has(p.id))
+
+  return {
+    missingVariants: missingVariants.slice(0, 8).map((p) => ({ id: p.id, title: p.title ?? 'Untitled product' })),
+    zeroStock: zeroStockActive.slice(0, 8).map((row) => {
+      const variant = Array.isArray(row.variants) ? row.variants[0] : row.variants
+      const product = variant && Array.isArray((variant as any)?.products) ? (variant as any).products[0] : (variant as any)?.products
+      return {
+        variantId: variant?.id ?? row.variant_id,
+        title: product?.title ?? 'Variant',
+        available: row.available ?? 0,
+      }
+    }),
+  }
+}
+
 function computeWindowTotals(series: RevenuePoint[], days: number) {
   const current = sumPaid(series.slice(-days))
   const previous = sumPaid(series.slice(-(days * 2), -days))
@@ -357,7 +422,7 @@ const EXPORT_TARGETS: Array<{
 ]
 
 export default async function AdminDashboardPage() {
-  const [summary, lowStock, stripePayout, revenueSeries30, lowStockTrend, announcement, announcementHistory, adminSettings] = await Promise.all([
+  const [summary, lowStock, stripePayout, revenueSeries30, lowStockTrend, announcement, announcementHistory, adminSettings, catalogHealth] = await Promise.all([
     fetchOrderSummary(),
     fetchLowStock(),
     fetchStripePayoutSummary(),
@@ -366,6 +431,7 @@ export default async function AdminDashboardPage() {
     fetchAnnouncement(),
     fetchAnnouncementHistory(),
     fetchAdminSettings(),
+    fetchCatalogHealth(),
   ])
 
   const revenueStats = computeRevenueChange(revenueSeries30)
@@ -384,6 +450,7 @@ export default async function AdminDashboardPage() {
         lowStockCount={lowStock.length}
         thresholds={alertsConfig}
       />
+      <CatalogHealthCard summary={catalogHealth} />
       <header className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div>
           <h1 className="blackletter text-4xl text-bone">Dashboard</h1>
