@@ -17,6 +17,7 @@ import { AlertWatcher } from './components/alert-watcher'
 import AlertSummaryBanner from './components/alert-summary-banner'
 import RevenueGoalCard from './components/revenue-goal-card'
 import { CatalogHealthCard, type CatalogHealthSummary } from './components/catalog-health-card'
+import { WebhookHealth } from './components/webhook-health'
 
 interface OrderRecord {
   id: string
@@ -450,6 +451,7 @@ export default async function AdminDashboardPage() {
         lowStockCount={lowStock.length}
         thresholds={alertsConfig}
       />
+      <WebhookHealth />
       <CatalogHealthCard summary={catalogHealth} />
       <header className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div>
