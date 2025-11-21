@@ -18,6 +18,7 @@ import AlertSummaryBanner from './components/alert-summary-banner'
 import RevenueGoalCard from './components/revenue-goal-card'
 import { CatalogHealthCard, type CatalogHealthSummary } from './components/catalog-health-card'
 import { WebhookHealth } from './components/webhook-health'
+import { BentoHealth } from '../ui/BentoHealth'
 
 interface OrderRecord {
   id: string
@@ -442,6 +443,7 @@ export default async function AdminDashboardPage() {
   const goalWindowDays = revenueGoal.period === '7d' ? 7 : 30
   const goalStats = computeWindowTotals(revenueSeries30, goalWindowDays)
   const currency = stripePayout?.currency ?? 'AUD'
+  const webhookStatus = stripePayout ? 'ok' : 'missing'
 
   return (
     <section className="space-y-8">
@@ -450,6 +452,11 @@ export default async function AdminDashboardPage() {
         awaitingCount={summary.awaitingFulfillment}
         lowStockCount={lowStock.length}
         thresholds={alertsConfig}
+      />
+      <BentoHealth
+        webhookStatus={webhookStatus as 'ok' | 'warn' | 'missing'}
+        missingOptions={catalogHealth.missingVariants.length}
+        zeroStock={catalogHealth.zeroStock.length}
       />
       <WebhookHealth />
       <CatalogHealthCard summary={catalogHealth} />
