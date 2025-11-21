@@ -35,6 +35,11 @@ export function CatalogHealthCard({ summary }: { summary: CatalogHealthSummary }
               ))}
             </ul>
             <p className="text-xs">Open the product and add an option (variant) with a price and stock, then save.</p>
+            <div>
+              <Link href={`/admin/products/edit/${summary.missingVariants[0]?.id ?? ''}`}>
+                <Badge variant="secondary" className="cursor-pointer">Open first product</Badge>
+              </Link>
+            </div>
           </div>
         ) : (
           <p>No products are missing active variants.</p>
