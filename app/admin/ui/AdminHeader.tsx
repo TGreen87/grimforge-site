@@ -1,8 +1,30 @@
 "use client";
+
 import React from "react";
-import { Layout, Breadcrumb, Input, Space, Dropdown, Avatar, Button, Tooltip } from "antd";
+import {
+  Layout,
+  Breadcrumb,
+  Input,
+  Space,
+  Dropdown,
+  Avatar,
+  Button,
+  Tooltip,
+  Badge,
+} from "antd";
 import { usePathname, useRouter } from "next/navigation";
-import { SearchOutlined, UserOutlined, PlusOutlined, InboxOutlined, FileTextOutlined, RobotOutlined } from "@ant-design/icons";
+import {
+  SearchOutlined,
+  UserOutlined,
+  PlusOutlined,
+  InboxOutlined,
+  FileTextOutlined,
+  RobotOutlined,
+  BellOutlined,
+  LogoutOutlined,
+  SettingOutlined,
+} from "@ant-design/icons";
+import { colors } from "../theme/tokens";
 
 const { Header } = Layout;
 
@@ -13,110 +35,250 @@ function useBreadcrumb() {
   let acc = "";
   for (const p of parts) {
     acc += `/${p}`;
-    items.push({ title: p.replace(/\[|\]|\(.*\)/g, "").replace(/-/g, " ").replace(/\b\w/g, (m) => m.toUpperCase()), href: acc });
+    items.push({
+      title: p
+        .replace(/\[|\]|\(.*\)/g, "")
+        .replace(/-/g, " ")
+        .replace(/\b\w/g, (m) => m.toUpperCase()),
+      href: acc,
+    });
   }
   return items;
 }
 
-export default function AdminHeader({ onOpenAssistant }: { onOpenAssistant?: () => void }) {
+interface AdminHeaderProps {
+  onOpenAssistant?: () => void;
+  onOpenNotifications?: () => void;
+  notificationCount?: number;
+}
+
+export default function AdminHeader({
+  onOpenAssistant,
+  onOpenNotifications,
+  notificationCount = 0,
+}: AdminHeaderProps) {
   const crumbs = useBreadcrumb();
   const router = useRouter();
+
+  // Keyboard shortcuts for navigation
   React.useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if (!e.altKey) return;
-      if (e.key === '1') router.push('/admin/products');
-      if (e.key === '2') router.push('/admin/inventory');
-      if (e.key === '3') router.push('/admin/orders');
-      if (e.key === '4') router.push('/admin/customers');
-      if (e.key === '5') router.push('/admin/articles');
+      if (e.key === "1") router.push("/admin/products");
+      if (e.key === "2") router.push("/admin/inventory");
+      if (e.key === "3") router.push("/admin/orders");
+      if (e.key === "4") router.push("/admin/customers");
+      if (e.key === "5") router.push("/admin/articles");
     };
-    window.addEventListener('keydown', handler);
-    return () => window.removeEventListener('keydown', handler);
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
   }, [router]);
+
+  // Assistant shortcut
   React.useEffect(() => {
     const handler = (event: KeyboardEvent) => {
-      if ((event.metaKey || event.ctrlKey) && event.shiftKey && event.key.toLowerCase() === 'c') {
+      if (
+        (event.metaKey || event.ctrlKey) &&
+        event.shiftKey &&
+        event.key.toLowerCase() === "c"
+      ) {
         event.preventDefault();
         onOpenAssistant?.();
       }
     };
-    window.addEventListener('keydown', handler);
-    return () => window.removeEventListener('keydown', handler);
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
   }, [onOpenAssistant]);
-  const menu = {
-    items: [
-      { key: 'profile', label: 'Profile' },
-      { key: 'logout', label: 'Logout' },
-    ],
-  } as any;
+
+  const userMenuItems = [
+    {
+      key: "settings",
+      label: "Settings",
+      icon: <SettingOutlined />,
+      onClick: () => router.push("/admin/settings"),
+    },
+    { type: "divider" as const },
+    {
+      key: "logout",
+      label: "Logout",
+      icon: <LogoutOutlined />,
+      danger: true,
+      onClick: () => {
+        // Will trigger auth provider logout
+        window.location.href = "/admin/login?logout=true";
+      },
+    },
+  ];
+
+  const quickActions = [
+    {
+      key: "product",
+      label: "New Product",
+      icon: <PlusOutlined />,
+      shortcut: "n p",
+      onClick: () => router.push("/admin/products/create"),
+    },
+    {
+      key: "stock",
+      label: "Receive Stock",
+      icon: <InboxOutlined />,
+      shortcut: "r s",
+      onClick: () => router.push("/admin/inventory"),
+    },
+    {
+      key: "article",
+      label: "New Article",
+      icon: <FileTextOutlined />,
+      shortcut: "n a",
+      onClick: () => router.push("/admin/articles/create"),
+    },
+  ];
 
   return (
-    <Header style={{ background: "linear-gradient(90deg,#0f0f0f,#111827)", borderBottom: "1px solid #1f2937" }}>
-      <div className="flex items-center justify-between gap-3">
+    <Header
+      className="admin-header"
+      style={{
+        background: colors.bg.elevated0,
+        borderBottom: `1px solid ${colors.border.subtle}`,
+        padding: "0 24px",
+        height: 56,
+        lineHeight: "56px",
+        position: "sticky",
+        top: 0,
+        zIndex: 100,
+      }}
+    >
+      <div className="flex items-center justify-between gap-4 h-full">
+        {/* Breadcrumb */}
         <Breadcrumb
           items={crumbs.map((crumb, index) => {
-            const isLast = index === crumbs.length - 1
-            const commonClass = "inline-flex min-h-[32px] items-center rounded px-3 py-1 text-sm transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+            const isLast = index === crumbs.length - 1;
             if (isLast) {
               return {
                 title: (
                   <span
-                    className={`${commonClass} text-bone cursor-default`}
+                    className="text-sm font-medium"
+                    style={{ color: colors.text.high }}
                     aria-current="page"
                   >
                     {crumb.title}
                   </span>
                 ),
-              }
+              };
             }
             return {
               title: (
                 <a
                   href={crumb.href}
-                  className={`${commonClass} text-muted-foreground hover:text-accent`}
+                  className="text-sm hover:underline transition-colors"
+                  style={{ color: colors.text.medium }}
                 >
                   {crumb.title}
                 </a>
               ),
-            }
+            };
           })}
         />
-        <Space size="middle">
+
+        {/* Right side actions */}
+        <Space size="middle" className="flex items-center">
+          {/* Search trigger */}
           <Input
             allowClear
-            prefix={<SearchOutlined />}
-            placeholder="Search (K)"
-            style={{ width: 300 }}
+            prefix={<SearchOutlined style={{ color: colors.text.low }} />}
+            placeholder="Search (⌘K)"
+            style={{
+              width: 220,
+              background: colors.bg.elevated1,
+              borderColor: colors.border.subtle,
+            }}
             onFocus={() => {
               try {
-                const ev = new KeyboardEvent('keydown', { key: 'k', metaKey: true });
+                const ev = new KeyboardEvent("keydown", {
+                  key: "k",
+                  metaKey: true,
+                });
                 window.dispatchEvent(ev);
               } catch {}
             }}
             onClick={(e) => {
               (e.target as HTMLInputElement).blur();
               try {
-                const ev = new KeyboardEvent('keydown', { key: 'k', metaKey: true });
+                const ev = new KeyboardEvent("keydown", {
+                  key: "k",
+                  metaKey: true,
+                });
                 window.dispatchEvent(ev);
               } catch {}
             }}
             readOnly
           />
+
+          {/* Quick actions */}
+          <div className="hidden md:flex items-center gap-1">
+            {quickActions.map((action) => (
+              <Tooltip
+                key={action.key}
+                title={`${action.label} (${action.shortcut})`}
+              >
+                <Button
+                  type="text"
+                  icon={action.icon}
+                  onClick={action.onClick}
+                  style={{ color: colors.text.medium }}
+                />
+              </Tooltip>
+            ))}
+          </div>
+
+          {/* Divider */}
+          <div
+            className="hidden md:block h-6 w-px"
+            style={{ background: colors.border.DEFAULT }}
+          />
+
+          {/* Assistant */}
           <Tooltip title="Open Copilot (⌘⇧C)">
             <Button
+              type="text"
               icon={<RobotOutlined />}
               onClick={() => onOpenAssistant?.()}
-              aria-label="Open admin copilot"
+              style={{ color: colors.accent.DEFAULT }}
             />
           </Tooltip>
-          <Dropdown menu={menu} trigger={["click"]}>
-            <Avatar style={{ backgroundColor: "#8B0000" }} icon={<UserOutlined />} />
+
+          {/* Notifications */}
+          <Tooltip title="Notifications">
+            <Badge
+              count={notificationCount}
+              size="small"
+              offset={[-4, 4]}
+              style={{ background: colors.danger.text }}
+            >
+              <Button
+                type="text"
+                icon={<BellOutlined />}
+                onClick={() => onOpenNotifications?.()}
+                style={{ color: colors.text.medium }}
+              />
+            </Badge>
+          </Tooltip>
+
+          {/* User menu */}
+          <Dropdown
+            menu={{ items: userMenuItems }}
+            trigger={["click"]}
+            placement="bottomRight"
+          >
+            <Avatar
+              size={32}
+              icon={<UserOutlined />}
+              style={{
+                background: `linear-gradient(135deg, ${colors.primary.DEFAULT} 0%, ${colors.primary.active} 100%)`,
+                cursor: "pointer",
+              }}
+            />
           </Dropdown>
-          <Space size="small">
-            <Tooltip title="New Product (n p)"><Button icon={<PlusOutlined />} onClick={()=>router.push('/admin/products/create')} /></Tooltip>
-            <Tooltip title="Receive Stock (r s)"><Button icon={<InboxOutlined />} onClick={()=>router.push('/admin/inventory')} /></Tooltip>
-            <Tooltip title="New Article (n a)"><Button icon={<FileTextOutlined />} onClick={()=>router.push('/admin/articles/create')} /></Tooltip>
-          </Space>
         </Space>
       </div>
     </Header>
