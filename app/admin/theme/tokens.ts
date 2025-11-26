@@ -120,8 +120,8 @@ export const shadows = {
 // Typography
 export const typography = {
   fontFamily: {
-    heading: "'Cinzel', 'Times New Roman', serif",
-    body: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+    heading: "var(--font-gothic), 'Cinzel', 'Times New Roman', serif",
+    body: "var(--font-body), 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
     mono: "'JetBrains Mono', 'Fira Code', Consolas, monospace",
   },
   fontSize: {
