@@ -378,14 +378,18 @@ interface MetricCardGridProps {
   columns?: 2 | 3 | 4;
 }
 
-export function MetricCardGrid({ children, columns = 4 }: MetricCardGridProps) {
+export function MetricCardGrid({ children, columns = 4, stagger = true }: MetricCardGridProps & { stagger?: boolean }) {
   const gridCols = {
     2: "grid-cols-1 sm:grid-cols-2",
     3: "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3",
     4: "grid-cols-2 lg:grid-cols-4",
   };
 
-  return <div className={`grid ${gridCols[columns]} gap-4`}>{children}</div>;
+  return (
+    <div className={`grid ${gridCols[columns]} gap-4 ${stagger ? "admin-stagger" : ""}`}>
+      {children}
+    </div>
+  );
 }
 
 // Export Sparkline for use elsewhere

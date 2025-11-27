@@ -1081,29 +1081,46 @@ export default function AdminAssistantDrawer({ open, onClose }: AdminAssistantDr
             {/* ElevenLabs voice input (if enabled) or browser native */}
             {voiceSettings.enabled ? (
               <Tooltip title={isRecordingElevenLabs ? 'Stop recording (ElevenLabs)' : 'Voice input (ElevenLabs)'}>
-                <Button
-                  type="text"
-                  icon={isRecordingElevenLabs ? <LoadingOutlined spin /> : <AudioOutlined />}
-                  onClick={toggleElevenLabsRecording}
-                  disabled={loading}
-                  style={{
-                    color: isRecordingElevenLabs ? '#8B0000' : '#eb2f96',
-                    animation: isRecordingElevenLabs ? 'pulse 1.5s infinite' : undefined,
-                  }}
-                />
+                {isRecordingElevenLabs ? (
+                  <button
+                    onClick={toggleElevenLabsRecording}
+                    className="admin-voice-recording flex items-center justify-center rounded-full"
+                    style={{ width: 32, height: 32, border: 'none', cursor: 'pointer' }}
+                  >
+                    <div className="admin-voice-wave">
+                      <span /><span /><span /><span /><span />
+                    </div>
+                  </button>
+                ) : (
+                  <Button
+                    type="text"
+                    icon={<AudioOutlined />}
+                    onClick={toggleElevenLabsRecording}
+                    disabled={loading}
+                    style={{ color: '#eb2f96' }}
+                  />
+                )}
               </Tooltip>
             ) : voiceSupported && (
               <Tooltip title={isListening ? 'Stop listening' : 'Voice input (Browser)'}>
-                <Button
-                  type="text"
-                  icon={<AudioOutlined />}
-                  onClick={toggleVoiceInput}
-                  disabled={loading}
-                  style={{
-                    color: isListening ? '#8B0000' : undefined,
-                    animation: isListening ? 'pulse 1.5s infinite' : undefined,
-                  }}
-                />
+                {isListening ? (
+                  <button
+                    onClick={toggleVoiceInput}
+                    className="admin-voice-recording flex items-center justify-center rounded-full"
+                    style={{ width: 32, height: 32, border: 'none', cursor: 'pointer' }}
+                  >
+                    <div className="admin-voice-wave">
+                      <span /><span /><span /><span /><span />
+                    </div>
+                  </button>
+                ) : (
+                  <Button
+                    type="text"
+                    icon={<AudioOutlined />}
+                    onClick={toggleVoiceInput}
+                    disabled={loading}
+                  />
+                )}
               </Tooltip>
             )}
             {/* Play/Stop TTS button */}
@@ -1141,10 +1158,12 @@ export default function AdminAssistantDrawer({ open, onClose }: AdminAssistantDr
             {/* Status indicators */}
             <span className="flex-1 min-w-0">
               {loading ? (
-                <Space size="small">
-                  <Spin size="small" />
+                <Space size="small" className="admin-animate-fade-in">
+                  <div className="admin-loading-dots">
+                    <span /><span /><span />
+                  </div>
                   <Text type="secondary" className="text-xs">
-                    {currentAgent !== 'general' ? `${AGENT_INFO[currentAgent].label} thinking…` : 'Thinking…'}
+                    {currentAgent !== 'general' ? `${AGENT_INFO[currentAgent].label} thinking` : 'Thinking'}
                   </Text>
                 </Space>
               ) : lastAssistantSources.length ? (

@@ -531,4 +531,384 @@ export const globalAdminStyles = `
     0% { background-position: 200% 0; }
     100% { background-position: -200% 0; }
   }
+
+  /* ============================================
+     MICRO-INTERACTIONS & POLISH
+     ============================================ */
+
+  /* Button press effect */
+  .ant-btn:active:not(:disabled) {
+    transform: scale(0.97) !important;
+    transition: transform 50ms ease !important;
+  }
+
+  /* Primary button glow on hover */
+  .ant-btn-primary:not(:disabled):hover {
+    box-shadow: 0 0 16px ${colors.primary.DEFAULT}60, ${shadows.sm};
+  }
+
+  /* Icon button spin on hover (for refresh/sync buttons) */
+  .admin-btn-spin-hover:hover .anticon {
+    animation: admin-icon-spin 0.8s ease-in-out;
+  }
+
+  @keyframes admin-icon-spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+
+  /* Success checkmark bounce */
+  @keyframes admin-success-bounce {
+    0% { transform: scale(0); opacity: 0; }
+    50% { transform: scale(1.2); }
+    100% { transform: scale(1); opacity: 1; }
+  }
+
+  .admin-success-icon {
+    animation: admin-success-bounce 0.4s ${animation.easing.bounce} forwards;
+  }
+
+  /* Ripple effect for clickable items */
+  .admin-ripple {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .admin-ripple::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at var(--ripple-x, 50%) var(--ripple-y, 50%),
+      rgba(255,255,255,0.15) 0%,
+      transparent 60%);
+    transform: scale(0);
+    opacity: 0;
+    transition: transform 0.4s ease-out, opacity 0.3s ease-out;
+  }
+
+  .admin-ripple:active::after {
+    transform: scale(2);
+    opacity: 1;
+    transition: transform 0s, opacity 0s;
+  }
+
+  /* Card lift on hover */
+  .admin-card-lift {
+    transition: transform ${animation.duration.normal} ${animation.easing.out},
+                box-shadow ${animation.duration.normal} ${animation.easing.out};
+  }
+
+  .admin-card-lift:hover {
+    transform: translateY(-2px);
+    box-shadow: ${shadows.md};
+  }
+
+  /* Gentle floating animation for attention items */
+  @keyframes admin-float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-4px); }
+  }
+
+  .admin-float {
+    animation: admin-float 3s ease-in-out infinite;
+  }
+
+  /* Attention pulse for important items */
+  @keyframes admin-attention-pulse {
+    0%, 100% {
+      box-shadow: 0 0 0 0 ${colors.primary.DEFAULT}40;
+    }
+    50% {
+      box-shadow: 0 0 0 8px ${colors.primary.DEFAULT}00;
+    }
+  }
+
+  .admin-attention {
+    animation: admin-attention-pulse 2s ease-in-out infinite;
+  }
+
+  /* Voice recording pulse */
+  @keyframes admin-voice-pulse {
+    0%, 100% {
+      box-shadow: 0 0 0 0 rgba(139, 0, 0, 0.4);
+      background-color: ${colors.primary.DEFAULT};
+    }
+    50% {
+      box-shadow: 0 0 0 12px rgba(139, 0, 0, 0);
+      background-color: ${colors.primary.hover};
+    }
+  }
+
+  .admin-voice-recording {
+    animation: admin-voice-pulse 1.5s ease-in-out infinite;
+  }
+
+  /* Loading spinner with blood theme */
+  @keyframes admin-spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+
+  .admin-spinner {
+    width: 20px;
+    height: 20px;
+    border: 2px solid ${colors.border.subtle};
+    border-top-color: ${colors.primary.DEFAULT};
+    border-radius: 50%;
+    animation: admin-spin 0.8s linear infinite;
+  }
+
+  /* Stagger children animations */
+  .admin-stagger > * {
+    opacity: 0;
+    animation: admin-fade-in 0.3s ${animation.easing.out} forwards;
+  }
+
+  .admin-stagger > *:nth-child(1) { animation-delay: 0ms; }
+  .admin-stagger > *:nth-child(2) { animation-delay: 50ms; }
+  .admin-stagger > *:nth-child(3) { animation-delay: 100ms; }
+  .admin-stagger > *:nth-child(4) { animation-delay: 150ms; }
+  .admin-stagger > *:nth-child(5) { animation-delay: 200ms; }
+  .admin-stagger > *:nth-child(6) { animation-delay: 250ms; }
+  .admin-stagger > *:nth-child(7) { animation-delay: 300ms; }
+  .admin-stagger > *:nth-child(8) { animation-delay: 350ms; }
+  .admin-stagger > *:nth-child(9) { animation-delay: 400ms; }
+  .admin-stagger > *:nth-child(10) { animation-delay: 450ms; }
+
+  /* Number count-up effect placeholder */
+  .admin-count-up {
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Badge bounce on update */
+  @keyframes admin-badge-bounce {
+    0% { transform: scale(1); }
+    20% { transform: scale(1.3); }
+    40% { transform: scale(0.9); }
+    60% { transform: scale(1.1); }
+    80% { transform: scale(0.95); }
+    100% { transform: scale(1); }
+  }
+
+  .admin-badge-update {
+    animation: admin-badge-bounce 0.5s ${animation.easing.bounce};
+  }
+
+  /* Notification slide-in */
+  @keyframes admin-notification-slide {
+    from {
+      opacity: 0;
+      transform: translateX(100%);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+
+  .admin-notification-enter {
+    animation: admin-notification-slide 0.3s ${animation.easing.out};
+  }
+
+  /* Toast pop-in */
+  @keyframes admin-toast-pop {
+    0% {
+      opacity: 0;
+      transform: translateY(16px) scale(0.9);
+    }
+    100% {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+
+  .admin-toast-enter {
+    animation: admin-toast-pop 0.25s ${animation.easing.bounce};
+  }
+
+  /* Focus ring animation */
+  @keyframes admin-focus-ring {
+    0% { box-shadow: 0 0 0 0 ${colors.primary.DEFAULT}40; }
+    100% { box-shadow: 0 0 0 4px ${colors.primary.DEFAULT}20; }
+  }
+
+  .admin-focus-visible:focus-visible {
+    outline: none;
+    animation: admin-focus-ring 0.2s ${animation.easing.out} forwards;
+  }
+
+  /* Drawer slide enhancement */
+  .ant-drawer-content-wrapper {
+    transition: transform 0.25s ${animation.easing.out} !important;
+  }
+
+  /* Modal zoom enhancement */
+  .ant-modal {
+    animation: admin-scale-in 0.2s ${animation.easing.bounce} !important;
+  }
+
+  /* Table row hover highlight */
+  .ant-table-tbody > tr {
+    transition: background-color ${animation.duration.fast} ${animation.easing.DEFAULT};
+  }
+
+  /* Switch toggle smooth */
+  .ant-switch {
+    transition: background-color ${animation.duration.normal} ${animation.easing.DEFAULT};
+  }
+
+  .ant-switch-handle {
+    transition: all ${animation.duration.fast} ${animation.easing.bounce};
+  }
+
+  /* Collapse smooth expand */
+  .ant-collapse-content {
+    transition: height ${animation.duration.normal} ${animation.easing.DEFAULT};
+  }
+
+  /* Tag hover effect */
+  .ant-tag {
+    transition: all ${animation.duration.fast} ${animation.easing.DEFAULT};
+  }
+
+  .ant-tag:hover {
+    transform: translateY(-1px);
+  }
+
+  /* Input shake on error */
+  @keyframes admin-shake {
+    0%, 100% { transform: translateX(0); }
+    20% { transform: translateX(-4px); }
+    40% { transform: translateX(4px); }
+    60% { transform: translateX(-4px); }
+    80% { transform: translateX(4px); }
+  }
+
+  .admin-input-error {
+    animation: admin-shake 0.4s ease-in-out;
+  }
+
+  /* Progress bar glow */
+  .ant-progress-inner {
+    background: ${colors.bg.elevated1} !important;
+  }
+
+  .ant-progress-bg {
+    transition: width ${animation.duration.slow} ${animation.easing.out};
+    box-shadow: 0 0 8px currentColor;
+  }
+
+  /* Copilot button special effects */
+  .copilot-btn {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .copilot-btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      rgba(255,255,255,0.1) 50%,
+      transparent 100%
+    );
+    transition: left 0.5s ease;
+  }
+
+  .copilot-btn:hover::before {
+    left: 100%;
+  }
+
+  /* Voice wave animation */
+  @keyframes admin-voice-wave {
+    0%, 100% { height: 4px; }
+    50% { height: 16px; }
+  }
+
+  .admin-voice-wave {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    height: 20px;
+  }
+
+  .admin-voice-wave span {
+    width: 3px;
+    height: 4px;
+    background: ${colors.primary.DEFAULT};
+    border-radius: 2px;
+    animation: admin-voice-wave 0.5s ease-in-out infinite;
+  }
+
+  .admin-voice-wave span:nth-child(2) { animation-delay: 0.1s; }
+  .admin-voice-wave span:nth-child(3) { animation-delay: 0.2s; }
+  .admin-voice-wave span:nth-child(4) { animation-delay: 0.3s; }
+  .admin-voice-wave span:nth-child(5) { animation-delay: 0.4s; }
+
+  /* Loading dots */
+  @keyframes admin-loading-dots {
+    0%, 80%, 100% { opacity: 0; transform: scale(0.8); }
+    40% { opacity: 1; transform: scale(1); }
+  }
+
+  .admin-loading-dots {
+    display: inline-flex;
+    gap: 4px;
+  }
+
+  .admin-loading-dots span {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: ${colors.text.medium};
+    animation: admin-loading-dots 1.4s ease-in-out infinite;
+  }
+
+  .admin-loading-dots span:nth-child(1) { animation-delay: 0s; }
+  .admin-loading-dots span:nth-child(2) { animation-delay: 0.16s; }
+  .admin-loading-dots span:nth-child(3) { animation-delay: 0.32s; }
+
+  /* Hover glow for interactive elements */
+  .admin-glow-hover {
+    transition: box-shadow ${animation.duration.normal} ${animation.easing.DEFAULT};
+  }
+
+  .admin-glow-hover:hover {
+    box-shadow: 0 0 20px ${colors.primary.DEFAULT}30;
+  }
+
+  /* Success message slide up */
+  @keyframes admin-success-slide {
+    0% {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    100% {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .admin-success-message {
+    animation: admin-success-slide 0.3s ${animation.easing.out};
+  }
+
+  /* Typing indicator */
+  @keyframes admin-typing {
+    0% { opacity: 0.3; }
+    50% { opacity: 1; }
+    100% { opacity: 0.3; }
+  }
+
+  .admin-typing-indicator span {
+    animation: admin-typing 1s ease-in-out infinite;
+  }
+
+  .admin-typing-indicator span:nth-child(2) { animation-delay: 0.2s; }
+  .admin-typing-indicator span:nth-child(3) { animation-delay: 0.4s; }
 `;
