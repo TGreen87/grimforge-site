@@ -192,8 +192,12 @@ export default function VoiceSettingsModal({
       }
       open={open}
       onCancel={onClose}
+      maskClosable={true}
+      keyboard={true}
+      destroyOnClose={false}
+      zIndex={1100}
       footer={[
-        <Button key="test" onClick={testVoice} loading={testPlaying} disabled={!settings.enabled}>
+        <Button key="test" onClick={testVoice} loading={testPlaying} disabled={!settings.enabled || !settings.voice_id}>
           <PlayCircleOutlined /> Test Voice
         </Button>,
         <Button key="close" type="primary" onClick={onClose} style={{ backgroundColor: '#8B0000' }}>
