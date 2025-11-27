@@ -23,10 +23,91 @@ import {
   BellOutlined,
   LogoutOutlined,
   SettingOutlined,
+  SoundOutlined,
 } from "@ant-design/icons";
 import { colors } from "../theme/tokens";
 
 const { Header } = Layout;
+
+// Enhanced Copilot button that shows voice status
+function CopilotButton({ onClick }: { onClick: () => void }) {
+  const [voiceEnabled, setVoiceEnabled] = React.useState(false);
+  const [isHovered, setIsHovered] = React.useState(false);
+
+  // Load voice settings from localStorage to show status
+  React.useEffect(() => {
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem("copilot_voice_settings");
+      if (saved) {
+        try {
+          const settings = JSON.parse(saved);
+          setVoiceEnabled(settings.enabled === true);
+        } catch {}
+      }
+    }
+    // Listen for storage changes
+    function handleStorage(e: StorageEvent) {
+      if (e.key === "copilot_voice_settings" && e.newValue) {
+        try {
+          const settings = JSON.parse(e.newValue);
+          setVoiceEnabled(settings.enabled === true);
+        } catch {}
+      }
+    }
+    window.addEventListener("storage", handleStorage);
+    return () => window.removeEventListener("storage", handleStorage);
+  }, []);
+
+  return (
+    <Tooltip
+      title={
+        <div className="text-center">
+          <div className="font-medium">Open Copilot</div>
+          <div className="text-xs opacity-80">⌘⇧C</div>
+          {voiceEnabled && (
+            <div className="text-xs mt-1 flex items-center justify-center gap-1">
+              <SoundOutlined /> Voice enabled
+            </div>
+          )}
+        </div>
+      }
+    >
+      <Button
+        onClick={onClick}
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+        className="copilot-btn"
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: 6,
+          background: isHovered
+            ? `linear-gradient(135deg, #8B0000 0%, #5c0000 100%)`
+            : `linear-gradient(135deg, ${colors.primary.DEFAULT} 0%, ${colors.primary.active} 100%)`,
+          borderColor: "transparent",
+          color: "white",
+          fontWeight: 500,
+          boxShadow: isHovered
+            ? "0 0 16px rgba(139, 0, 0, 0.5)"
+            : "0 0 8px rgba(139, 0, 0, 0.3)",
+          transition: "all 0.2s ease",
+        }}
+      >
+        <RobotOutlined style={{ fontSize: 16 }} />
+        <span className="hidden md:inline">Copilot</span>
+        {voiceEnabled && (
+          <SoundOutlined
+            style={{
+              fontSize: 12,
+              opacity: 0.8,
+              marginLeft: -2,
+            }}
+          />
+        )}
+      </Button>
+    </Tooltip>
+  );
+}
 
 function useBreadcrumb() {
   const pathname = usePathname() || "/admin";
@@ -237,15 +318,8 @@ export default function AdminHeader({
             style={{ background: colors.border.DEFAULT }}
           />
 
-          {/* Assistant */}
-          <Tooltip title="Open Copilot (⌘⇧C)">
-            <Button
-              type="text"
-              icon={<RobotOutlined />}
-              onClick={() => onOpenAssistant?.()}
-              style={{ color: colors.accent.DEFAULT }}
-            />
-          </Tooltip>
+          {/* Assistant - Enhanced visibility */}
+          <CopilotButton onClick={() => onOpenAssistant?.()} />
 
           {/* Notifications */}
           <Tooltip title="Notifications">
