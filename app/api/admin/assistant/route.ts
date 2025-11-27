@@ -130,12 +130,10 @@ const requestSchema = z.object({
 })
 
 // API call functions for each provider
-// Per OpenAI API docs: GPT-5.1 uses reasoning.effort parameter (none/low/medium/high)
 async function callOpenAI(
   messages: Array<{ role: string; content: any }>,
   model: string,
-  useStructuredOutput: boolean = true,
-  reasoningEffort?: 'none' | 'low' | 'medium' | 'high'
+  useStructuredOutput: boolean = true
 ): Promise<{ text: string; raw: any }> {
   const apiKey = process.env.OPENAI_API_KEY
   if (!apiKey) throw new Error('OPENAI_API_KEY not configured')
@@ -300,8 +298,8 @@ async function callModel(
       const claudeResult = await callClaude(messages, config.id)
       return { ...claudeResult, provider: 'anthropic' }
     default:
-      // Pass the actual model ID and reasoning effort from config
-      const openaiResult = await callOpenAI(messages, config.id, useStructuredOutput, config.reasoningEffort)
+      // Pass the actual model ID to OpenAI
+      const openaiResult = await callOpenAI(messages, config.id, useStructuredOutput)
       return { ...openaiResult, provider: 'openai' }
   }
 }
@@ -499,8 +497,7 @@ export async function POST(request: NextRequest) {
           const fallbackResult = await callOpenAI(
             apiMessages,
             fallbackConfig?.id || OPENAI_MODEL,
-            true,
-            fallbackConfig?.reasoningEffort
+            true
           )
           responseProvider = 'openai'
           const rawContent = fallbackResult.text.trim()
