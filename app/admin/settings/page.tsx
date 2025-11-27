@@ -32,6 +32,9 @@ import {
   AudioOutlined,
   PlayCircleOutlined,
   RobotOutlined,
+  ApiOutlined,
+  LinkOutlined,
+  ClockCircleOutlined,
 } from "@ant-design/icons";
 import { useRouter } from "next/navigation";
 import { colors } from "../theme/tokens";
@@ -110,6 +113,71 @@ const TTS_MODELS = [
     value: "eleven_multilingual_v2",
     label: "Multilingual v2 (Best)",
     description: "Highest quality, 29 languages",
+  },
+];
+
+// n8n webhook settings - stored in localStorage
+interface N8nSettings {
+  enabled: boolean;
+  webhookUrl: string;
+  webhookSecret: string;
+  enabledEvents: string[];
+}
+
+const DEFAULT_N8N_SETTINGS: N8nSettings = {
+  enabled: false,
+  webhookUrl: "",
+  webhookSecret: "",
+  enabledEvents: [
+    "orders:created",
+    "orders:paid",
+    "orders:fulfilled",
+    "inventory:low_stock",
+    "customers:created",
+  ],
+};
+
+const N8N_EVENT_CATEGORIES = [
+  {
+    category: "Orders",
+    events: [
+      { value: "orders:created", label: "New Order", description: "When a customer places an order" },
+      { value: "orders:paid", label: "Payment Confirmed", description: "When payment is received" },
+      { value: "orders:fulfilled", label: "Order Shipped", description: "When order is dispatched" },
+      { value: "orders:cancelled", label: "Order Cancelled", description: "When order is cancelled" },
+      { value: "orders:refunded", label: "Refund Issued", description: "When refund is processed" },
+    ],
+  },
+  {
+    category: "Inventory",
+    events: [
+      { value: "inventory:low_stock", label: "Low Stock Alert", description: "Stock below threshold" },
+      { value: "inventory:out_of_stock", label: "Out of Stock", description: "Product unavailable" },
+      { value: "inventory:restocked", label: "Restocked", description: "Stock replenished" },
+    ],
+  },
+  {
+    category: "Customers",
+    events: [
+      { value: "customers:created", label: "New Customer", description: "New account created" },
+      { value: "customers:first_purchase", label: "First Purchase", description: "Customer's first order" },
+      { value: "carts:abandoned", label: "Abandoned Cart", description: "Cart left without checkout" },
+    ],
+  },
+  {
+    category: "Products",
+    events: [
+      { value: "products:created", label: "Product Created", description: "New product added" },
+      { value: "products:updated", label: "Product Updated", description: "Product details changed" },
+      { value: "products:published", label: "Product Published", description: "Product made live" },
+    ],
+  },
+  {
+    category: "System",
+    events: [
+      { value: "assistant:action_executed", label: "AI Action", description: "Copilot action completed" },
+      { value: "system:daily_summary", label: "Daily Summary", description: "Business metrics report" },
+    ],
   },
 ];
 
@@ -248,6 +316,15 @@ export default function AdminSettingsPage() {
   const [voiceTestPlaying, setVoiceTestPlaying] = React.useState(false);
   const [previewPlaying, setPreviewPlaying] = React.useState<string | null>(null);
 
+  // n8n webhook settings state (client-side, localStorage)
+  const [n8nSettings, setN8nSettings] = React.useState<N8nSettings>(DEFAULT_N8N_SETTINGS);
+  const [n8nTestLoading, setN8nTestLoading] = React.useState(false);
+  const [n8nTestResult, setN8nTestResult] = React.useState<{
+    success: boolean;
+    latencyMs?: number;
+    error?: string;
+  } | null>(null);
+
   const enableOpsAlerts = Form.useWatch(["slack", "enable_ops_alerts"], form);
   const opsWebhook = Form.useWatch(["slack", "ops_alert_webhook"], form);
   const enableDashboardAlerts = Form.useWatch(
@@ -262,6 +339,18 @@ export default function AdminSettingsPage() {
       if (saved) {
         try {
           setVoiceSettings({ ...DEFAULT_VOICE_SETTINGS, ...JSON.parse(saved) });
+        } catch {}
+      }
+    }
+  }, []);
+
+  // Load n8n settings from localStorage on mount
+  React.useEffect(() => {
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem("n8n_webhook_settings");
+      if (saved) {
+        try {
+          setN8nSettings({ ...DEFAULT_N8N_SETTINGS, ...JSON.parse(saved) });
         } catch {}
       }
     }
@@ -361,6 +450,59 @@ export default function AdminSettingsPage() {
     };
     setVoiceSettings(newSettings);
     localStorage.setItem("copilot_voice_settings", JSON.stringify(newSettings));
+  }
+
+  // n8n settings functions
+  function saveN8nSettings(newSettings: N8nSettings) {
+    setN8nSettings(newSettings);
+    localStorage.setItem("n8n_webhook_settings", JSON.stringify(newSettings));
+    message.success("n8n webhook settings saved");
+  }
+
+  async function testN8nWebhook() {
+    if (!n8nSettings.webhookUrl) {
+      message.error("Please enter a webhook URL first");
+      return;
+    }
+
+    setN8nTestLoading(true);
+    setN8nTestResult(null);
+
+    try {
+      const response = await fetch("/api/admin/n8n/test", {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          url: n8nSettings.webhookUrl,
+          secret: n8nSettings.webhookSecret,
+        }),
+      });
+
+      const result = await response.json();
+      setN8nTestResult(result);
+
+      if (result.success) {
+        message.success(`Webhook test successful (${result.latencyMs}ms)`);
+      } else {
+        message.error(`Webhook test failed: ${result.error}`);
+      }
+    } catch (error) {
+      const errorMsg = error instanceof Error ? error.message : "Test failed";
+      setN8nTestResult({ success: false, error: errorMsg });
+      message.error(errorMsg);
+    } finally {
+      setN8nTestLoading(false);
+    }
+  }
+
+  function toggleN8nEvent(eventValue: string) {
+    const newEvents = n8nSettings.enabledEvents.includes(eventValue)
+      ? n8nSettings.enabledEvents.filter((e) => e !== eventValue)
+      : [...n8nSettings.enabledEvents, eventValue];
+    const newSettings = { ...n8nSettings, enabledEvents: newEvents };
+    setN8nSettings(newSettings);
+    localStorage.setItem("n8n_webhook_settings", JSON.stringify(newSettings));
   }
 
   React.useEffect(() => {
@@ -1055,6 +1197,201 @@ export default function AdminSettingsPage() {
                   <span className="text-xs" style={{ color: colors.text.low }}>
                     Hear how your copilot will sound
                   </span>
+                </div>
+              </>
+            )}
+          </div>
+        </SettingsSection>
+
+        {/* n8n Webhook Integration Section */}
+        <SettingsSection
+          icon={<ApiOutlined style={{ fontSize: 18 }} />}
+          title="n8n Workflow Automation"
+          description="Connect to n8n to automate business workflows like notifications, reports, and integrations"
+          accentColor="#FF6D5A"
+          badge={
+            n8nSettings.enabled && n8nSettings.webhookUrl ? (
+              <span
+                className="text-xs px-2 py-0.5 rounded-full"
+                style={{
+                  background: colors.success.bg,
+                  color: colors.success.text,
+                }}
+              >
+                Connected
+              </span>
+            ) : (
+              <span
+                className="text-xs px-2 py-0.5 rounded-full"
+                style={{
+                  background: colors.bg.elevated2,
+                  color: colors.text.low,
+                }}
+              >
+                Not configured
+              </span>
+            )
+          }
+        >
+          <div className="space-y-4">
+            {/* Enable n8n */}
+            <SettingsField
+              label="Enable n8n Webhooks"
+              help="Send business events to n8n for workflow automation"
+              inline
+            >
+              <Switch
+                checked={n8nSettings.enabled}
+                onChange={(enabled) => saveN8nSettings({ ...n8nSettings, enabled })}
+              />
+            </SettingsField>
+
+            {n8nSettings.enabled && (
+              <>
+                {/* Webhook URL */}
+                <SettingsField
+                  label="Webhook URL"
+                  help="Your n8n webhook URL (get this from your n8n workflow)"
+                >
+                  <Input
+                    value={n8nSettings.webhookUrl}
+                    onChange={(e) =>
+                      setN8nSettings({ ...n8nSettings, webhookUrl: e.target.value })
+                    }
+                    onBlur={() =>
+                      localStorage.setItem("n8n_webhook_settings", JSON.stringify(n8nSettings))
+                    }
+                    placeholder="https://your-n8n.com/webhook/your-id"
+                    prefix={<LinkOutlined style={{ color: colors.text.low }} />}
+                    style={{ background: colors.bg.elevated1 }}
+                  />
+                </SettingsField>
+
+                {/* Webhook Secret (optional) */}
+                <SettingsField
+                  label="Webhook Secret (Optional)"
+                  help="Add a secret for HMAC signature verification"
+                >
+                  <Input.Password
+                    value={n8nSettings.webhookSecret}
+                    onChange={(e) =>
+                      setN8nSettings({ ...n8nSettings, webhookSecret: e.target.value })
+                    }
+                    onBlur={() =>
+                      localStorage.setItem("n8n_webhook_settings", JSON.stringify(n8nSettings))
+                    }
+                    placeholder="your-secret-key"
+                    style={{ background: colors.bg.elevated1 }}
+                  />
+                </SettingsField>
+
+                {/* Test Connection */}
+                <div className="flex items-center gap-3">
+                  <Button
+                    icon={<SendOutlined />}
+                    onClick={testN8nWebhook}
+                    loading={n8nTestLoading}
+                    disabled={!n8nSettings.webhookUrl}
+                    style={{
+                      background: colors.bg.elevated1,
+                      borderColor: colors.border.DEFAULT,
+                      color: colors.text.high,
+                    }}
+                  >
+                    Test Connection
+                  </Button>
+                  {n8nTestResult && (
+                    <span
+                      className="text-xs flex items-center gap-1"
+                      style={{
+                        color: n8nTestResult.success ? colors.success.text : colors.danger.text,
+                      }}
+                    >
+                      {n8nTestResult.success ? (
+                        <>
+                          <CheckCircleOutlined /> Connected ({n8nTestResult.latencyMs}ms)
+                        </>
+                      ) : (
+                        <>
+                          <WarningOutlined /> {n8nTestResult.error}
+                        </>
+                      )}
+                    </span>
+                  )}
+                </div>
+
+                {/* Event Types */}
+                <div
+                  className="p-4 rounded-lg"
+                  style={{
+                    background: colors.bg.elevated1,
+                    border: `1px solid ${colors.border.subtle}`,
+                  }}
+                >
+                  <div
+                    className="text-sm font-medium mb-4"
+                    style={{ color: colors.text.high }}
+                  >
+                    Events to Send
+                  </div>
+                  <div className="space-y-4">
+                    {N8N_EVENT_CATEGORIES.map((category) => (
+                      <div key={category.category}>
+                        <div
+                          className="text-xs font-medium uppercase tracking-wider mb-2"
+                          style={{ color: colors.text.low }}
+                        >
+                          {category.category}
+                        </div>
+                        <div className="flex flex-wrap gap-2">
+                          {category.events.map((event) => {
+                            const isEnabled = n8nSettings.enabledEvents.includes(event.value);
+                            return (
+                              <Tooltip key={event.value} title={event.description}>
+                                <Tag
+                                  className="cursor-pointer transition-all"
+                                  onClick={() => toggleN8nEvent(event.value)}
+                                  style={{
+                                    background: isEnabled
+                                      ? `${colors.success.text}20`
+                                      : colors.bg.elevated2,
+                                    color: isEnabled ? colors.success.text : colors.text.medium,
+                                    border: isEnabled
+                                      ? `1px solid ${colors.success.text}40`
+                                      : `1px solid ${colors.border.subtle}`,
+                                    borderRadius: 6,
+                                  }}
+                                >
+                                  {isEnabled && <CheckCircleOutlined style={{ marginRight: 4 }} />}
+                                  {event.label}
+                                </Tag>
+                              </Tooltip>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="text-xs mt-4" style={{ color: colors.text.low }}>
+                    {n8nSettings.enabledEvents.length} event{n8nSettings.enabledEvents.length !== 1 ? "s" : ""} selected
+                  </div>
+                </div>
+
+                {/* Info box */}
+                <div
+                  className="p-3 rounded-lg flex items-start gap-3"
+                  style={{
+                    background: colors.info.bg,
+                    border: `1px solid ${colors.info.border}`,
+                  }}
+                >
+                  <ThunderboltOutlined style={{ color: colors.info.text, marginTop: 2 }} />
+                  <div className="text-xs" style={{ color: colors.text.medium }}>
+                    <strong style={{ color: colors.info.text }}>How it works:</strong> When selected events
+                    occur (like new orders or low stock), your admin panel will send a webhook to n8n. Create
+                    workflows in n8n to send Slack alerts, update spreadsheets, trigger emails, or integrate
+                    with any of 400+ apps.
+                  </div>
                 </div>
               </>
             )}
