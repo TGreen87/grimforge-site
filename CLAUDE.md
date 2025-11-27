@@ -21,8 +21,20 @@ git push origin main          # → https://obsidianriterecords.com (production)
 ```
 
 - `dev_claude` is the active development branch
-- Only push to `main` after owner approval
+- Only push to `main` after explicit owner approval
 - Admin panel: append `/admin` to any deploy URL
+- **No PRs** - merge directly when approved
+
+## Slash Commands
+
+Available in `.claude/commands/`:
+- `/deploy-status` - Check Netlify deploy status
+- `/test-api` - Test dev branch API endpoints
+- `/openai-models` - List available OpenAI models
+- `/supabase-status` - Check database status
+- `/ship` - Commit and push to dev_claude
+- `/promote` - Merge to main (requires owner approval)
+- `/env-check` - Verify Netlify environment variables
 
 ## Architecture Overview
 
