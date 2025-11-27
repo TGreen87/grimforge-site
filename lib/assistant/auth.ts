@@ -66,7 +66,7 @@ export async function assertAdmin(request: NextRequest): Promise<AssertAdminResu
     return { ok: true, userId: null }
   }
 
-  const supabase = createClient()
+  const supabase = await createClient()
   const {
     data: { user },
   } = await supabase.auth.getUser()

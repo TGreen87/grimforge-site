@@ -33,7 +33,7 @@ function toCsv(rows: CsvRow[]): string {
 }
 
 async function assertAdmin() {
-  const supabase = createClient()
+  const supabase = await createClient()
   const {
     data: { session },
   } = await supabase.auth.getSession()

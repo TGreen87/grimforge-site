@@ -4,10 +4,14 @@ import { cookies } from 'next/headers'
 /**
  * Create a Supabase client for server-side operations
  * This client automatically handles cookie-based auth
+ *
+ * IMPORTANT: In Next.js 15, cookies() is async. This function must be called
+ * with await or the cookieStore will be a Promise, breaking auth.
  */
-function resolveCookieStore() {
+async function resolveCookieStore() {
   try {
-    return cookies()
+    // Next.js 15: cookies() returns Promise<ReadonlyRequestCookies>
+    return await cookies()
   } catch (error) {
     // During build-time or static generation, cookies() can throw. Fall back to a no-op shim.
     return {
@@ -18,8 +22,8 @@ function resolveCookieStore() {
   }
 }
 
-export function createClient() {
-  const cookieStore = resolveCookieStore() as any
+export async function createClient() {
+  const cookieStore = await resolveCookieStore() as any
 
   return createServerClient(
     process.env.SUPABASE_URL_STAGING || process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL!,

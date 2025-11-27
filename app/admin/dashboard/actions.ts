@@ -10,7 +10,7 @@ export async function updateDashboardAnnouncement(message: string) {
     throw new Error('Announcement cannot be empty')
   }
 
-  const supabase = createClient()
+  const supabase = await createClient()
   const {
     data: { session },
   } = await supabase.auth.getSession()
@@ -87,7 +87,7 @@ export async function updateDashboardAnnouncement(message: string) {
 }
 
 export async function revertDashboardAnnouncement(historyId: string) {
-  const supabase = createClient()
+  const supabase = await createClient()
   const {
     data: { session },
   } = await supabase.auth.getSession()

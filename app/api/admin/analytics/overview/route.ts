@@ -3,7 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import { getAnalyticsSummary } from '@/lib/analytics/overview'
 
 async function assertAdmin(request: NextRequest) {
-  const supabase = createClient()
+  const supabase = await createClient()
   const {
     data: { user },
   } = await supabase.auth.getUser()
