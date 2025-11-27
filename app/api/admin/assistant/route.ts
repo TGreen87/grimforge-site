@@ -158,8 +158,8 @@ async function callOpenAI(
     payload.max_completion_tokens = 4096
   } else if (isGpt5Plus) {
     // GPT-5+ models use max_completion_tokens
+    // Note: GPT-5.1 models only support default temperature (1), not custom values
     payload.max_completion_tokens = 4096
-    payload.temperature = 0.2
   } else {
     // Legacy models use max_tokens
     payload.max_tokens = 4096
