@@ -207,7 +207,9 @@ The new unified API that should be used for all new development:
 
   // Output control
   max_output_tokens: 4096,
-  response_format: { type: "json_schema", json_schema: {...} },
+
+  // Structured output (Responses API uses text.format, NOT response_format)
+  text: { format: { type: "json_schema", name: "...", schema: {...} } },
 
   // Reasoning (GPT-5.1) - NESTED OBJECT FORMAT
   reasoning: { effort: "low" | "medium" | "high" },  // omit entirely for 'none'

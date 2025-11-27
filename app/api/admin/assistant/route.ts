@@ -208,11 +208,16 @@ async function callResponsesAPI(
     payload.tools = options.tools
   }
 
-  // Structured output with JSON schema (per docs: response_format, not text.format)
+  // Structured output with JSON schema
+  // Per docs: Responses API uses text.format, NOT response_format (which is deprecated)
+  // Format: text: { format: { type: "json_schema", schema: {...} } }
   if (options.useStructuredOutput !== false) {
-    payload.response_format = {
-      type: 'json_schema',
-      json_schema: RESPONSE_JSON_SCHEMA,
+    payload.text = {
+      format: {
+        type: 'json_schema',
+        name: RESPONSE_JSON_SCHEMA.name,
+        schema: RESPONSE_JSON_SCHEMA.schema,
+      },
     }
   }
 
