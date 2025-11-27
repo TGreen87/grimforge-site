@@ -130,17 +130,20 @@ const requestSchema = z.object({
 })
 
 // API call functions for each provider
+// Per OpenAI API docs: https://platform.openai.com/docs/api-reference/chat/create
+// GPT-5/5.1 models support: max_completion_tokens, temperature (0-2), reasoning_effort (low/medium/high)
 async function callOpenAI(
   messages: Array<{ role: string; content: any }>,
   model: string,
-  useStructuredOutput: boolean = true
+  useStructuredOutput: boolean = true,
+  reasoningEffort?: 'none' | 'low' | 'medium' | 'high'
 ): Promise<{ text: string; raw: any }> {
   const apiKey = process.env.OPENAI_API_KEY
   if (!apiKey) throw new Error('OPENAI_API_KEY not configured')
 
   // Check if this is a reasoning model (o-series)
   const isOSeriesModel = model.startsWith('o3') || model.startsWith('o4')
-  // Check if this is a GPT-5.1 model (supports reasoning.effort parameter)
+  // Check if this is a GPT-5.1 model (supports reasoning_effort parameter)
   const isGpt51 = model.startsWith('gpt-5.1')
   // Check if this is a GPT-5+ model (use max_completion_tokens instead of deprecated params)
   const isGpt5Plus = model.startsWith('gpt-5')
@@ -150,16 +153,18 @@ async function callOpenAI(
     messages,
   }
 
-  // Note: The 'reasoning' parameter was removed as it's not supported by the current OpenAI API
-  // The reasoningEffort config is kept for future compatibility but not sent to the API
-
   // O-series models don't support temperature, top_p, etc.
   if (isOSeriesModel) {
     payload.max_completion_tokens = 4096
   } else if (isGpt5Plus) {
-    // GPT-5+ models use max_completion_tokens
-    // Note: GPT-5.1 models only support default temperature (1), not custom values
+    // GPT-5+ models use max_completion_tokens and support temperature (0-2)
     payload.max_completion_tokens = 4096
+    payload.temperature = 0.7 // Balanced between deterministic and creative
+    // GPT-5.1 supports reasoning_effort as a top-level parameter
+    // Values: low, medium, high (none means omit the parameter)
+    if (isGpt51 && reasoningEffort && reasoningEffort !== 'none') {
+      payload.reasoning_effort = reasoningEffort
+    }
   } else {
     // Legacy models use max_tokens
     payload.max_tokens = 4096
@@ -306,8 +311,8 @@ async function callModel(
       const claudeResult = await callClaude(messages, config.id)
       return { ...claudeResult, provider: 'anthropic' }
     default:
-      // Pass the actual model ID to OpenAI
-      const openaiResult = await callOpenAI(messages, config.id, useStructuredOutput)
+      // Pass the actual model ID and reasoning effort to OpenAI
+      const openaiResult = await callOpenAI(messages, config.id, useStructuredOutput, config.reasoningEffort)
       return { ...openaiResult, provider: 'openai' }
   }
 }
@@ -505,7 +510,8 @@ export async function POST(request: NextRequest) {
           const fallbackResult = await callOpenAI(
             apiMessages,
             fallbackConfig?.id || OPENAI_MODEL,
-            true
+            true,
+            fallbackConfig?.reasoningEffort
           )
           responseProvider = 'openai'
           const rawContent = fallbackResult.text.trim()

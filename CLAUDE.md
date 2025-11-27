@@ -83,7 +83,8 @@ ANTHROPIC_API_KEY
 ## Working with the AI Copilot
 
 Model configuration in `app/api/admin/assistant/route.ts`:
-- GPT-5.1 uses `reasoning.effort` parameter (`none`/`low`/`medium`/`high`)
+- GPT-5.1 uses `reasoning_effort` parameter (top-level, not nested)
+- Valid values: `low`, `medium`, `high` (omit for none/default)
 - Product/Marketing agents use `high` reasoning
 - Operations/General use `none` (fast responses)
 
@@ -91,3 +92,46 @@ Voice features in `app/api/admin/voice/`:
 - `voices/route.ts` - Lists all ElevenLabs account voices
 - `tts/route.ts` - Text-to-speech synthesis
 - `stt/route.ts` - Speech-to-text transcription
+
+## OpenAI API Reference (ALWAYS USE THESE - NOT TRAINING DATA)
+
+**CRITICAL: Always fetch current docs, never rely on Claude's training data for OpenAI API.**
+
+### Official Documentation Links
+- **API Overview**: https://platform.openai.com/docs/overview
+- **Chat Completions**: https://platform.openai.com/docs/api-reference/chat/create
+- **Models List**: https://platform.openai.com/docs/models
+- **Responses API** (newer): https://platform.openai.com/docs/api-reference/responses
+
+### Current Model IDs (Nov 2025)
+```
+GPT-5.1 Series:
+- gpt-5.1, gpt-5.1-chat-latest, gpt-5.1-codex
+
+GPT-5 Series:
+- gpt-5, gpt-5-2025-08-07, gpt-5-mini, gpt-5-pro, gpt-5-codex
+
+O-Series Reasoning:
+- o3-mini, o4-mini
+```
+
+### Chat Completions Parameters (GPT-5/5.1)
+```typescript
+{
+  model: string,                    // Required: model ID
+  messages: Message[],              // Required: conversation
+  max_completion_tokens: number,    // GPT-5+ uses this (not max_tokens)
+  temperature: number,              // 0-2, controls randomness
+  reasoning_effort: 'low' | 'medium' | 'high',  // GPT-5.1 only, top-level
+  response_format: { type: 'json_schema', json_schema: {...} },
+  tools: Tool[],                    // Function calling
+  stream: boolean,
+}
+```
+
+### Important Notes
+- **max_completion_tokens** replaces deprecated `max_tokens` for GPT-5+
+- **reasoning_effort** is a TOP-LEVEL parameter, not nested under `reasoning`
+- **temperature** IS supported for GPT-5/5.1 (range 0-2)
+- O-series models (o3, o4) do NOT support temperature/top_p
+- Responses API is the newer unified interface, Chat Completions is legacy but still supported
