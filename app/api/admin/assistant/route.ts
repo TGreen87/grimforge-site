@@ -185,12 +185,20 @@ async function callOpenAI(
     body: JSON.stringify(payload),
   })
 
+  const responseText = await response.text()
+
   if (!response.ok) {
-    const error = await response.text()
-    throw new Error(`OpenAI API error: ${error}`)
+    throw new Error(`OpenAI API error: ${responseText}`)
   }
 
-  const data = await response.json()
+  // Clean the response text of any problematic control characters before parsing
+  const cleanedText = responseText.replace(/[\x00-\x1F\x7F]/g, (char) => {
+    // Keep newlines, tabs, and carriage returns - they're valid in JSON strings
+    if (char === '\n' || char === '\t' || char === '\r') return char
+    return ''
+  })
+
+  const data = JSON.parse(cleanedText)
   return { text: data.choices[0]?.message?.content || '', raw: data }
 }
 
