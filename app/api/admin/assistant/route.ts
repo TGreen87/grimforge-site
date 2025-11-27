@@ -26,20 +26,18 @@ interface ModelConfig {
   reasoningEffort?: 'low' | 'medium' | 'high' // omit for 'none' (default for 5.1)
 }
 
-// Current models - using gpt-4o as fallback until GPT-5.1 issues resolved
+// Current models (Nov 2025)
 const MODELS: Record<string, ModelConfig> = {
-  // GPT-4o - reliable, well-tested
-  'gpt-4o': { id: 'gpt-4o', displayName: 'GPT-4o', supportsVision: true },
-  'gpt-4o-mini': { id: 'gpt-4o-mini', displayName: 'GPT-4o Mini', supportsVision: true },
-  // GPT-5.1 Series - Best for agentic tasks (may need API access)
+  // GPT-5.1 Series - Current flagship
   'gpt-5.1-high': { id: 'gpt-5.1', displayName: 'GPT-5.1 High Reasoning', supportsVision: true, reasoningEffort: 'high' },
+  'gpt-5.1-medium': { id: 'gpt-5.1', displayName: 'GPT-5.1 Medium', supportsVision: true, reasoningEffort: 'medium' },
   'gpt-5.1': { id: 'gpt-5.1', displayName: 'GPT-5.1', supportsVision: true },
 }
 
 // Agent configurations with specialized system prompts
 const AGENT_CONFIGS: Record<AgentType, { defaultModel: string; systemPromptAddition: string }> = {
   product: {
-    defaultModel: 'gpt-4o',  // Using gpt-4o until GPT-5.1 API access confirmed
+    defaultModel: 'gpt-5.1-high',
     systemPromptAddition: `
 You specialize in product management for a metal music import business (vinyls, CDs, cassettes).
 When analyzing images: identify band/artist, album title, format, special editions, condition.
@@ -47,14 +45,14 @@ Generate compelling metal-scene-appropriate product descriptions.
 Suggest categories, tags, and pricing based on format and rarity.`,
   },
   operations: {
-    defaultModel: 'gpt-4o-mini',
+    defaultModel: 'gpt-5.1',
     systemPromptAddition: `
 You specialize in inventory and order operations for an Australian music import business.
 Help with stock management, order processing, shipping estimates (AU focused).
 Provide clear summaries, flag issues (low stock, delays), and suggest optimizations.`,
   },
   marketing: {
-    defaultModel: 'gpt-4o',
+    defaultModel: 'gpt-5.1-high',
     systemPromptAddition: `
 You specialize in marketing content for underground metal music.
 Your voice: authentic to metal/underground scene, knowledgeable, passionate but professional.
@@ -62,7 +60,7 @@ Create social posts (Instagram, Facebook), articles, email campaigns, release an
 Use genre-appropriate language, relevant hashtags, mention local AU shipping/AUD pricing.`,
   },
   general: {
-    defaultModel: 'gpt-4o-mini',
+    defaultModel: 'gpt-5.1',
     systemPromptAddition: '',
   },
 }
@@ -199,9 +197,10 @@ async function callResponsesAPI(
     payload.previous_response_id = options.previousResponseId
   }
 
-  // Reasoning effort (GPT-5.1) - omit for 'none'/default
+  // Reasoning (GPT-5.1) - nested object format: reasoning: { effort: "medium" }
+  // Omit entirely for 'none'/default
   if (options.reasoningEffort) {
-    payload.reasoning_effort = options.reasoningEffort
+    payload.reasoning = { effort: options.reasoningEffort }
   }
 
   // Built-in tools
@@ -209,13 +208,11 @@ async function callResponsesAPI(
     payload.tools = options.tools
   }
 
-  // Structured output with JSON schema
+  // Structured output with JSON schema (per docs: response_format, not text.format)
   if (options.useStructuredOutput !== false) {
-    payload.text = {
-      format: {
-        type: 'json_schema',
-        ...RESPONSE_JSON_SCHEMA,
-      },
+    payload.response_format = {
+      type: 'json_schema',
+      json_schema: RESPONSE_JSON_SCHEMA,
     }
   }
 

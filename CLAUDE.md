@@ -209,8 +209,8 @@ The new unified API that should be used for all new development:
   max_output_tokens: 4096,
   response_format: { type: "json_schema", json_schema: {...} },
 
-  // Reasoning (GPT-5.1)
-  reasoning_effort: "low" | "medium" | "high",  // omit for 'none'
+  // Reasoning (GPT-5.1) - NESTED OBJECT FORMAT
+  reasoning: { effort: "low" | "medium" | "high" },  // omit entirely for 'none'
 
   // Streaming
   stream: true,
@@ -271,8 +271,8 @@ The new unified API that should be used for all new development:
     }
   },
 
-  // Reasoning (GPT-5.1)
-  reasoning_effort: "high",
+  // Reasoning (GPT-5.1) - NESTED OBJECT
+  reasoning: { effort: "high" },
 
   // Streaming
   stream: true,
