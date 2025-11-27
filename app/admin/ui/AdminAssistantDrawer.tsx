@@ -1209,6 +1209,8 @@ export default function AdminAssistantDrawer({ open, onClose }: AdminAssistantDr
         confirmLoading={actionLoading}
         okText="Run"
         okButtonProps={{ danger: false }}
+        getContainer={false}
+        zIndex={1100}
       >
         {pendingAction && (
           <div className="space-y-3 text-sm">

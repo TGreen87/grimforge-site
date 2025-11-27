@@ -196,6 +196,7 @@ export default function VoiceSettingsModal({
       keyboard={true}
       destroyOnClose={false}
       zIndex={1100}
+      getContainer={false}
       footer={[
         <Button key="test" onClick={testVoice} loading={testPlaying} disabled={!settings.enabled || !settings.voice_id}>
           <PlayCircleOutlined /> Test Voice
