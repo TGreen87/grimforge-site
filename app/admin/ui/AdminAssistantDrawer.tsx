@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState, useCallback } from 'react'
 import { Alert, Button, Collapse, Drawer, Form, Input, InputNumber, List, Modal, Space, Spin, Switch, Tag, Typography, Divider, Upload, message, Tooltip, Badge } from 'antd'
 import type { UploadFile, RcFile } from 'antd/es/upload/interface'
 import {
@@ -15,10 +15,15 @@ import {
   AudioOutlined,
   CameraOutlined,
   PictureOutlined,
+  SoundOutlined,
+  SettingOutlined,
+  LoadingOutlined,
+  PauseCircleOutlined,
 } from '@ant-design/icons'
 import { assistantActionMap } from '@/lib/assistant/actions'
 import type { AssistantActionType } from '@/lib/assistant/actions'
 import { buildActionPlan } from '@/lib/assistant/plans'
+import VoiceSettingsModal, { DEFAULT_VOICE_SETTINGS, type VoiceSettings } from './VoiceSettingsModal'
 
 const { Text, Paragraph } = Typography
 const { Panel } = Collapse
@@ -122,6 +127,25 @@ export default function AdminAssistantDrawer({ open, onClose }: AdminAssistantDr
   const [currentModel, setCurrentModel] = useState<string>('')
   const [isListening, setIsListening] = useState(false) // Voice input state
   const [voiceSupported, setVoiceSupported] = useState(false)
+  // ElevenLabs voice settings
+  const [voiceSettings, setVoiceSettings] = useState<VoiceSettings>(() => {
+    // Load from localStorage if available
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('copilot_voice_settings')
+      if (saved) {
+        try {
+          return { ...DEFAULT_VOICE_SETTINGS, ...JSON.parse(saved) }
+        } catch {}
+      }
+    }
+    return DEFAULT_VOICE_SETTINGS
+  })
+  const [voiceSettingsOpen, setVoiceSettingsOpen] = useState(false)
+  const [isSpeaking, setIsSpeaking] = useState(false)
+  const [isRecordingElevenLabs, setIsRecordingElevenLabs] = useState(false)
+  const currentAudioRef = useRef<HTMLAudioElement | null>(null)
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null)
+  const audioChunksRef = useRef<Blob[]>([])
   const listRef = useRef<HTMLDivElement | null>(null)
   const fileInputRef = useRef<HTMLInputElement | null>(null)
   const recognitionRef = useRef<any>(null)
@@ -208,7 +232,7 @@ export default function AdminAssistantDrawer({ open, onClose }: AdminAssistantDr
     }
   }, [form])
 
-  // Toggle voice recognition
+  // Toggle voice recognition (browser-native)
   function toggleVoiceInput() {
     if (!recognitionRef.current) return
 
@@ -224,6 +248,145 @@ export default function AdminAssistantDrawer({ open, onClose }: AdminAssistantDr
         console.error('Failed to start recognition:', error)
         message.error('Could not start voice input')
       }
+    }
+  }
+
+  // Save voice settings to localStorage when changed
+  function handleVoiceSettingsChange(newSettings: VoiceSettings) {
+    setVoiceSettings(newSettings)
+    localStorage.setItem('copilot_voice_settings', JSON.stringify(newSettings))
+  }
+
+  // ElevenLabs TTS - speak text aloud
+  const speakText = useCallback(async (text: string) => {
+    if (!voiceSettings.enabled || !text?.trim()) return
+
+    // Stop any currently playing audio
+    if (currentAudioRef.current) {
+      currentAudioRef.current.pause()
+      currentAudioRef.current = null
+    }
+
+    setIsSpeaking(true)
+    try {
+      const response = await fetch('/api/admin/voice/tts', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          text: text.slice(0, 5000), // Limit to 5000 chars
+          voice_id: voiceSettings.voice_id,
+          model_id: voiceSettings.model_id,
+          stability: voiceSettings.stability,
+          similarity_boost: voiceSettings.similarity_boost,
+          style: voiceSettings.style,
+          speed: voiceSettings.speed,
+        }),
+      })
+
+      if (!response.ok) {
+        throw new Error('TTS request failed')
+      }
+
+      const audioBlob = await response.blob()
+      const audioUrl = URL.createObjectURL(audioBlob)
+      const audio = new Audio(audioUrl)
+      currentAudioRef.current = audio
+
+      audio.onended = () => {
+        setIsSpeaking(false)
+        URL.revokeObjectURL(audioUrl)
+        currentAudioRef.current = null
+      }
+      audio.onerror = () => {
+        setIsSpeaking(false)
+        currentAudioRef.current = null
+      }
+      audio.play()
+    } catch (error) {
+      console.error('TTS failed:', error)
+      setIsSpeaking(false)
+    }
+  }, [voiceSettings])
+
+  // Stop speaking
+  function stopSpeaking() {
+    if (currentAudioRef.current) {
+      currentAudioRef.current.pause()
+      currentAudioRef.current = null
+      setIsSpeaking(false)
+    }
+  }
+
+  // ElevenLabs STT - record and transcribe audio
+  async function startElevenLabsRecording() {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
+      const mediaRecorder = new MediaRecorder(stream, { mimeType: 'audio/webm' })
+      mediaRecorderRef.current = mediaRecorder
+      audioChunksRef.current = []
+
+      mediaRecorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          audioChunksRef.current.push(event.data)
+        }
+      }
+
+      mediaRecorder.onstop = async () => {
+        stream.getTracks().forEach(track => track.stop())
+        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' })
+
+        // Send to ElevenLabs STT
+        setIsRecordingElevenLabs(false)
+        message.info('Transcribing...')
+
+        try {
+          const formData = new FormData()
+          formData.append('audio', audioBlob, 'recording.webm')
+          formData.append('model_id', 'scribe_v1')
+          formData.append('language_code', 'en')
+
+          const response = await fetch('/api/admin/voice/stt', {
+            method: 'POST',
+            credentials: 'include',
+            body: formData,
+          })
+
+          if (!response.ok) {
+            throw new Error('STT request failed')
+          }
+
+          const data = await response.json()
+          if (data.text) {
+            form.setFieldsValue({ prompt: data.text })
+            message.success('Transcription complete')
+          }
+        } catch (error) {
+          console.error('STT failed:', error)
+          message.error('Failed to transcribe audio')
+        }
+      }
+
+      mediaRecorder.start()
+      setIsRecordingElevenLabs(true)
+      message.info('Recording... click again to stop')
+    } catch (error) {
+      console.error('Failed to start recording:', error)
+      message.error('Could not access microphone')
+    }
+  }
+
+  function stopElevenLabsRecording() {
+    if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
+      mediaRecorderRef.current.stop()
+    }
+  }
+
+  function toggleElevenLabsRecording() {
+    if (isRecordingElevenLabs) {
+      stopElevenLabsRecording()
+    } else {
+      startElevenLabsRecording()
     }
   }
 
@@ -446,6 +609,11 @@ export default function AdminAssistantDrawer({ open, onClose }: AdminAssistantDr
         }
         return updated
       })
+
+      // Auto-play response if enabled
+      if (voiceSettings.enabled && voiceSettings.auto_play && data.message) {
+        speakText(data.message)
+      }
     } catch (error) {
       setMessages((current) => {
         const updated = [...current]
@@ -623,17 +791,28 @@ export default function AdminAssistantDrawer({ open, onClose }: AdminAssistantDr
             <ThunderboltOutlined style={{ color: '#8B0000' }} />
             <span className="font-cinzel">Admin Copilot</span>
           </Space>
-          {currentModel && (
-            <Tooltip title={`Using ${currentModel}`}>
-              <Tag
-                icon={agentInfo.icon}
-                color={agentInfo.color}
-                style={{ marginRight: 0 }}
-              >
-                {agentInfo.label}
-              </Tag>
+          <Space size="small">
+            {currentModel && (
+              <Tooltip title={`Using ${currentModel}`}>
+                <Tag
+                  icon={agentInfo.icon}
+                  color={agentInfo.color}
+                  style={{ marginRight: 0 }}
+                >
+                  {agentInfo.label}
+                </Tag>
+              </Tooltip>
+            )}
+            <Tooltip title="Voice Settings">
+              <Button
+                type="text"
+                size="small"
+                icon={<SoundOutlined />}
+                onClick={() => setVoiceSettingsOpen(true)}
+                style={{ color: voiceSettings.enabled ? '#8B0000' : undefined }}
+              />
             </Tooltip>
-          )}
+          </Space>
         </div>
       }
       destroyOnClose={false}
@@ -899,9 +1078,22 @@ export default function AdminAssistantDrawer({ open, onClose }: AdminAssistantDr
         </Collapse>
         <div className="flex items-center justify-between gap-2">
           <div className="flex items-center gap-2">
-            {/* Voice input button */}
-            {voiceSupported && (
-              <Tooltip title={isListening ? 'Stop listening' : 'Voice input'}>
+            {/* ElevenLabs voice input (if enabled) or browser native */}
+            {voiceSettings.enabled ? (
+              <Tooltip title={isRecordingElevenLabs ? 'Stop recording (ElevenLabs)' : 'Voice input (ElevenLabs)'}>
+                <Button
+                  type="text"
+                  icon={isRecordingElevenLabs ? <LoadingOutlined spin /> : <AudioOutlined />}
+                  onClick={toggleElevenLabsRecording}
+                  disabled={loading}
+                  style={{
+                    color: isRecordingElevenLabs ? '#8B0000' : '#eb2f96',
+                    animation: isRecordingElevenLabs ? 'pulse 1.5s infinite' : undefined,
+                  }}
+                />
+              </Tooltip>
+            ) : voiceSupported && (
+              <Tooltip title={isListening ? 'Stop listening' : 'Voice input (Browser)'}>
                 <Button
                   type="text"
                   icon={<AudioOutlined />}
@@ -911,6 +1103,28 @@ export default function AdminAssistantDrawer({ open, onClose }: AdminAssistantDr
                     color: isListening ? '#8B0000' : undefined,
                     animation: isListening ? 'pulse 1.5s infinite' : undefined,
                   }}
+                />
+              </Tooltip>
+            )}
+            {/* Play/Stop TTS button */}
+            {voiceSettings.enabled && (
+              <Tooltip title={isSpeaking ? 'Stop speaking' : 'Speak last response'}>
+                <Button
+                  type="text"
+                  icon={isSpeaking ? <PauseCircleOutlined /> : <SoundOutlined />}
+                  onClick={() => {
+                    if (isSpeaking) {
+                      stopSpeaking()
+                    } else {
+                      // Find last assistant message
+                      const lastAssistant = [...messages].reverse().find(m => m.role === 'assistant')
+                      if (lastAssistant?.content) {
+                        speakText(lastAssistant.content)
+                      }
+                    }
+                  }}
+                  disabled={loading}
+                  style={{ color: isSpeaking ? '#8B0000' : '#13c2c2' }}
                 />
               </Tooltip>
             )}
@@ -1069,6 +1283,14 @@ export default function AdminAssistantDrawer({ open, onClose }: AdminAssistantDr
           </div>
         )}
       </Modal>
+
+      {/* Voice Settings Modal */}
+      <VoiceSettingsModal
+        open={voiceSettingsOpen}
+        onClose={() => setVoiceSettingsOpen(false)}
+        settings={voiceSettings}
+        onSettingsChange={handleVoiceSettingsChange}
+      />
     </Drawer>
   )
 }
