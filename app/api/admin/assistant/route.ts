@@ -6,6 +6,74 @@ import { assistantActionTypes, buildActionsPrompt } from '@/lib/assistant/action
 import { ensureAssistantSession, logAssistantEvent } from '@/lib/assistant/sessions'
 import { assertAdmin } from '@/lib/assistant/auth'
 
+// Multi-model configuration
+type ModelProvider = 'openai' | 'google' | 'anthropic'
+type AgentType = 'product' | 'operations' | 'marketing' | 'general'
+
+interface ModelConfig {
+  id: string
+  provider: ModelProvider
+  displayName: string
+  supportsVision: boolean
+}
+
+const MODELS: Record<string, ModelConfig> = {
+  'gpt-4.1-mini': { id: 'gpt-4.1-mini', provider: 'openai', displayName: 'GPT-4.1 Mini', supportsVision: false },
+  'gpt-4.1': { id: 'gpt-4.1', provider: 'openai', displayName: 'GPT-4.1', supportsVision: true },
+  'gemini-2.0-flash': { id: 'gemini-2.0-flash', provider: 'google', displayName: 'Gemini Flash', supportsVision: false },
+  'gemini-2.0-pro': { id: 'gemini-2.0-pro', provider: 'google', displayName: 'Gemini Pro', supportsVision: true },
+  'claude-sonnet-4-5-20250929': { id: 'claude-sonnet-4-5-20250929', provider: 'anthropic', displayName: 'Claude Sonnet 4.5', supportsVision: false },
+  'claude-opus-4-5-20251101': { id: 'claude-opus-4-5-20251101', provider: 'anthropic', displayName: 'Claude Opus 4.5', supportsVision: true },
+}
+
+// Agent configurations with specialized system prompts
+const AGENT_CONFIGS: Record<AgentType, { defaultModel: string; systemPromptAddition: string }> = {
+  product: {
+    defaultModel: 'gpt-4.1',
+    systemPromptAddition: `
+You specialize in product management for a metal music import business (vinyls, CDs, cassettes).
+When analyzing images: identify band/artist, album title, format, special editions, condition.
+Generate compelling metal-scene-appropriate product descriptions.
+Suggest categories, tags, and pricing based on format and rarity.`,
+  },
+  operations: {
+    defaultModel: 'gemini-2.0-pro',
+    systemPromptAddition: `
+You specialize in inventory and order operations for an Australian music import business.
+Help with stock management, order processing, shipping estimates (AU focused).
+Provide clear summaries, flag issues (low stock, delays), and suggest optimizations.`,
+  },
+  marketing: {
+    defaultModel: 'claude-sonnet-4-5-20250929',
+    systemPromptAddition: `
+You specialize in marketing content for underground metal music.
+Your voice: authentic to metal/underground scene, knowledgeable, passionate but professional.
+Create social posts (Instagram, Facebook), articles, email campaigns, release announcements.
+Use genre-appropriate language, relevant hashtags, mention local AU shipping/AUD pricing.`,
+  },
+  general: {
+    defaultModel: 'gpt-4.1-mini',
+    systemPromptAddition: '',
+  },
+}
+
+// Intent classification for agent routing
+const INTENT_KEYWORDS: Array<{ agent: AgentType; keywords: string[] }> = [
+  { agent: 'product', keywords: ['add product', 'new product', 'create product', 'add item', 'analyze image', 'what is this', 'identify', 'describe product', 'write description', 'generate description'] },
+  { agent: 'operations', keywords: ['stock', 'inventory', 'how many', 'available', 'add stock', 'receive', 'restock', 'order status', 'where is', 'shipping', 'track', 'process order', 'ship order', 'fulfill'] },
+  { agent: 'marketing', keywords: ['social post', 'instagram', 'facebook', 'post about', 'email', 'newsletter', 'campaign', 'write article', 'blog post', 'news', 'announce'] },
+]
+
+function classifyIntent(message: string): AgentType {
+  const lowerMessage = message.toLowerCase()
+  for (const { agent, keywords } of INTENT_KEYWORDS) {
+    if (keywords.some(kw => lowerMessage.includes(kw))) {
+      return agent
+    }
+  }
+  return 'general'
+}
+
 const OPENAI_MODEL = process.env.ASSISTANT_CHAT_MODEL || 'gpt-4.1-mini'
 const CHAT_SYSTEM_PROMPT =
   process.env.ASSISTANT_CHAT_SYSTEM_PROMPT ||
@@ -34,13 +102,168 @@ const assistantResponseSchema = z.object({
 const messageSchema = z.object({
   role: z.enum(['user', 'assistant']),
   content: z.string().min(1),
+  image: z.string().optional(), // Base64 encoded image for vision
 })
 
 const requestSchema = z.object({
   messages: z.array(messageSchema).min(1),
   topic: z.string().optional(),
   sessionId: z.string().uuid().optional(),
+  forceAgent: z.enum(['product', 'operations', 'marketing', 'general']).optional(),
+  forceModel: z.string().optional(),
 })
+
+// API call functions for each provider
+async function callOpenAI(
+  messages: Array<{ role: string; content: any }>,
+  model: string,
+  useStructuredOutput: boolean = true
+): Promise<{ text: string; raw: any }> {
+  const apiKey = process.env.OPENAI_API_KEY
+  if (!apiKey) throw new Error('OPENAI_API_KEY not configured')
+
+  const payload: any = {
+    model,
+    messages,
+    temperature: 0.2,
+  }
+
+  if (useStructuredOutput) {
+    payload.response_format = {
+      type: 'json_schema',
+      json_schema: {
+        name: assistantResponseSchemaName,
+        schema: assistantResponseSchemaDefinition,
+      },
+    }
+  }
+
+  const response = await fetch('https://api.openai.com/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${apiKey}`,
+    },
+    body: JSON.stringify(payload),
+  })
+
+  if (!response.ok) {
+    const error = await response.text()
+    throw new Error(`OpenAI API error: ${error}`)
+  }
+
+  const data = await response.json()
+  return { text: data.choices[0]?.message?.content || '', raw: data }
+}
+
+async function callGemini(
+  messages: Array<{ role: string; content: string }>,
+  model: string
+): Promise<{ text: string; raw: any }> {
+  const apiKey = process.env.GOOGLE_AI_API_KEY
+  if (!apiKey) throw new Error('GOOGLE_AI_API_KEY not configured')
+
+  // Convert to Gemini format
+  const contents = messages
+    .filter(m => m.role !== 'system')
+    .map(m => ({
+      role: m.role === 'assistant' ? 'model' : 'user',
+      parts: [{ text: m.content }],
+    }))
+
+  const systemMessage = messages.find(m => m.role === 'system')
+
+  const response = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents,
+        systemInstruction: systemMessage
+          ? { parts: [{ text: systemMessage.content }] }
+          : undefined,
+        generationConfig: {
+          maxOutputTokens: 4096,
+          temperature: 0.2,
+        },
+      }),
+    }
+  )
+
+  if (!response.ok) {
+    const error = await response.text()
+    throw new Error(`Gemini API error: ${error}`)
+  }
+
+  const data = await response.json()
+  return { text: data.candidates?.[0]?.content?.parts?.[0]?.text || '', raw: data }
+}
+
+async function callClaude(
+  messages: Array<{ role: string; content: string }>,
+  model: string
+): Promise<{ text: string; raw: any }> {
+  const apiKey = process.env.ANTHROPIC_API_KEY
+  if (!apiKey) throw new Error('ANTHROPIC_API_KEY not configured')
+
+  const systemMessage = messages.find(m => m.role === 'system')
+  const chatMessages = messages
+    .filter(m => m.role !== 'system')
+    .map(m => ({
+      role: m.role as 'user' | 'assistant',
+      content: m.content,
+    }))
+
+  const response = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': apiKey,
+      'anthropic-version': '2023-06-01',
+    },
+    body: JSON.stringify({
+      model,
+      max_tokens: 4096,
+      system: systemMessage?.content,
+      messages: chatMessages,
+    }),
+  })
+
+  if (!response.ok) {
+    const error = await response.text()
+    throw new Error(`Claude API error: ${error}`)
+  }
+
+  const data = await response.json()
+  return { text: data.content?.[0]?.text || '', raw: data }
+}
+
+// Route to the appropriate provider
+async function callModel(
+  messages: Array<{ role: string; content: any }>,
+  modelId: string,
+  useStructuredOutput: boolean = true
+): Promise<{ text: string; raw: any; provider: ModelProvider }> {
+  const config = MODELS[modelId]
+  if (!config) {
+    // Fallback to OpenAI for unknown models
+    const result = await callOpenAI(messages, modelId, useStructuredOutput)
+    return { ...result, provider: 'openai' }
+  }
+
+  switch (config.provider) {
+    case 'google':
+      const geminiResult = await callGemini(messages, modelId)
+      return { ...geminiResult, provider: 'google' }
+    case 'anthropic':
+      const claudeResult = await callClaude(messages, modelId)
+      return { ...claudeResult, provider: 'anthropic' }
+    default:
+      const openaiResult = await callOpenAI(messages, modelId, useStructuredOutput)
+      return { ...openaiResult, provider: 'openai' }
+  }
+}
 
 function toResponsesInput(messages: Array<{ role: string; content: string }>) {
   return messages.map((message) => ({
@@ -111,11 +334,6 @@ export async function POST(request: NextRequest) {
     }
     adminUserId = adminCheck.userId
 
-    const apiKey = process.env.OPENAI_API_KEY
-    if (!apiKey) {
-      return NextResponse.json({ error: 'OPENAI_API_KEY not configured' }, { status: 500 })
-    }
-
     const json = await request.json()
     const parsedRequest = requestSchema.safeParse(json)
 
@@ -123,7 +341,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid request', details: parsedRequest.error.flatten() }, { status: 400 })
     }
 
-    const { messages } = parsedRequest.data
+    const { messages, forceAgent, forceModel } = parsedRequest.data
     const latestUserMessage = [...messages].reverse().find((m) => m.role === 'user')
 
     if (!latestUserMessage) {
@@ -132,17 +350,35 @@ export async function POST(request: NextRequest) {
 
     sessionId = parsedRequest.data.sessionId ?? randomUUID()
 
+    // Check if any message has an image (for vision routing)
+    const hasImage = messages.some(m => m.image)
+
+    // Determine agent and model
+    const agent: AgentType = forceAgent || classifyIntent(latestUserMessage.content)
+    const agentConfig = AGENT_CONFIGS[agent]
+
+    // Select model: force > vision-capable > agent default
+    let selectedModel = forceModel || agentConfig.defaultModel
+    if (hasImage && !MODELS[selectedModel]?.supportsVision) {
+      // Upgrade to vision-capable model
+      selectedModel = 'gpt-4.1' // Best vision model
+    }
+
     await ensureAssistantSession({
       sessionId,
       userId: adminUserId,
-      metadata: parsedRequest.data.topic ? { topic: parsedRequest.data.topic } : undefined,
+      metadata: {
+        ...(parsedRequest.data.topic ? { topic: parsedRequest.data.topic } : {}),
+        agent,
+        model: selectedModel,
+      },
     })
 
     await logAssistantEvent({
       sessionId,
       userId: adminUserId,
       eventType: 'message.user',
-      payload: { content: latestUserMessage.content },
+      payload: { content: latestUserMessage.content, hasImage },
     })
 
     const knowledge = await searchAssistantKnowledge(latestUserMessage.content, {
@@ -152,130 +388,100 @@ export async function POST(request: NextRequest) {
 
     const contextText = knowledge.length ? buildContextSnippet(knowledge) : 'No context available'
 
-    const openAiMessages = [
-      {
-        role: 'system',
-        content: CHAT_SYSTEM_PROMPT,
-      },
-      {
-        role: 'system',
-        content: `Context from internal documentation and dashboards:\n\n${contextText}`,
-      },
-      {
-        role: 'system',
-        content: buildActionsPrompt(),
-      },
-      ...messages.slice(-8),
+    // Build system prompt with agent specialization
+    const systemPrompt = [
+      CHAT_SYSTEM_PROMPT,
+      agentConfig.systemPromptAddition,
+      `\nRespond in JSON format with this structure: { "reply": "your message", "actions": [...] }`,
+    ].filter(Boolean).join('\n')
+
+    // Build messages for the API
+    const apiMessages: Array<{ role: string; content: any }> = [
+      { role: 'system', content: systemPrompt },
+      { role: 'system', content: `Context from internal documentation:\n\n${contextText}` },
+      { role: 'system', content: buildActionsPrompt() },
     ]
 
-    const basePayload = {
-      model: OPENAI_MODEL,
-      temperature: 0.2,
-      response_format: {
-        type: 'json_schema',
-        json_schema: {
-          name: assistantResponseSchemaName,
-          schema: assistantResponseSchemaDefinition,
-        },
-      },
-    }
-
-    const responsesBasePayload = {
-      model: OPENAI_MODEL,
-      temperature: 0.2,
-    }
-
-    let parsedResponse: z.infer<typeof assistantResponseSchema> | null = null
-    let responseSource: 'chat' | 'responses' = 'chat'
-
-    const chatResponse = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify({
-        ...basePayload,
-        messages: openAiMessages,
-      }),
-    })
-
-    let errorPayload: any = null
-
-    if (chatResponse.ok) {
-      const completion = (await chatResponse.json()) as {
-        choices: Array<{ message: { content: string } }>
+    // Add conversation history with image support
+    for (const msg of messages.slice(-8)) {
+      if (msg.image && MODELS[selectedModel]?.provider === 'openai') {
+        // OpenAI vision format
+        apiMessages.push({
+          role: msg.role,
+          content: [
+            { type: 'text', text: msg.content },
+            {
+              type: 'image_url',
+              image_url: {
+                url: msg.image.startsWith('data:') ? msg.image : `data:image/jpeg;base64,${msg.image}`,
+              },
+            },
+          ],
+        })
+      } else {
+        apiMessages.push({ role: msg.role, content: msg.content })
       }
-      const rawContent = completion.choices[0]?.message?.content?.trim()
+    }
+
+    // Call the selected model
+    let parsedResponse: z.infer<typeof assistantResponseSchema> | null = null
+    let responseProvider: ModelProvider = 'openai'
+
+    try {
+      const useStructuredOutput = MODELS[selectedModel]?.provider === 'openai'
+      const result = await callModel(apiMessages, selectedModel, useStructuredOutput)
+      responseProvider = result.provider
+
+      const rawContent = result.text.trim()
       if (rawContent) {
         try {
-          parsedResponse = assistantResponseSchema.parse(JSON.parse(rawContent))
+          // Try to parse as JSON
+          const jsonMatch = rawContent.match(/\{[\s\S]*\}/)
+          if (jsonMatch) {
+            parsedResponse = assistantResponseSchema.parse(JSON.parse(jsonMatch[0]))
+          } else {
+            parsedResponse = { reply: rawContent, actions: [] }
+          }
         } catch {
           parsedResponse = { reply: rawContent, actions: [] }
         }
       }
-    } else {
-      try {
-        errorPayload = await chatResponse.json()
-      } catch {
-        errorPayload = { error: { message: await chatResponse.text() } }
-      }
-    }
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Model call failed'
+      console.error(`${selectedModel} call failed:`, error)
 
-    if (!parsedResponse) {
-      const message: string = errorPayload?.error?.message ?? ''
-      const requiresResponses =
-        chatResponse.status === 404 && typeof message === 'string' && message.includes('v1/responses')
-
-      if (requiresResponses) {
-        responseSource = 'responses'
-        const responsesResponse = await fetch('https://api.openai.com/v1/responses', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${apiKey}`,
-          },
-          body: JSON.stringify({
-            ...responsesBasePayload,
-            input: toResponsesInput(openAiMessages),
-          }),
-        })
-
-        if (responsesResponse.ok) {
-          const fallbackJson = await responsesResponse.json()
-          const rawText = extractResponsesText(fallbackJson)
-          if (rawText) {
+      // Fallback to default OpenAI model if the selected one fails
+      if (selectedModel !== OPENAI_MODEL && process.env.OPENAI_API_KEY) {
+        console.log(`Falling back to ${OPENAI_MODEL}`)
+        try {
+          const fallbackResult = await callOpenAI(apiMessages, OPENAI_MODEL, true)
+          responseProvider = 'openai'
+          const rawContent = fallbackResult.text.trim()
+          if (rawContent) {
             try {
-              parsedResponse = assistantResponseSchema.parse(JSON.parse(rawText))
+              parsedResponse = assistantResponseSchema.parse(JSON.parse(rawContent))
             } catch {
-              parsedResponse = { reply: rawText, actions: [] }
-            }
-            errorPayload = null
-          } else {
-            errorPayload = {
-              error: { message: 'Responses API returned no output text' },
+              parsedResponse = { reply: rawContent, actions: [] }
             }
           }
-        } else {
-          try {
-            errorPayload = await responsesResponse.json()
-          } catch {
-            errorPayload = { error: { message: await responsesResponse.text() } }
-          }
+        } catch (fallbackError) {
+          console.error('Fallback also failed:', fallbackError)
         }
       }
+
+      if (!parsedResponse) {
+        await logAssistantEvent({
+          sessionId,
+          userId: adminUserId,
+          eventType: 'error',
+          payload: { scope: selectedModel, message: errorMessage },
+        })
+        return NextResponse.json({ error: errorMessage, sessionId }, { status: 500 })
+      }
     }
 
     if (!parsedResponse) {
-      const errorMessage = errorPayload?.error?.message || 'Assistant request failed'
-      console.error('Assistant call failed', errorPayload)
-      await logAssistantEvent({
-        sessionId,
-        userId: adminUserId,
-        eventType: 'error',
-        payload: { scope: 'openai', message: errorMessage },
-      })
-      return NextResponse.json({ error: errorMessage, sessionId }, { status: 500 })
+      return NextResponse.json({ error: 'No response generated', sessionId }, { status: 500 })
     }
 
     await logAssistantEvent({
@@ -286,7 +492,7 @@ export async function POST(request: NextRequest) {
         content: parsedResponse.reply,
         actions: parsedResponse.actions ?? [],
         sources: knowledge,
-        metadata: { responseSource },
+        metadata: { agent, model: selectedModel, provider: responseProvider },
       },
     })
 
@@ -301,6 +507,11 @@ export async function POST(request: NextRequest) {
         order: index + 1,
       })),
       actions: parsedResponse.actions ?? [],
+      // Include agent/model info for UI display
+      agent,
+      model: selectedModel,
+      provider: responseProvider,
+      modelDisplayName: MODELS[selectedModel]?.displayName || selectedModel,
     })
   } catch (error) {
     console.error('Assistant handler failure', error)

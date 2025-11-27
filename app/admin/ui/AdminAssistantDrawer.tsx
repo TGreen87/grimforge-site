@@ -1,15 +1,37 @@
 'use client'
 
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { Alert, Button, Collapse, Drawer, Form, Input, InputNumber, List, Modal, Space, Spin, Switch, Tag, Typography, Divider, Upload, message } from 'antd'
+import { Alert, Button, Collapse, Drawer, Form, Input, InputNumber, List, Modal, Space, Spin, Switch, Tag, Typography, Divider, Upload, message, Tooltip, Badge } from 'antd'
 import type { UploadFile, RcFile } from 'antd/es/upload/interface'
-import { InboxOutlined, SendOutlined, ThunderboltOutlined } from '@ant-design/icons'
+import {
+  InboxOutlined,
+  SendOutlined,
+  ThunderboltOutlined,
+  RobotOutlined,
+  ShoppingOutlined,
+  BarChartOutlined,
+  EditOutlined,
+  QuestionCircleOutlined,
+  AudioOutlined,
+  CameraOutlined,
+  PictureOutlined,
+} from '@ant-design/icons'
 import { assistantActionMap } from '@/lib/assistant/actions'
 import type { AssistantActionType } from '@/lib/assistant/actions'
 import { buildActionPlan } from '@/lib/assistant/plans'
 
 const { Text, Paragraph } = Typography
 const { Panel } = Collapse
+
+// Agent type definitions
+type AgentType = 'product' | 'operations' | 'marketing' | 'general'
+
+const AGENT_INFO: Record<AgentType, { icon: React.ReactNode; label: string; color: string }> = {
+  product: { icon: <ShoppingOutlined />, label: 'Product', color: '#722ed1' },
+  operations: { icon: <BarChartOutlined />, label: 'Operations', color: '#13c2c2' },
+  marketing: { icon: <EditOutlined />, label: 'Marketing', color: '#eb2f96' },
+  general: { icon: <QuestionCircleOutlined />, label: 'General', color: '#8c8c8c' },
+}
 
 interface AssistantAttachment {
   uid: string
@@ -18,6 +40,7 @@ interface AssistantAttachment {
   type: string
   url: string
   storagePath: string
+  base64?: string // For inline image display
 }
 
 interface ContextFormValues {
@@ -45,6 +68,10 @@ interface AssistantMessage {
   content: string
   sources?: AssistantSource[]
   actions?: AssistantAction[]
+  image?: string // Base64 image for user messages
+  agent?: AgentType // Which agent responded
+  model?: string // Model used
+  modelDisplayName?: string // Human-readable model name
 }
 
 interface AdminAssistantDrawerProps {
@@ -65,10 +92,10 @@ interface UndoOption {
 }
 
 const SUGGESTED_PROMPTS = [
-  'How many page views did we get this week?',
-  'Walk me through adding a limited vinyl release.',
-  'Summarise outstanding tasks from the Implementation Plan.',
-  'What should I check before launching a new campaign?'
+  { text: 'Add a new vinyl release', agent: 'product' as AgentType },
+  { text: 'Check current stock levels', agent: 'operations' as AgentType },
+  { text: 'Write a social post about new arrivals', agent: 'marketing' as AgentType },
+  { text: 'How do I process an order?', agent: 'general' as AgentType },
 ]
 
 export default function AdminAssistantDrawer({ open, onClose }: AdminAssistantDrawerProps) {
@@ -90,7 +117,14 @@ export default function AdminAssistantDrawer({ open, onClose }: AdminAssistantDr
   const [uploading, setUploading] = useState(false)
   const [undoOptions, setUndoOptions] = useState<UndoOption[]>([])
   const [undoLoadingToken, setUndoLoadingToken] = useState<string | null>(null)
+  const [pendingImage, setPendingImage] = useState<string | null>(null) // Base64 image to send with next message
+  const [currentAgent, setCurrentAgent] = useState<AgentType>('general')
+  const [currentModel, setCurrentModel] = useState<string>('')
+  const [isListening, setIsListening] = useState(false) // Voice input state
+  const [voiceSupported, setVoiceSupported] = useState(false)
   const listRef = useRef<HTMLDivElement | null>(null)
+  const fileInputRef = useRef<HTMLInputElement | null>(null)
+  const recognitionRef = useRef<any>(null)
   const sessionIdRef = useRef<string>(typeof crypto !== 'undefined' && 'randomUUID' in crypto ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(36).slice(2)}`)
 
   useEffect(() => {
@@ -126,6 +160,72 @@ export default function AdminAssistantDrawer({ open, onClose }: AdminAssistantDr
       actionForm.resetFields()
     }
   }, [pendingAction, actionForm])
+
+  // Initialize voice recognition on mount
+  useEffect(() => {
+    // Check for Web Speech API support
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition
+    if (SpeechRecognition) {
+      setVoiceSupported(true)
+      const recognition = new SpeechRecognition()
+      recognition.continuous = false
+      recognition.interimResults = true
+      recognition.lang = 'en-AU' // Australian English for our mate
+
+      recognition.onresult = (event: any) => {
+        const transcript = Array.from(event.results)
+          .map((result: any) => result[0].transcript)
+          .join('')
+
+        // Update form with transcript
+        form.setFieldsValue({ prompt: transcript })
+
+        // If final result, submit automatically
+        if (event.results[0].isFinal) {
+          setIsListening(false)
+        }
+      }
+
+      recognition.onerror = (event: any) => {
+        console.error('Speech recognition error:', event.error)
+        setIsListening(false)
+        if (event.error === 'not-allowed') {
+          message.error('Microphone access denied. Please enable in browser settings.')
+        }
+      }
+
+      recognition.onend = () => {
+        setIsListening(false)
+      }
+
+      recognitionRef.current = recognition
+    }
+
+    return () => {
+      if (recognitionRef.current) {
+        recognitionRef.current.abort()
+      }
+    }
+  }, [form])
+
+  // Toggle voice recognition
+  function toggleVoiceInput() {
+    if (!recognitionRef.current) return
+
+    if (isListening) {
+      recognitionRef.current.stop()
+      setIsListening(false)
+    } else {
+      try {
+        recognitionRef.current.start()
+        setIsListening(true)
+        message.info('Listening... speak now')
+      } catch (error) {
+        console.error('Failed to start recognition:', error)
+        message.error('Could not start voice input')
+      }
+    }
+  }
 
   const uploadToServer = async (file: RcFile) => {
     setUploading(true)
@@ -250,18 +350,42 @@ export default function AdminAssistantDrawer({ open, onClose }: AdminAssistantDr
     return `${prompt.trim()}\n\n[Structured Context]\n${lines.join('\n')}`
   }
 
-  async function handleSubmit(prompt?: string) {
+  // Handle image capture from file input
+  function handleImageCapture(event: React.ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0]
+    if (!file) return
+
+    const reader = new FileReader()
+    reader.onload = (e) => {
+      const base64 = e.target?.result as string
+      setPendingImage(base64)
+      message.success('Image attached - send a message to analyze it')
+    }
+    reader.readAsDataURL(file)
+    event.target.value = '' // Reset for next selection
+  }
+
+  async function handleSubmit(prompt?: string, forceAgent?: AgentType) {
     const questionInput = prompt ?? form.getFieldValue('prompt')
     const question = buildStructuredContext(questionInput || '')
-    if (!question?.trim()) return
+    if (!question?.trim() && !pendingImage) return
+
+    // Include image in user message if present
+    const userMessage: AssistantMessage = {
+      role: 'user',
+      content: question.trim() || (pendingImage ? 'What is this?' : ''),
+      image: pendingImage || undefined,
+    }
 
     setMessages((current) => [
       ...current,
-      { role: 'user', content: question.trim() },
+      userMessage,
       { role: 'assistant', content: 'Let me check…' },
     ])
     setLoading(true)
     form.resetFields()
+    const imageToSend = pendingImage
+    setPendingImage(null) // Clear pending image
 
     try {
       const response = await fetch('/api/admin/assistant', {
@@ -269,8 +393,9 @@ export default function AdminAssistantDrawer({ open, onClose }: AdminAssistantDr
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          messages: [...messages, { role: 'user', content: question.trim() }].map(({ role, content }) => ({ role, content })),
+          messages: [...messages, userMessage].map(({ role, content, image }) => ({ role, content, image })),
           sessionId: sessionIdRef.current,
+          forceAgent,
         }),
       })
 
@@ -292,10 +417,22 @@ export default function AdminAssistantDrawer({ open, onClose }: AdminAssistantDr
         throw new Error(errorMessage)
       }
 
-      const data = parsed as { message: string; sources?: AssistantSource[]; actions?: AssistantAction[]; sessionId?: string }
+      const data = parsed as {
+        message: string
+        sources?: AssistantSource[]
+        actions?: AssistantAction[]
+        sessionId?: string
+        agent?: AgentType
+        model?: string
+        modelDisplayName?: string
+      }
       if (data.sessionId) {
         sessionIdRef.current = data.sessionId
       }
+      // Update current agent/model state
+      if (data.agent) setCurrentAgent(data.agent)
+      if (data.model) setCurrentModel(data.modelDisplayName || data.model)
+
       setMessages((current) => {
         const updated = [...current]
         updated[updated.length - 1] = {
@@ -303,6 +440,9 @@ export default function AdminAssistantDrawer({ open, onClose }: AdminAssistantDr
           content: data.message,
           sources: data.sources,
           actions: data.actions,
+          agent: data.agent,
+          model: data.model,
+          modelDisplayName: data.modelDisplayName,
         }
         return updated
       })
@@ -469,39 +609,137 @@ export default function AdminAssistantDrawer({ open, onClose }: AdminAssistantDr
     return found?.actions ?? []
   }, [messages])
 
+  const agentInfo = AGENT_INFO[currentAgent]
+
   return (
     <Drawer
       placement="right"
-      width={420}
+      width={440}
       open={open}
       onClose={onClose}
-      title={<Space><ThunderboltOutlined /> <span>Admin Copilot</span></Space>}
+      title={
+        <div className="flex items-center justify-between w-full pr-4">
+          <Space>
+            <ThunderboltOutlined style={{ color: '#8B0000' }} />
+            <span className="font-cinzel">Admin Copilot</span>
+          </Space>
+          {currentModel && (
+            <Tooltip title={`Using ${currentModel}`}>
+              <Tag
+                icon={agentInfo.icon}
+                color={agentInfo.color}
+                style={{ marginRight: 0 }}
+              >
+                {agentInfo.label}
+              </Tag>
+            </Tooltip>
+          )}
+        </div>
+      }
       destroyOnClose={false}
-      styles={{ body: { display: 'flex', flexDirection: 'column', gap: 16, paddingBottom: 0 } }}
+      styles={{
+        body: { display: 'flex', flexDirection: 'column', gap: 16, paddingBottom: 0 },
+        header: { borderBottom: '1px solid rgba(139, 0, 0, 0.3)' },
+      }}
     >
+      {/* Hidden file input for image capture */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*"
+        capture="environment"
+        onChange={handleImageCapture}
+        style={{ display: 'none' }}
+      />
+
+      {/* Introduction and Quick Actions */}
       <div className="space-y-3">
         <Paragraph type="secondary" style={{ marginBottom: 0 }}>
-          Ask anything about the store, admin workflows, or current roadmap. I cite the docs I pull from so you can verify.
+          I can help with products, inventory, marketing, and general questions.
+          Drop an image of a vinyl/CD to analyze it instantly.
         </Paragraph>
-        <Space wrap>
-          {SUGGESTED_PROMPTS.map((prompt) => (
-            <Button key={prompt} onClick={() => handleSubmit(prompt)} size="small">
-              {prompt}
-            </Button>
-          ))}
-        </Space>
+        <div className="flex flex-wrap gap-2">
+          {SUGGESTED_PROMPTS.map((prompt) => {
+            const promptAgent = AGENT_INFO[prompt.agent]
+            return (
+              <Button
+                key={prompt.text}
+                onClick={() => handleSubmit(prompt.text, prompt.agent)}
+                size="small"
+                icon={promptAgent.icon}
+                style={{ borderColor: promptAgent.color, color: promptAgent.color }}
+              >
+                {prompt.text}
+              </Button>
+            )
+          })}
+        </div>
       </div>
+
+      {/* Pending Image Preview */}
+      {pendingImage && (
+        <div className="relative rounded-lg border border-dashed border-[#8B0000] p-2 bg-[#0f1624]">
+          <div className="flex items-center gap-3">
+            <img
+              src={pendingImage}
+              alt="Pending"
+              className="w-16 h-16 object-cover rounded"
+            />
+            <div className="flex-1">
+              <Text strong>Image ready to send</Text>
+              <Paragraph type="secondary" className="text-xs mb-0">
+                Type a message or click Send to analyze
+              </Paragraph>
+            </div>
+            <Button
+              type="text"
+              danger
+              size="small"
+              onClick={() => setPendingImage(null)}
+            >
+              Remove
+            </Button>
+          </div>
+        </div>
+      )}
 
       <div ref={listRef} className="flex-1 overflow-y-auto space-y-3 pr-2" style={{ maxHeight: '50vh' }}>
         <List
           dataSource={messages}
-          renderItem={(item) => (
+          renderItem={(item) => {
+            const msgAgentInfo = item.agent ? AGENT_INFO[item.agent] : null
+            return (
             <List.Item className={item.role === 'user' ? 'justify-end' : 'justify-start'} style={{ border: 'none', padding: 0 }}>
               <div
                 className={`rounded-lg px-3 py-2 max-w-[85%] text-sm ${
-                  item.role === 'user' ? 'bg-blue-600 text-white ml-auto' : 'bg-[#141b26] text-slate-200'
+                  item.role === 'user' ? 'bg-[#8B0000] text-white ml-auto' : 'bg-[#141b26] text-slate-200'
                 }`}
               >
+                {/* Show agent badge for assistant messages */}
+                {item.role === 'assistant' && msgAgentInfo && (
+                  <div className="flex items-center gap-2 mb-2 text-xs">
+                    <Tag
+                      icon={msgAgentInfo.icon}
+                      color={msgAgentInfo.color}
+                      style={{ margin: 0, fontSize: '10px' }}
+                    >
+                      {msgAgentInfo.label}
+                    </Tag>
+                    {item.modelDisplayName && (
+                      <Text type="secondary" style={{ fontSize: '10px' }}>
+                        via {item.modelDisplayName}
+                      </Text>
+                    )}
+                  </div>
+                )}
+                {/* Show image thumbnail for user messages with images */}
+                {item.role === 'user' && item.image && (
+                  <img
+                    src={item.image}
+                    alt="Attached"
+                    className="w-full max-w-[200px] rounded mb-2"
+                  />
+                )}
                 <Paragraph style={{ marginBottom: 0, whiteSpace: 'pre-wrap' }}>{item.content}</Paragraph>
                 {item.actions?.length ? (
                   <div className="mt-3 space-y-3">
@@ -550,7 +788,7 @@ export default function AdminAssistantDrawer({ open, onClose }: AdminAssistantDr
                 ) : null}
               </div>
             </List.Item>
-          )}
+          )}}
         />
       </div>
 
@@ -659,34 +897,72 @@ export default function AdminAssistantDrawer({ open, onClose }: AdminAssistantDr
             </div>
           </Panel>
         </Collapse>
-        <div className="flex items-center justify-between">
-          <span>
-            {loading ? (
-              <Space size="small">
-                <Spin size="small" />
-                <Text type="secondary">Drafting a reply…</Text>
-              </Space>
-            ) : lastAssistantSources.length ? (
-              <Space size="small" wrap>
-                <Text type="secondary">Sources:</Text>
-                {lastAssistantSources.map((source) => (
-                  <Tag key={source.id} color="geekblue">
-                    {source.order}. {source.title}
-                  </Tag>
-                ))}
-              </Space>
-            ) : latestAssistantActions.length ? (
-              <Space size="small" wrap>
-                <Text type="secondary">Suggested actions:</Text>
-                {latestAssistantActions.map((action) => (
-                  <Tag key={`${action.type}-${action.summary}`} color="cyan">
-                    {action.summary}
-                  </Tag>
-                ))}
-              </Space>
-            ) : null}
-          </span>
-          <Button type="primary" htmlType="submit" icon={<SendOutlined />} loading={loading}>
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            {/* Voice input button */}
+            {voiceSupported && (
+              <Tooltip title={isListening ? 'Stop listening' : 'Voice input'}>
+                <Button
+                  type="text"
+                  icon={<AudioOutlined />}
+                  onClick={toggleVoiceInput}
+                  disabled={loading}
+                  style={{
+                    color: isListening ? '#8B0000' : undefined,
+                    animation: isListening ? 'pulse 1.5s infinite' : undefined,
+                  }}
+                />
+              </Tooltip>
+            )}
+            {/* Quick image capture button */}
+            <Tooltip title="Take photo or select image for analysis">
+              <Button
+                type="text"
+                icon={<CameraOutlined />}
+                onClick={() => fileInputRef.current?.click()}
+                disabled={loading}
+                style={{ color: pendingImage ? '#8B0000' : undefined }}
+              />
+            </Tooltip>
+            {/* Status indicators */}
+            <span className="flex-1 min-w-0">
+              {loading ? (
+                <Space size="small">
+                  <Spin size="small" />
+                  <Text type="secondary" className="text-xs">
+                    {currentAgent !== 'general' ? `${AGENT_INFO[currentAgent].label} thinking…` : 'Thinking…'}
+                  </Text>
+                </Space>
+              ) : lastAssistantSources.length ? (
+                <Space size="small" wrap>
+                  <Text type="secondary" className="text-xs">Sources:</Text>
+                  {lastAssistantSources.slice(0, 2).map((source) => (
+                    <Tag key={source.id} color="geekblue" style={{ fontSize: '10px' }}>
+                      {source.title?.slice(0, 15)}...
+                    </Tag>
+                  ))}
+                </Space>
+              ) : latestAssistantActions.length ? (
+                <Space size="small" wrap>
+                  <Text type="secondary" className="text-xs">Actions:</Text>
+                  {latestAssistantActions.slice(0, 2).map((action) => (
+                    <Tag key={`${action.type}-${action.summary}`} color="cyan" style={{ fontSize: '10px' }}>
+                      {action.summary.slice(0, 12)}...
+                    </Tag>
+                  ))}
+                </Space>
+              ) : pendingImage ? (
+                <Badge status="processing" text={<Text type="secondary" className="text-xs">Image attached</Text>} />
+              ) : null}
+            </span>
+          </div>
+          <Button
+            type="primary"
+            htmlType="submit"
+            icon={<SendOutlined />}
+            loading={loading}
+            style={{ backgroundColor: '#8B0000', borderColor: '#8B0000' }}
+          >
             Send
           </Button>
         </div>
