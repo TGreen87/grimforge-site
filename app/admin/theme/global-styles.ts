@@ -747,6 +747,26 @@ export const globalAdminStyles = `
     animation: admin-scale-in 0.2s ${animation.easing.bounce} !important;
   }
 
+  /* Fix modal inside drawer - ensure buttons are clickable */
+  .ant-drawer .ant-modal-wrap {
+    position: fixed !important;
+  }
+
+  .ant-drawer .ant-modal-mask {
+    position: fixed !important;
+  }
+
+  .ant-drawer .ant-modal-content {
+    pointer-events: auto !important;
+  }
+
+  .ant-drawer .ant-modal-footer,
+  .ant-drawer .ant-modal-footer button {
+    pointer-events: auto !important;
+    position: relative;
+    z-index: 1;
+  }
+
   /* Table row hover highlight */
   .ant-table-tbody > tr {
     transition: background-color ${animation.duration.fast} ${animation.easing.DEFAULT};

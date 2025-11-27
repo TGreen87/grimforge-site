@@ -195,16 +195,20 @@ export default function VoiceSettingsModal({
       maskClosable={true}
       keyboard={true}
       destroyOnClose={false}
-      zIndex={1100}
+      zIndex={1300}
       getContainer={false}
-      footer={[
-        <Button key="test" onClick={testVoice} loading={testPlaying} disabled={!settings.enabled || !settings.voice_id}>
-          <PlayCircleOutlined /> Test Voice
-        </Button>,
-        <Button key="close" type="primary" onClick={onClose} style={{ backgroundColor: '#8B0000' }}>
-          Done
-        </Button>,
-      ]}
+      forceRender
+      focusTriggerAfterClose={false}
+      footer={
+        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
+          <Button onClick={testVoice} loading={testPlaying} disabled={!settings.enabled || !settings.voice_id}>
+            <PlayCircleOutlined /> Test Voice
+          </Button>
+          <Button type="primary" onClick={onClose} style={{ backgroundColor: '#8B0000' }}>
+            Done
+          </Button>
+        </div>
+      }
       width={520}
     >
       <div className="space-y-6">

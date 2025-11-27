@@ -1210,7 +1210,9 @@ export default function AdminAssistantDrawer({ open, onClose }: AdminAssistantDr
         okText="Run"
         okButtonProps={{ danger: false }}
         getContainer={false}
-        zIndex={1100}
+        zIndex={1300}
+        forceRender
+        focusTriggerAfterClose={false}
       >
         {pendingAction && (
           <div className="space-y-3 text-sm">
