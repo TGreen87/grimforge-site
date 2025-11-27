@@ -583,9 +583,11 @@ export async function POST(request: NextRequest) {
         console.error('Failed to log assistant error', logError)
       }
     }
-    // Return error detail for debugging (temporarily enabled)
+    // Return limited error detail in preview/dev environments
+    const isPreview = process.env.NETLIFY === 'true' && process.env.CONTEXT !== 'production'
+    const isDev = process.env.NODE_ENV !== 'production'
     return NextResponse.json({
-      error: errorDetail.slice(0, 500), // Truncate for safety
+      error: (isDev || isPreview) ? errorDetail.slice(0, 500) : 'Unexpected error',
       sessionId: sessionId ?? undefined
     }, { status: 500 })
   }

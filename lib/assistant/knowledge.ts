@@ -88,11 +88,17 @@ async function embedTexts(texts: string[]) {
 
 async function loadFile(sourceFile: string) {
   const absolute = path.join(process.cwd(), sourceFile)
-  const file = await fs.readFile(absolute, 'utf8')
-  const checksum = createHash('sha1').update(file).digest('hex')
-  const stripped = stripMarkdown(file)
-  const chunks = chunkText(stripped)
-  return { checksum, chunks }
+  try {
+    const file = await fs.readFile(absolute, 'utf8')
+    const checksum = createHash('sha1').update(file).digest('hex')
+    const stripped = stripMarkdown(file)
+    const chunks = chunkText(stripped)
+    return { checksum, chunks }
+  } catch (error) {
+    // File might not exist in serverless function environment
+    console.warn(`Knowledge file not found: ${sourceFile}`)
+    return null
+  }
 }
 
 declare global {
@@ -103,7 +109,14 @@ async function buildKnowledgePromise() {
   const supabase = createServiceClient()
 
   for (const source of KNOWLEDGE_SOURCES) {
-    const { checksum, chunks } = await loadFile(source.file)
+    const loadResult = await loadFile(source.file)
+
+    // Skip if file doesn't exist (e.g., in serverless environment)
+    if (!loadResult) {
+      continue
+    }
+
+    const { checksum, chunks } = loadResult
 
     const { data: existing } = await supabase
       .from('assistant_documents')
