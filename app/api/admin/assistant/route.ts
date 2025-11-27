@@ -569,19 +569,25 @@ export async function POST(request: NextRequest) {
       modelDisplayName: MODELS[selectedModel]?.displayName || selectedModel,
     })
   } catch (error) {
-    console.error('Assistant handler failure', error)
+    const errorDetail = error instanceof Error ? `${error.name}: ${error.message}\n${error.stack}` : String(error)
+    console.error('Assistant handler failure:', errorDetail)
     if (sessionId) {
       try {
         await logAssistantEvent({
           sessionId,
           eventType: 'error',
-          payload: { scope: 'unexpected', detail: String(error) },
+          payload: { scope: 'unexpected', detail: errorDetail },
           userId: adminUserId ?? null,
         })
       } catch (logError) {
         console.error('Failed to log assistant error', logError)
       }
     }
-    return NextResponse.json({ error: 'Unexpected error', sessionId: sessionId ?? undefined }, { status: 500 })
+    // In non-production, return more detail for debugging
+    const isDev = process.env.NODE_ENV !== 'production'
+    return NextResponse.json({
+      error: isDev ? errorDetail : 'Unexpected error',
+      sessionId: sessionId ?? undefined
+    }, { status: 500 })
   }
 }
