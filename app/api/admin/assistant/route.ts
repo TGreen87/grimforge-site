@@ -152,13 +152,8 @@ async function callOpenAI(
     messages,
   }
 
-  // GPT-5.1 models: add reasoning.effort parameter per API docs
-  // Per docs: "GPT-5.1 defaults to 'none', use 'high' for intelligence/reliability over speed"
-  if (isGpt51 && reasoningEffort) {
-    payload.reasoning = {
-      effort: reasoningEffort,
-    }
-  }
+  // Note: The 'reasoning' parameter was removed as it's not supported by the current OpenAI API
+  // The reasoningEffort config is kept for future compatibility but not sent to the API
 
   // O-series models don't support temperature, top_p, etc.
   if (isOSeriesModel) {
@@ -166,10 +161,7 @@ async function callOpenAI(
   } else if (isGpt5Plus) {
     // GPT-5+ models use max_completion_tokens
     payload.max_completion_tokens = 4096
-    // When reasoning is enabled (not 'none'), temperature may not be supported
-    if (!reasoningEffort || reasoningEffort === 'none') {
-      payload.temperature = 0.2
-    }
+    payload.temperature = 0.2
   } else {
     // Legacy models use max_tokens
     payload.max_tokens = 4096
