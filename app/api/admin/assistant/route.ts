@@ -583,10 +583,9 @@ export async function POST(request: NextRequest) {
         console.error('Failed to log assistant error', logError)
       }
     }
-    // In non-production, return more detail for debugging
-    const isDev = process.env.NODE_ENV !== 'production'
+    // Return error detail for debugging (temporarily enabled)
     return NextResponse.json({
-      error: isDev ? errorDetail : 'Unexpected error',
+      error: errorDetail.slice(0, 500), // Truncate for safety
       sessionId: sessionId ?? undefined
     }, { status: 500 })
   }
