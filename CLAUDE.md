@@ -132,20 +132,22 @@ Voice features in `app/api/admin/voice/`:
 
 ### Current Model IDs (Nov 2025)
 
+**NOTE**: GPT-5/5.1 may require special API access. Use `gpt-4o` as reliable fallback.
+
 ```
-GPT-5.1 Series (Best for coding & agentic tasks):
+GPT-4o Series (RECOMMENDED - widely available):
+- gpt-4o                     # Best general model, vision support
+- gpt-4o-mini                # Fast, cheap, good for simple tasks
+
+GPT-5.1 Series (May require API access):
 - gpt-5.1                    # Flagship, reasoning_effort defaults to 'none'
 - gpt-5.1-chat-latest        # ChatGPT model
 - gpt-5.1-codex              # Optimized for code
-- gpt-5.1-codex-mini         # Smaller code model
 
-GPT-5 Series (Aug 2025):
+GPT-5 Series (Aug 2025 - May require API access):
 - gpt-5                      # Most advanced general model
-- gpt-5-2025-08-07           # Dated snapshot
 - gpt-5-mini                 # Faster, cheaper
 - gpt-5-pro                  # Maximum capability
-- gpt-5-nano                 # Fastest, cheapest
-- gpt-5-codex                # Agentic software engineering
 
 GPT-4.1 Series (Lower cost alternative):
 - gpt-4.1                    # Main model

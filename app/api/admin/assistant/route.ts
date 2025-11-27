@@ -1,51 +1,45 @@
 import { randomUUID } from 'crypto'
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
-import { searchAssistantKnowledge } from '@/lib/assistant/knowledge'
 import { assistantActionTypes, buildActionsPrompt } from '@/lib/assistant/actions'
 import { ensureAssistantSession, logAssistantEvent } from '@/lib/assistant/sessions'
 import { assertAdmin } from '@/lib/assistant/auth'
 
-// Multi-model configuration
-type ModelProvider = 'openai' | 'google' | 'anthropic'
+// =============================================================================
+// OpenAI Responses API Implementation (Nov 2025)
+// =============================================================================
+// Using the Responses API instead of legacy Chat Completions:
+// - Server-managed conversation state via previous_response_id
+// - Built-in tools: web_search_preview, file_search, code_interpreter
+// - Structured outputs with JSON schema
+// - 30-day conversation persistence with store: true
+//
+// Docs: https://platform.openai.com/docs/api-reference/responses
+// =============================================================================
+
 type AgentType = 'product' | 'operations' | 'marketing' | 'general'
 
 interface ModelConfig {
   id: string
-  provider: ModelProvider
   displayName: string
   supportsVision: boolean
-  reasoningEffort?: 'none' | 'low' | 'medium' | 'high' // GPT-5.1 reasoning_effort parameter
+  reasoningEffort?: 'low' | 'medium' | 'high' // omit for 'none' (default for 5.1)
 }
 
+// Current models - using gpt-4o as fallback until GPT-5.1 issues resolved
 const MODELS: Record<string, ModelConfig> = {
-  // OpenAI GPT-5.1 series (Nov 2025) - with reasoning_effort parameter
-  // Per API docs: GPT-5.1 defaults to 'none', use 'high' for intelligence/reliability over speed
-  'gpt-5.1-high': { id: 'gpt-5.1-chat-latest', provider: 'openai', displayName: 'GPT-5.1 High Reasoning', supportsVision: true, reasoningEffort: 'high' },
-  'gpt-5.1-medium': { id: 'gpt-5.1-chat-latest', provider: 'openai', displayName: 'GPT-5.1 Medium', supportsVision: true, reasoningEffort: 'medium' },
-  'gpt-5.1': { id: 'gpt-5.1', provider: 'openai', displayName: 'GPT-5.1', supportsVision: true, reasoningEffort: 'none' },
-  'gpt-5.1-chat-latest': { id: 'gpt-5.1-chat-latest', provider: 'openai', displayName: 'GPT-5.1 Chat', supportsVision: true, reasoningEffort: 'none' },
-  'gpt-5.1-codex': { id: 'gpt-5.1-codex', provider: 'openai', displayName: 'GPT-5.1 Codex', supportsVision: true, reasoningEffort: 'medium' },
-  // OpenAI GPT-5 series (Aug 2025) - reasoning_effort defaults to 'medium'
-  'gpt-5': { id: 'gpt-5', provider: 'openai', displayName: 'GPT-5', supportsVision: true },
-  'gpt-5-mini': { id: 'gpt-5-mini', provider: 'openai', displayName: 'GPT-5 Mini', supportsVision: true },
-  'gpt-5-codex': { id: 'gpt-5-codex', provider: 'openai', displayName: 'GPT-5 Codex', supportsVision: true },
-  'gpt-5-pro': { id: 'gpt-5-pro', provider: 'openai', displayName: 'GPT-5 Pro', supportsVision: true },
-  // OpenAI o-series reasoning models
-  'o3-mini': { id: 'o3-mini', provider: 'openai', displayName: 'o3 Mini', supportsVision: false },
-  'o4-mini': { id: 'o4-mini', provider: 'openai', displayName: 'o4 Mini', supportsVision: false },
-  // Google models - Gemini series
-  'gemini-2.0-flash': { id: 'gemini-2.0-flash', provider: 'google', displayName: 'Gemini 2.0 Flash', supportsVision: true },
-  'gemini-2.5-flash': { id: 'gemini-2.5-flash', provider: 'google', displayName: 'Gemini 2.5 Flash', supportsVision: true },
-  // Anthropic models - Claude 4.5 series
-  'claude-sonnet-4-5': { id: 'claude-sonnet-4-5-20250929', provider: 'anthropic', displayName: 'Claude 4.5 Sonnet', supportsVision: true },
+  // GPT-4o - reliable, well-tested
+  'gpt-4o': { id: 'gpt-4o', displayName: 'GPT-4o', supportsVision: true },
+  'gpt-4o-mini': { id: 'gpt-4o-mini', displayName: 'GPT-4o Mini', supportsVision: true },
+  // GPT-5.1 Series - Best for agentic tasks (may need API access)
+  'gpt-5.1-high': { id: 'gpt-5.1', displayName: 'GPT-5.1 High Reasoning', supportsVision: true, reasoningEffort: 'high' },
+  'gpt-5.1': { id: 'gpt-5.1', displayName: 'GPT-5.1', supportsVision: true },
 }
 
 // Agent configurations with specialized system prompts
-// Upgraded per user request: high reasoning for complex tasks, gpt-5.1-chat-latest for general
 const AGENT_CONFIGS: Record<AgentType, { defaultModel: string; systemPromptAddition: string }> = {
   product: {
-    defaultModel: 'gpt-5.1-high', // High reasoning for product analysis and descriptions
+    defaultModel: 'gpt-4o',  // Using gpt-4o until GPT-5.1 API access confirmed
     systemPromptAddition: `
 You specialize in product management for a metal music import business (vinyls, CDs, cassettes).
 When analyzing images: identify band/artist, album title, format, special editions, condition.
@@ -53,14 +47,14 @@ Generate compelling metal-scene-appropriate product descriptions.
 Suggest categories, tags, and pricing based on format and rarity.`,
   },
   operations: {
-    defaultModel: 'gpt-5.1-chat-latest', // Upgraded from gpt-5-mini
+    defaultModel: 'gpt-4o-mini',
     systemPromptAddition: `
 You specialize in inventory and order operations for an Australian music import business.
 Help with stock management, order processing, shipping estimates (AU focused).
 Provide clear summaries, flag issues (low stock, delays), and suggest optimizations.`,
   },
   marketing: {
-    defaultModel: 'gpt-5.1-high', // High reasoning for creative marketing content
+    defaultModel: 'gpt-4o',
     systemPromptAddition: `
 You specialize in marketing content for underground metal music.
 Your voice: authentic to metal/underground scene, knowledgeable, passionate but professional.
@@ -68,7 +62,7 @@ Create social posts (Instagram, Facebook), articles, email campaigns, release an
 Use genre-appropriate language, relevant hashtags, mention local AU shipping/AUD pricing.`,
   },
   general: {
-    defaultModel: 'gpt-5.1-chat-latest', // Upgraded from gpt-5-mini
+    defaultModel: 'gpt-4o-mini',
     systemPromptAddition: '',
   },
 }
@@ -90,18 +84,16 @@ function classifyIntent(message: string): AgentType {
   return 'general'
 }
 
-const OPENAI_MODEL = process.env.ASSISTANT_CHAT_MODEL || 'gpt-5.1-chat-latest'
-const CHAT_SYSTEM_PROMPT =
-  process.env.ASSISTANT_CHAT_SYSTEM_PROMPT ||
-  [
-    'You are Obsidian Rite Records Copilot, a calm and encouraging operations helper for a busy label owner.',
-    'Explain everything in friendly, everyday language—no technical jargon, no acronyms without expanding them first.',
-    'When you reference the admin, mention the exact screen or button the owner should look for.',
-    'Offer clear next steps in short checklists the owner can follow immediately.',
-    'Only suggest automated actions when you already have the required details. If something essential is missing (price, title, artist, etc.), ask a follow-up question instead of guessing.',
-    'Describe in one sentence what will happen if the owner confirms an automated action.',
-  ].join(' ')
+const CHAT_SYSTEM_PROMPT = [
+  'You are Obsidian Rite Records Copilot, a calm and encouraging operations helper for a busy label owner.',
+  'Explain everything in friendly, everyday language—no technical jargon, no acronyms without expanding them first.',
+  'When you reference the admin, mention the exact screen or button the owner should look for.',
+  'Offer clear next steps in short checklists the owner can follow immediately.',
+  'Only suggest automated actions when you already have the required details. If something essential is missing (price, title, artist, etc.), ask a follow-up question instead of guessing.',
+  'Describe in one sentence what will happen if the owner confirms an automated action.',
+].join(' ')
 
+// Zod schemas for validation
 const actionTypeEnum = z.enum(assistantActionTypes)
 
 const assistantActionSchema = z.object({
@@ -118,70 +110,121 @@ const assistantResponseSchema = z.object({
 const messageSchema = z.object({
   role: z.enum(['user', 'assistant']),
   content: z.string().min(1),
-  image: z.string().optional(), // Base64 encoded image for vision
+  image: z.string().optional(),
 })
 
 const requestSchema = z.object({
   messages: z.array(messageSchema).min(1),
   topic: z.string().optional(),
   sessionId: z.string().uuid().optional(),
+  // OpenAI Responses API conversation state
+  previousResponseId: z.string().optional(),
   forceAgent: z.enum(['product', 'operations', 'marketing', 'general']).optional(),
   forceModel: z.string().optional(),
 })
 
-// API call functions for each provider
-// Per OpenAI API docs: https://platform.openai.com/docs/api-reference/chat/create
-// GPT-5/5.1 models support: max_completion_tokens, temperature (0-2), reasoning_effort (low/medium/high)
-async function callOpenAI(
-  messages: Array<{ role: string; content: any }>,
-  model: string,
-  useStructuredOutput: boolean = true,
-  reasoningEffort?: 'none' | 'low' | 'medium' | 'high'
-): Promise<{ text: string; raw: any }> {
+// JSON Schema for structured output (Responses API format)
+const RESPONSE_JSON_SCHEMA = {
+  name: 'AssistantResponse',
+  schema: {
+    type: 'object',
+    properties: {
+      reply: { type: 'string', description: 'The assistant reply to show the user' },
+      actions: {
+        type: 'array',
+        items: {
+          type: 'object',
+          properties: {
+            type: { type: 'string', enum: assistantActionTypes },
+            summary: { type: 'string' },
+            parameters: { type: 'object', additionalProperties: true },
+          },
+          required: ['type', 'summary', 'parameters'],
+          additionalProperties: false,
+        },
+      },
+    },
+    required: ['reply'],
+    additionalProperties: false,
+  },
+}
+
+// =============================================================================
+// OpenAI Responses API Call
+// =============================================================================
+interface ResponsesAPIInput {
+  role: 'user' | 'assistant' | 'system'
+  content: Array<{ type: string; text?: string; image_url?: string }>
+}
+
+interface ResponsesAPIResult {
+  id: string
+  outputText: string
+  raw: any
+  usage?: {
+    inputTokens: number
+    outputTokens: number
+    cachedTokens?: number
+  }
+}
+
+async function callResponsesAPI(
+  input: string | ResponsesAPIInput[],
+  options: {
+    model: string
+    instructions?: string
+    previousResponseId?: string
+    reasoningEffort?: 'low' | 'medium' | 'high'
+    tools?: Array<{ type: string }>
+    useStructuredOutput?: boolean
+  }
+): Promise<ResponsesAPIResult> {
   const apiKey = process.env.OPENAI_API_KEY
   if (!apiKey) throw new Error('OPENAI_API_KEY not configured')
 
-  // Check if this is a reasoning model (o-series)
-  const isOSeriesModel = model.startsWith('o3') || model.startsWith('o4')
-  // Check if this is a GPT-5.1 model (supports reasoning_effort parameter)
-  const isGpt51 = model.startsWith('gpt-5.1')
-  // Check if this is a GPT-5+ model (use max_completion_tokens instead of deprecated params)
-  const isGpt5Plus = model.startsWith('gpt-5')
-
   const payload: any = {
-    model,
-    messages,
+    model: options.model,
+    input,
+    // Store conversation for 30 days, enables previous_response_id
+    store: true,
   }
 
-  // O-series models don't support temperature, top_p, etc.
-  if (isOSeriesModel) {
-    payload.max_completion_tokens = 4096
-  } else if (isGpt5Plus) {
-    // GPT-5+ models use max_completion_tokens and support temperature (0-2)
-    payload.max_completion_tokens = 4096
-    payload.temperature = 0.7 // Balanced between deterministic and creative
-    // GPT-5.1 supports reasoning_effort as a top-level parameter
-    // Values: low, medium, high (none means omit the parameter)
-    if (isGpt51 && reasoningEffort && reasoningEffort !== 'none') {
-      payload.reasoning_effort = reasoningEffort
-    }
-  } else {
-    // Legacy models use max_tokens
-    payload.max_tokens = 4096
-    payload.temperature = 0.2
+  // System instructions
+  if (options.instructions) {
+    payload.instructions = options.instructions
   }
 
-  if (useStructuredOutput && !isOSeriesModel) {
-    payload.response_format = {
-      type: 'json_schema',
-      json_schema: {
-        name: assistantResponseSchemaName,
-        schema: assistantResponseSchemaDefinition,
+  // Continue conversation from previous response
+  if (options.previousResponseId) {
+    payload.previous_response_id = options.previousResponseId
+  }
+
+  // Reasoning effort (GPT-5.1) - omit for 'none'/default
+  if (options.reasoningEffort) {
+    payload.reasoning_effort = options.reasoningEffort
+  }
+
+  // Built-in tools
+  if (options.tools && options.tools.length > 0) {
+    payload.tools = options.tools
+  }
+
+  // Structured output with JSON schema
+  if (options.useStructuredOutput !== false) {
+    payload.text = {
+      format: {
+        type: 'json_schema',
+        ...RESPONSE_JSON_SCHEMA,
       },
     }
   }
 
-  const response = await fetch('https://api.openai.com/v1/chat/completions', {
+  // Token limit
+  payload.max_output_tokens = 4096
+
+  console.log('Responses API payload:', JSON.stringify(payload, null, 2))
+
+  const response = await fetch('https://api.openai.com/v1/responses', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -193,192 +236,104 @@ async function callOpenAI(
   const responseText = await response.text()
 
   if (!response.ok) {
-    throw new Error(`OpenAI API error: ${responseText}`)
+    console.error('Responses API error:', responseText)
+    // Parse error to get cleaner message
+    try {
+      const errorJson = JSON.parse(responseText)
+      throw new Error(`OpenAI API error: ${errorJson.error?.message || responseText}`)
+    } catch {
+      throw new Error(`OpenAI API error: ${responseText}`)
+    }
   }
 
-  // Clean the response text of any problematic control characters before parsing
+  // Clean control characters before parsing
   const cleanedText = responseText.replace(/[\x00-\x1F\x7F]/g, (char) => {
-    // Keep newlines, tabs, and carriage returns - they're valid in JSON strings
     if (char === '\n' || char === '\t' || char === '\r') return char
     return ''
   })
 
   const data = JSON.parse(cleanedText)
-  return { text: data.choices[0]?.message?.content || '', raw: data }
-}
 
-async function callGemini(
-  messages: Array<{ role: string; content: string }>,
-  model: string
-): Promise<{ text: string; raw: any }> {
-  const apiKey = process.env.GOOGLE_AI_API_KEY
-  if (!apiKey) throw new Error('GOOGLE_AI_API_KEY not configured')
+  // Extract output text from Responses API format
+  const outputText = extractOutputText(data)
 
-  // Convert to Gemini format
-  const contents = messages
-    .filter(m => m.role !== 'system')
-    .map(m => ({
-      role: m.role === 'assistant' ? 'model' : 'user',
-      parts: [{ text: m.content }],
-    }))
-
-  const systemMessage = messages.find(m => m.role === 'system')
-
-  const response = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
-    {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        contents,
-        systemInstruction: systemMessage
-          ? { parts: [{ text: systemMessage.content }] }
-          : undefined,
-        generationConfig: {
-          maxOutputTokens: 4096,
-          temperature: 0.2,
-        },
-      }),
-    }
-  )
-
-  if (!response.ok) {
-    const error = await response.text()
-    throw new Error(`Gemini API error: ${error}`)
-  }
-
-  const data = await response.json()
-  return { text: data.candidates?.[0]?.content?.parts?.[0]?.text || '', raw: data }
-}
-
-async function callClaude(
-  messages: Array<{ role: string; content: string }>,
-  model: string
-): Promise<{ text: string; raw: any }> {
-  const apiKey = process.env.ANTHROPIC_API_KEY
-  if (!apiKey) throw new Error('ANTHROPIC_API_KEY not configured')
-
-  const systemMessage = messages.find(m => m.role === 'system')
-  const chatMessages = messages
-    .filter(m => m.role !== 'system')
-    .map(m => ({
-      role: m.role as 'user' | 'assistant',
-      content: m.content,
-    }))
-
-  const response = await fetch('https://api.anthropic.com/v1/messages', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'x-api-key': apiKey,
-      'anthropic-version': '2023-06-01',
-    },
-    body: JSON.stringify({
-      model,
-      max_tokens: 4096,
-      system: systemMessage?.content,
-      messages: chatMessages,
-    }),
-  })
-
-  if (!response.ok) {
-    const error = await response.text()
-    throw new Error(`Claude API error: ${error}`)
-  }
-
-  const data = await response.json()
-  return { text: data.content?.[0]?.text || '', raw: data }
-}
-
-// Route to the appropriate provider
-async function callModel(
-  messages: Array<{ role: string; content: any }>,
-  modelId: string,
-  useStructuredOutput: boolean = true
-): Promise<{ text: string; raw: any; provider: ModelProvider }> {
-  const config = MODELS[modelId]
-  if (!config) {
-    // Fallback to OpenAI for unknown models
-    const result = await callOpenAI(messages, modelId, useStructuredOutput)
-    return { ...result, provider: 'openai' }
-  }
-
-  switch (config.provider) {
-    case 'google':
-      const geminiResult = await callGemini(messages, config.id)
-      return { ...geminiResult, provider: 'google' }
-    case 'anthropic':
-      const claudeResult = await callClaude(messages, config.id)
-      return { ...claudeResult, provider: 'anthropic' }
-    default:
-      // Pass the actual model ID and reasoning effort to OpenAI
-      const openaiResult = await callOpenAI(messages, config.id, useStructuredOutput, config.reasoningEffort)
-      return { ...openaiResult, provider: 'openai' }
+  return {
+    id: data.id,
+    outputText,
+    raw: data,
+    usage: data.usage ? {
+      inputTokens: data.usage.input_tokens,
+      outputTokens: data.usage.output_tokens,
+      cachedTokens: data.usage.input_tokens_details?.cached_tokens,
+    } : undefined,
   }
 }
 
-function toResponsesInput(messages: Array<{ role: string; content: string }>) {
-  return messages.map((message) => ({
-    role: message.role,
-    content: [
-      {
-        type: 'input_text' as const,
-        text: message.content,
-      },
-    ],
-  }))
-}
+// Extract text from Responses API output format
+function extractOutputText(response: any): string {
+  // Try output_text shorthand first
+  if (response.output_text) {
+    return response.output_text
+  }
 
-function extractResponsesText(json: any) {
-  const outputs = Array.isArray(json?.output) ? json.output : []
+  // Otherwise parse the output array
+  const outputs = Array.isArray(response.output) ? response.output : []
   for (const output of outputs) {
-    const contentItems = Array.isArray(output?.content) ? output.content : []
-    const match = contentItems.find((item: any) => item?.type === 'output_text' && typeof item?.text === 'string')
-    if (match?.text) {
-      return match.text.trim()
+    if (output.type === 'message' && Array.isArray(output.content)) {
+      for (const content of output.content) {
+        if (content.type === 'output_text' && content.text) {
+          return content.text
+        }
+        // Also check for 'text' type (some responses use this)
+        if (content.type === 'text' && content.text) {
+          return content.text
+        }
+      }
     }
   }
   return ''
 }
 
-const assistantResponseSchemaName = 'AssistantResponse'
+// Build input for Responses API (handles images)
+function buildResponsesInput(
+  messages: Array<{ role: string; content: string; image?: string }>,
+  systemContext: string
+): ResponsesAPIInput[] {
+  const input: ResponsesAPIInput[] = []
 
-const assistantResponseSchemaDefinition = {
-  type: 'object',
-  required: ['reply'],
-  properties: {
-    reply: { type: 'string' },
-    actions: {
-      type: 'array',
-      items: {
-        type: 'object',
-        required: ['type', 'summary', 'parameters'],
-        properties: {
-          type: {
-            type: 'string',
-            enum: actionTypeEnum.options,
-          },
-          summary: { type: 'string' },
-          parameters: { type: 'object', additionalProperties: true },
-        },
-      },
-    },
-  },
-  additionalProperties: false,
-} as const
+  // Add system context as first user message with context
+  // (Responses API uses 'instructions' for system prompt, but we can include context here)
 
-function buildContextSnippet(docs: Awaited<ReturnType<typeof searchAssistantKnowledge>>) {
-  return docs
-    .map((doc, index) => {
-      const heading = doc.title || doc.metadata?.title || doc.source_path
-      return `Source ${index + 1}: ${heading}\n${doc.content.trim()}`
+  for (const msg of messages) {
+    const contentParts: Array<{ type: string; text?: string; image_url?: string }> = []
+
+    // Add text content
+    contentParts.push({ type: 'input_text', text: msg.content })
+
+    // Add image if present
+    if (msg.image) {
+      const imageUrl = msg.image.startsWith('data:')
+        ? msg.image
+        : `data:image/jpeg;base64,${msg.image}`
+      contentParts.push({ type: 'input_image', image_url: imageUrl })
+    }
+
+    input.push({
+      role: msg.role as 'user' | 'assistant',
+      content: contentParts,
     })
-    .join('\n\n')
+  }
+
+  return input
 }
 
+// =============================================================================
+// Main API Handler
+// =============================================================================
 export async function POST(request: NextRequest) {
   let sessionId: string | null = null
   let adminUserId: string | null = null
+
   try {
     const adminCheck = await assertAdmin(request)
     if (!adminCheck.ok) {
@@ -390,10 +345,13 @@ export async function POST(request: NextRequest) {
     const parsedRequest = requestSchema.safeParse(json)
 
     if (!parsedRequest.success) {
-      return NextResponse.json({ error: 'Invalid request', details: parsedRequest.error.flatten() }, { status: 400 })
+      return NextResponse.json(
+        { error: 'Invalid request', details: parsedRequest.error.flatten() },
+        { status: 400 }
+      )
     }
 
-    const { messages, forceAgent, forceModel } = parsedRequest.data
+    const { messages, forceAgent, forceModel, previousResponseId } = parsedRequest.data
     const latestUserMessage = [...messages].reverse().find((m) => m.role === 'user')
 
     if (!latestUserMessage) {
@@ -402,19 +360,20 @@ export async function POST(request: NextRequest) {
 
     sessionId = parsedRequest.data.sessionId ?? randomUUID()
 
-    // Check if any message has an image (for vision routing)
+    // Check if any message has an image
     const hasImage = messages.some(m => m.image)
 
     // Determine agent and model
     const agent: AgentType = forceAgent || classifyIntent(latestUserMessage.content)
     const agentConfig = AGENT_CONFIGS[agent]
 
-    // Select model: force > vision-capable > agent default
+    // Select model
     let selectedModel = forceModel || agentConfig.defaultModel
     if (hasImage && !MODELS[selectedModel]?.supportsVision) {
-      // Upgrade to vision-capable model with high reasoning for best image analysis
       selectedModel = 'gpt-5.1-high'
     }
+
+    const modelConfig = MODELS[selectedModel] || MODELS['gpt-5.1']
 
     await ensureAssistantSession({
       sessionId,
@@ -433,113 +392,77 @@ export async function POST(request: NextRequest) {
       payload: { content: latestUserMessage.content, hasImage },
     })
 
-    const knowledge = await searchAssistantKnowledge(latestUserMessage.content, {
-      matchCount: 6,
-      threshold: 0.2,
-    })
-
-    const contextText = knowledge.length ? buildContextSnippet(knowledge) : 'No context available'
-
-    // Build system prompt with agent specialization
-    const systemPrompt = [
+    // Build system instructions with agent specialization
+    const instructions = [
       CHAT_SYSTEM_PROMPT,
       agentConfig.systemPromptAddition,
-      `\nRespond in JSON format with this structure: { "reply": "your message", "actions": [...] }`,
-    ].filter(Boolean).join('\n')
+      buildActionsPrompt(),
+      'Respond in JSON format: { "reply": "your message", "actions": [...] }',
+    ].filter(Boolean).join('\n\n')
 
-    // Build messages for the API
-    const apiMessages: Array<{ role: string; content: any }> = [
-      { role: 'system', content: systemPrompt },
-      { role: 'system', content: `Context from internal documentation:\n\n${contextText}` },
-      { role: 'system', content: buildActionsPrompt() },
-    ]
+    // Build input for Responses API
+    // If we have a previousResponseId, we only send the new message
+    // Otherwise, send the conversation history
+    let input: string | ResponsesAPIInput[]
 
-    // Add conversation history with image support
-    for (const msg of messages.slice(-8)) {
-      if (msg.image && MODELS[selectedModel]?.provider === 'openai') {
-        // OpenAI vision format
-        apiMessages.push({
-          role: msg.role,
+    if (previousResponseId) {
+      // Continuing conversation - only send new message
+      if (hasImage && latestUserMessage.image) {
+        input = [{
+          role: 'user',
           content: [
-            { type: 'text', text: msg.content },
+            { type: 'input_text', text: latestUserMessage.content },
             {
-              type: 'image_url',
-              image_url: {
-                url: msg.image.startsWith('data:') ? msg.image : `data:image/jpeg;base64,${msg.image}`,
-              },
+              type: 'input_image',
+              image_url: latestUserMessage.image.startsWith('data:')
+                ? latestUserMessage.image
+                : `data:image/jpeg;base64,${latestUserMessage.image}`
             },
           ],
-        })
+        }]
       } else {
-        apiMessages.push({ role: msg.role, content: msg.content })
+        // Simple string input for text-only continuation
+        input = latestUserMessage.content
       }
+    } else {
+      // New conversation - send full history (last 8 messages)
+      input = buildResponsesInput(messages.slice(-8), '')
     }
 
-    // Call the selected model
-    let parsedResponse: z.infer<typeof assistantResponseSchema> | null = null
-    let responseProvider: ModelProvider = 'openai'
+    // Optional: Enable web search for product/marketing research
+    const tools: Array<{ type: string }> = []
+    if (agent === 'product' || agent === 'marketing') {
+      tools.push({ type: 'web_search_preview' })
+    }
+
+    // Call Responses API
+    const result = await callResponsesAPI(input, {
+      model: modelConfig.id,
+      instructions,
+      previousResponseId,
+      reasoningEffort: modelConfig.reasoningEffort,
+      tools: tools.length > 0 ? tools : undefined,
+      useStructuredOutput: true,
+    })
+
+    // Parse the response
+    let parsedResponse: z.infer<typeof assistantResponseSchema>
+
+    const rawContent = result.outputText.trim()
+    if (!rawContent) {
+      throw new Error('Empty response from API')
+    }
 
     try {
-      const useStructuredOutput = MODELS[selectedModel]?.provider === 'openai'
-      const result = await callModel(apiMessages, selectedModel, useStructuredOutput)
-      responseProvider = result.provider
-
-      const rawContent = result.text.trim()
-      if (rawContent) {
-        try {
-          // Try to parse as JSON
-          const jsonMatch = rawContent.match(/\{[\s\S]*\}/)
-          if (jsonMatch) {
-            parsedResponse = assistantResponseSchema.parse(JSON.parse(jsonMatch[0]))
-          } else {
-            parsedResponse = { reply: rawContent, actions: [] }
-          }
-        } catch {
-          parsedResponse = { reply: rawContent, actions: [] }
-        }
+      // Try to parse as JSON
+      const jsonMatch = rawContent.match(/\{[\s\S]*\}/)
+      if (jsonMatch) {
+        parsedResponse = assistantResponseSchema.parse(JSON.parse(jsonMatch[0]))
+      } else {
+        parsedResponse = { reply: rawContent, actions: [] }
       }
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Model call failed'
-      console.error(`${selectedModel} call failed:`, error)
-
-      // Fallback to default OpenAI model if the selected one fails
-      if (selectedModel !== OPENAI_MODEL && process.env.OPENAI_API_KEY) {
-        console.log(`Falling back to ${OPENAI_MODEL}`)
-        try {
-          const fallbackConfig = MODELS[OPENAI_MODEL]
-          const fallbackResult = await callOpenAI(
-            apiMessages,
-            fallbackConfig?.id || OPENAI_MODEL,
-            true,
-            fallbackConfig?.reasoningEffort
-          )
-          responseProvider = 'openai'
-          const rawContent = fallbackResult.text.trim()
-          if (rawContent) {
-            try {
-              parsedResponse = assistantResponseSchema.parse(JSON.parse(rawContent))
-            } catch {
-              parsedResponse = { reply: rawContent, actions: [] }
-            }
-          }
-        } catch (fallbackError) {
-          console.error('Fallback also failed:', fallbackError)
-        }
-      }
-
-      if (!parsedResponse) {
-        await logAssistantEvent({
-          sessionId,
-          userId: adminUserId,
-          eventType: 'error',
-          payload: { scope: selectedModel, message: errorMessage },
-        })
-        return NextResponse.json({ error: errorMessage, sessionId }, { status: 500 })
-      }
-    }
-
-    if (!parsedResponse) {
-      return NextResponse.json({ error: 'No response generated', sessionId }, { status: 500 })
+    } catch {
+      parsedResponse = { reply: rawContent, actions: [] }
     }
 
     await logAssistantEvent({
@@ -549,31 +472,33 @@ export async function POST(request: NextRequest) {
       payload: {
         content: parsedResponse.reply,
         actions: parsedResponse.actions ?? [],
-        sources: knowledge,
-        metadata: { agent, model: selectedModel, provider: responseProvider },
+        metadata: {
+          agent,
+          model: selectedModel,
+          responseId: result.id,
+          usage: result.usage,
+        },
       },
     })
 
     return NextResponse.json({
       sessionId,
       message: parsedResponse.reply,
-      sources: knowledge.map((doc, index) => ({
-        id: doc.id,
-        title: doc.title ?? doc.metadata?.title ?? doc.source_path,
-        snippet: doc.content.slice(0, 280),
-        similarity: doc.similarity,
-        order: index + 1,
-      })),
       actions: parsedResponse.actions ?? [],
-      // Include agent/model info for UI display
+      // Responses API conversation state - client should pass this back
+      responseId: result.id,
+      // Metadata
       agent,
       model: selectedModel,
-      provider: responseProvider,
-      modelDisplayName: MODELS[selectedModel]?.displayName || selectedModel,
+      modelDisplayName: modelConfig.displayName,
+      usage: result.usage,
     })
   } catch (error) {
-    const errorDetail = error instanceof Error ? `${error.name}: ${error.message}\n${error.stack}` : String(error)
+    const errorDetail = error instanceof Error
+      ? `${error.name}: ${error.message}`
+      : String(error)
     console.error('Assistant handler failure:', errorDetail)
+
     if (sessionId) {
       try {
         await logAssistantEvent({
@@ -586,10 +511,10 @@ export async function POST(request: NextRequest) {
         console.error('Failed to log assistant error', logError)
       }
     }
-    // Always return error detail for now (can be restricted later)
-    return NextResponse.json({
-      error: errorDetail.slice(0, 1000),
-      sessionId: sessionId ?? undefined
-    }, { status: 500 })
+
+    return NextResponse.json(
+      { error: errorDetail.slice(0, 1000), sessionId: sessionId ?? undefined },
+      { status: 500 }
+    )
   }
 }

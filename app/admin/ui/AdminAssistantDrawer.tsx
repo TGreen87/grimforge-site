@@ -125,6 +125,8 @@ export default function AdminAssistantDrawer({ open, onClose }: AdminAssistantDr
   const [pendingImage, setPendingImage] = useState<string | null>(null) // Base64 image to send with next message
   const [currentAgent, setCurrentAgent] = useState<AgentType>('general')
   const [currentModel, setCurrentModel] = useState<string>('')
+  // OpenAI Responses API conversation state - enables server-side conversation history
+  const [previousResponseId, setPreviousResponseId] = useState<string | null>(null)
   const [isListening, setIsListening] = useState(false) // Voice input state
   const [voiceSupported, setVoiceSupported] = useState(false)
   // ElevenLabs voice settings
@@ -558,6 +560,8 @@ export default function AdminAssistantDrawer({ open, onClose }: AdminAssistantDr
         body: JSON.stringify({
           messages: [...messages, userMessage].map(({ role, content, image }) => ({ role, content, image })),
           sessionId: sessionIdRef.current,
+          // Pass OpenAI Responses API conversation state for server-side history
+          previousResponseId: previousResponseId || undefined,
           forceAgent,
         }),
       })
@@ -585,12 +589,18 @@ export default function AdminAssistantDrawer({ open, onClose }: AdminAssistantDr
         sources?: AssistantSource[]
         actions?: AssistantAction[]
         sessionId?: string
+        responseId?: string // OpenAI Responses API conversation state
         agent?: AgentType
         model?: string
         modelDisplayName?: string
+        usage?: { inputTokens: number; outputTokens: number; cachedTokens?: number }
       }
       if (data.sessionId) {
         sessionIdRef.current = data.sessionId
+      }
+      // Store OpenAI Responses API conversation ID for next request
+      if (data.responseId) {
+        setPreviousResponseId(data.responseId)
       }
       // Update current agent/model state
       if (data.agent) setCurrentAgent(data.agent)
