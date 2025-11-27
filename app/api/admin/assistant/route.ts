@@ -18,18 +18,22 @@ interface ModelConfig {
 }
 
 const MODELS: Record<string, ModelConfig> = {
-  'gpt-4.1-mini': { id: 'gpt-4.1-mini', provider: 'openai', displayName: 'GPT-4.1 Mini', supportsVision: false },
-  'gpt-4.1': { id: 'gpt-4.1', provider: 'openai', displayName: 'GPT-4.1', supportsVision: true },
-  'gemini-2.0-flash': { id: 'gemini-2.0-flash', provider: 'google', displayName: 'Gemini Flash', supportsVision: false },
-  'gemini-2.0-pro': { id: 'gemini-2.0-pro', provider: 'google', displayName: 'Gemini Pro', supportsVision: true },
-  'claude-sonnet-4-5-20250929': { id: 'claude-sonnet-4-5-20250929', provider: 'anthropic', displayName: 'Claude Sonnet 4.5', supportsVision: false },
-  'claude-opus-4-5-20251101': { id: 'claude-opus-4-5-20251101', provider: 'anthropic', displayName: 'Claude Opus 4.5', supportsVision: true },
+  // OpenAI models - GPT-5.1 series (Nov 2025)
+  'gpt-5.1': { id: 'gpt-5.1', provider: 'openai', displayName: 'GPT-5.1', supportsVision: true },
+  'gpt-5.1-thinking': { id: 'gpt-5.1-thinking', provider: 'openai', displayName: 'GPT-5.1 Thinking', supportsVision: true },
+  'gpt-5.1-chat-latest': { id: 'gpt-5.1-chat-latest', provider: 'openai', displayName: 'GPT-5.1 Instant', supportsVision: true },
+  // Google models - Gemini 3 series
+  'gemini-3-pro': { id: 'gemini-3-pro', provider: 'google', displayName: 'Gemini 3 Pro', supportsVision: true },
+  'gemini-3-nano': { id: 'gemini-3-nano', provider: 'google', displayName: 'Gemini 3 Nano', supportsVision: true },
+  // Anthropic models - Claude 4.5 series
+  'claude-sonnet-4-5-20250929': { id: 'claude-sonnet-4-5-20250929', provider: 'anthropic', displayName: 'Claude 4.5 Sonnet', supportsVision: true },
+  'claude-opus-4-5-20251101': { id: 'claude-opus-4-5-20251101', provider: 'anthropic', displayName: 'Claude 4.5 Opus', supportsVision: true },
 }
 
 // Agent configurations with specialized system prompts
 const AGENT_CONFIGS: Record<AgentType, { defaultModel: string; systemPromptAddition: string }> = {
   product: {
-    defaultModel: 'gpt-4.1',
+    defaultModel: 'gpt-5.1',
     systemPromptAddition: `
 You specialize in product management for a metal music import business (vinyls, CDs, cassettes).
 When analyzing images: identify band/artist, album title, format, special editions, condition.
@@ -37,14 +41,14 @@ Generate compelling metal-scene-appropriate product descriptions.
 Suggest categories, tags, and pricing based on format and rarity.`,
   },
   operations: {
-    defaultModel: 'gemini-2.0-pro',
+    defaultModel: 'gpt-5.1-chat-latest',
     systemPromptAddition: `
 You specialize in inventory and order operations for an Australian music import business.
 Help with stock management, order processing, shipping estimates (AU focused).
 Provide clear summaries, flag issues (low stock, delays), and suggest optimizations.`,
   },
   marketing: {
-    defaultModel: 'claude-sonnet-4-5-20250929',
+    defaultModel: 'gpt-5.1',
     systemPromptAddition: `
 You specialize in marketing content for underground metal music.
 Your voice: authentic to metal/underground scene, knowledgeable, passionate but professional.
@@ -52,7 +56,7 @@ Create social posts (Instagram, Facebook), articles, email campaigns, release an
 Use genre-appropriate language, relevant hashtags, mention local AU shipping/AUD pricing.`,
   },
   general: {
-    defaultModel: 'gpt-4.1-mini',
+    defaultModel: 'gpt-5.1-chat-latest',
     systemPromptAddition: '',
   },
 }
@@ -74,7 +78,7 @@ function classifyIntent(message: string): AgentType {
   return 'general'
 }
 
-const OPENAI_MODEL = process.env.ASSISTANT_CHAT_MODEL || 'gpt-4.1-mini'
+const OPENAI_MODEL = process.env.ASSISTANT_CHAT_MODEL || 'gpt-5.1-chat-latest'
 const CHAT_SYSTEM_PROMPT =
   process.env.ASSISTANT_CHAT_SYSTEM_PROMPT ||
   [
@@ -361,7 +365,7 @@ export async function POST(request: NextRequest) {
     let selectedModel = forceModel || agentConfig.defaultModel
     if (hasImage && !MODELS[selectedModel]?.supportsVision) {
       // Upgrade to vision-capable model
-      selectedModel = 'gpt-4.1' // Best vision model
+      selectedModel = 'gpt-5.1' // Best vision model
     }
 
     await ensureAssistantSession({

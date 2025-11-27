@@ -30,8 +30,8 @@ export interface VoiceSettings {
 
 const DEFAULT_SETTINGS: VoiceSettings = {
   enabled: false,
-  voice_id: 'JBFqnCBsd6RMkjVDRZzb', // George
-  voice_name: 'George',
+  voice_id: '', // Will be populated from API
+  voice_name: '',
   model_id: 'eleven_flash_v2_5',
   stability: 0.5,
   similarity_boost: 0.75,
@@ -77,7 +77,23 @@ export default function VoiceSettingsModal({
         })
         if (response.ok) {
           const data = await response.json()
-          setVoices(data.voices || [])
+          const fetchedVoices = data.voices || []
+          setVoices(fetchedVoices)
+
+          // If no voice is selected yet, use the default from API or first voice
+          if (!settings.voice_id && fetchedVoices.length > 0) {
+            const defaultVoice = data.default_voice_id
+              ? fetchedVoices.find((v: Voice) => v.voice_id === data.default_voice_id)
+              : fetchedVoices[0]
+
+            if (defaultVoice) {
+              onSettingsChange({
+                ...settings,
+                voice_id: defaultVoice.voice_id,
+                voice_name: defaultVoice.name,
+              })
+            }
+          }
         } else {
           message.error('Failed to load voices')
         }
@@ -90,7 +106,7 @@ export default function VoiceSettingsModal({
     }
 
     fetchVoices()
-  }, [open])
+  }, [open, settings.voice_id, onSettingsChange])
 
   // Play voice preview
   function playPreview(voice: Voice) {

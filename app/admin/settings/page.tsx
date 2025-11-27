@@ -88,8 +88,8 @@ interface Voice {
 
 const DEFAULT_VOICE_SETTINGS: VoiceSettings = {
   enabled: false,
-  voice_id: "JBFqnCBsd6RMkjVDRZzb",
-  voice_name: "George",
+  voice_id: "", // Will be populated from API
+  voice_name: "",
   model_id: "eleven_flash_v2_5",
   stability: 0.5,
   similarity_boost: 0.75,
@@ -369,7 +369,25 @@ export default function AdminSettingsPage() {
         });
         if (response.ok) {
           const data = await response.json();
-          setVoices(data.voices || []);
+          const fetchedVoices = data.voices || [];
+          setVoices(fetchedVoices);
+
+          // If no voice is selected yet, use the default from API or first voice
+          if (!voiceSettings.voice_id && fetchedVoices.length > 0) {
+            const defaultVoice = data.default_voice_id
+              ? fetchedVoices.find((v: Voice) => v.voice_id === data.default_voice_id)
+              : fetchedVoices[0];
+
+            if (defaultVoice) {
+              const newSettings = {
+                ...voiceSettings,
+                voice_id: defaultVoice.voice_id,
+                voice_name: defaultVoice.name,
+              };
+              setVoiceSettings(newSettings);
+              localStorage.setItem("copilot_voice_settings", JSON.stringify(newSettings));
+            }
+          }
         }
       } catch (error) {
         console.error("Failed to fetch voices:", error);

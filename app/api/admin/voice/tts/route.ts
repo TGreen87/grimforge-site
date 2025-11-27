@@ -23,8 +23,9 @@ interface TTSRequest {
   speed?: number
 }
 
-// Default voice - can be configured per user
-const DEFAULT_VOICE_ID = 'JBFqnCBsd6RMkjVDRZzb' // George - warm, friendly male voice
+// Default voice - will use first available if not set
+// Note: ElevenLabs premade voices change; this should be fetched dynamically
+const DEFAULT_VOICE_ID = '' // Will be handled in request
 
 export async function POST(request: NextRequest) {
   try {

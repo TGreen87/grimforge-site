@@ -16,21 +16,6 @@ interface VoicesResponse {
   voices: Voice[]
 }
 
-// Curated list of recommended voices for the copilot
-// These are voices that work well for an Australian metal music business assistant
-const RECOMMENDED_VOICES = [
-  'JBFqnCBsd6RMkjVDRZzb', // George - warm, friendly
-  '21m00Tcm4TlvDq8ikWAM', // Rachel - clear, professional
-  'AZnzlk1XvdvUeBnXmlld', // Domi - energetic
-  'EXAVITQu4vr4xnSDxMaL', // Bella - warm female
-  'ErXwobaYiN019PkySvjV', // Antoni - friendly male
-  'MF3mGyEYCl7XYWbV9V6O', // Elli - young female
-  'TxGEqnHWrfWFTfGW9XjX', // Josh - deep male
-  'VR6AewLTigWG4xSOukaG', // Arnold - authoritative
-  'pNInz6obpgDQGcFmaJgB', // Adam - narrative
-  'yoZ06aMxZJJ28mfd3POQ', // Sam - clear male
-]
-
 export async function GET(request: NextRequest) {
   try {
     // Verify admin auth
@@ -47,7 +32,7 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    // Fetch all available voices
+    // Fetch all available voices from ElevenLabs
     const response = await fetch('https://api.elevenlabs.io/v1/voices', {
       method: 'GET',
       headers: {
@@ -65,36 +50,44 @@ export async function GET(request: NextRequest) {
     }
 
     const data = (await response.json()) as VoicesResponse
+    console.log(`[ElevenLabs] Fetched ${data.voices?.length || 0} voices`)
 
-    // Filter to recommended voices and format response
-    const voices = data.voices
-      .filter((v) => RECOMMENDED_VOICES.includes(v.voice_id))
-      .map((v) => ({
+    // Return ALL voices, categorized
+    const allVoices = (data.voices || []).map((v) => {
+      // Build a description from labels if no description provided
+      const labelStr = v.labels
+        ? Object.entries(v.labels)
+            .map(([k, val]) => `${val}`)
+            .join(', ')
+        : ''
+
+      return {
         voice_id: v.voice_id,
         name: v.name,
-        category: v.category,
-        description: v.description || '',
+        category: v.category || 'unknown',
+        description: v.description || labelStr || '',
         labels: v.labels || {},
-        preview_url: v.preview_url,
-        recommended: true,
-      }))
+        preview_url: v.preview_url || null,
+        // Mark premade voices as recommended
+        recommended: v.category === 'premade' || v.category === 'high_quality',
+      }
+    })
 
-    // Also include any custom/cloned voices the user has
-    const customVoices = data.voices
-      .filter((v) => v.category === 'cloned' || v.category === 'generated')
-      .map((v) => ({
-        voice_id: v.voice_id,
-        name: v.name,
-        category: v.category,
-        description: v.description || '',
-        labels: v.labels || {},
-        preview_url: v.preview_url,
-        recommended: false,
-      }))
+    // Sort: recommended first, then by name
+    allVoices.sort((a, b) => {
+      if (a.recommended && !b.recommended) return -1
+      if (!a.recommended && b.recommended) return 1
+      return a.name.localeCompare(b.name)
+    })
+
+    // Find a good default voice (first premade male or first premade)
+    const defaultVoice = allVoices.find(
+      (v) => v.category === 'premade' && v.labels?.gender === 'male'
+    ) || allVoices.find((v) => v.category === 'premade') || allVoices[0]
 
     return NextResponse.json({
-      voices: [...voices, ...customVoices],
-      default_voice_id: 'JBFqnCBsd6RMkjVDRZzb', // George
+      voices: allVoices,
+      default_voice_id: defaultVoice?.voice_id || null,
     })
   } catch (error) {
     console.error('Voices endpoint error:', error)
