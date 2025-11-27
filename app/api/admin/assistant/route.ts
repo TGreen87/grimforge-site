@@ -18,23 +18,29 @@ interface ModelConfig {
 }
 
 const MODELS: Record<string, ModelConfig> = {
-  // OpenAI models - current API model strings
-  'gpt-4.1': { id: 'gpt-4.1-2025-04-14', provider: 'openai', displayName: 'GPT-4.1', supportsVision: true },
-  'gpt-4.1-mini': { id: 'gpt-4.1-mini-2025-04-14', provider: 'openai', displayName: 'GPT-4.1 Mini', supportsVision: true },
-  'gpt-4o': { id: 'gpt-4o', provider: 'openai', displayName: 'GPT-4o', supportsVision: true },
-  'gpt-4o-mini': { id: 'gpt-4o-mini', provider: 'openai', displayName: 'GPT-4o Mini', supportsVision: true },
-  // Google models - Gemini 2.0/2.5 series (current)
+  // OpenAI GPT-5.1 series (Nov 2025) - from /v1/models endpoint
+  'gpt-5.1': { id: 'gpt-5.1', provider: 'openai', displayName: 'GPT-5.1', supportsVision: true },
+  'gpt-5.1-chat-latest': { id: 'gpt-5.1-chat-latest', provider: 'openai', displayName: 'GPT-5.1 Chat', supportsVision: true },
+  'gpt-5.1-codex': { id: 'gpt-5.1-codex', provider: 'openai', displayName: 'GPT-5.1 Codex', supportsVision: true },
+  // OpenAI GPT-5 series (Aug 2025)
+  'gpt-5': { id: 'gpt-5', provider: 'openai', displayName: 'GPT-5', supportsVision: true },
+  'gpt-5-mini': { id: 'gpt-5-mini', provider: 'openai', displayName: 'GPT-5 Mini', supportsVision: true },
+  'gpt-5-codex': { id: 'gpt-5-codex', provider: 'openai', displayName: 'GPT-5 Codex', supportsVision: true },
+  'gpt-5-pro': { id: 'gpt-5-pro', provider: 'openai', displayName: 'GPT-5 Pro', supportsVision: true },
+  // OpenAI o-series reasoning models
+  'o3-mini': { id: 'o3-mini', provider: 'openai', displayName: 'o3 Mini', supportsVision: false },
+  'o4-mini': { id: 'o4-mini', provider: 'openai', displayName: 'o4 Mini', supportsVision: false },
+  // Google models - Gemini series
   'gemini-2.0-flash': { id: 'gemini-2.0-flash', provider: 'google', displayName: 'Gemini 2.0 Flash', supportsVision: true },
   'gemini-2.5-flash': { id: 'gemini-2.5-flash', provider: 'google', displayName: 'Gemini 2.5 Flash', supportsVision: true },
-  // Anthropic models - Claude 3.5/4 series
+  // Anthropic models - Claude 4.5 series
   'claude-sonnet-4-5': { id: 'claude-sonnet-4-5-20250929', provider: 'anthropic', displayName: 'Claude 4.5 Sonnet', supportsVision: true },
-  'claude-3-5-sonnet': { id: 'claude-3-5-sonnet-20241022', provider: 'anthropic', displayName: 'Claude 3.5 Sonnet', supportsVision: true },
 }
 
 // Agent configurations with specialized system prompts
 const AGENT_CONFIGS: Record<AgentType, { defaultModel: string; systemPromptAddition: string }> = {
   product: {
-    defaultModel: 'gpt-4o',
+    defaultModel: 'gpt-5.1-chat-latest',
     systemPromptAddition: `
 You specialize in product management for a metal music import business (vinyls, CDs, cassettes).
 When analyzing images: identify band/artist, album title, format, special editions, condition.
@@ -42,14 +48,14 @@ Generate compelling metal-scene-appropriate product descriptions.
 Suggest categories, tags, and pricing based on format and rarity.`,
   },
   operations: {
-    defaultModel: 'gpt-4o-mini',
+    defaultModel: 'gpt-5-mini',
     systemPromptAddition: `
 You specialize in inventory and order operations for an Australian music import business.
 Help with stock management, order processing, shipping estimates (AU focused).
 Provide clear summaries, flag issues (low stock, delays), and suggest optimizations.`,
   },
   marketing: {
-    defaultModel: 'gpt-4o',
+    defaultModel: 'gpt-5.1-chat-latest',
     systemPromptAddition: `
 You specialize in marketing content for underground metal music.
 Your voice: authentic to metal/underground scene, knowledgeable, passionate but professional.
@@ -57,7 +63,7 @@ Create social posts (Instagram, Facebook), articles, email campaigns, release an
 Use genre-appropriate language, relevant hashtags, mention local AU shipping/AUD pricing.`,
   },
   general: {
-    defaultModel: 'gpt-4o-mini',
+    defaultModel: 'gpt-5-mini',
     systemPromptAddition: '',
   },
 }
@@ -79,7 +85,7 @@ function classifyIntent(message: string): AgentType {
   return 'general'
 }
 
-const OPENAI_MODEL = process.env.ASSISTANT_CHAT_MODEL || 'gpt-4o-mini'
+const OPENAI_MODEL = process.env.ASSISTANT_CHAT_MODEL || 'gpt-5-mini'
 const CHAT_SYSTEM_PROMPT =
   process.env.ASSISTANT_CHAT_SYSTEM_PROMPT ||
   [
@@ -127,13 +133,31 @@ async function callOpenAI(
   const apiKey = process.env.OPENAI_API_KEY
   if (!apiKey) throw new Error('OPENAI_API_KEY not configured')
 
+  // Check if this is a reasoning model (o-series or models that need special handling)
+  const isReasoningModel = model.startsWith('o3') || model.startsWith('o4') || model.includes('reasoning')
+  // Check if this is a GPT-5+ model (use max_completion_tokens instead of deprecated params)
+  const isGpt5Plus = model.startsWith('gpt-5')
+
   const payload: any = {
     model,
     messages,
-    temperature: 0.2,
   }
 
-  if (useStructuredOutput) {
+  // GPT-5+ models use max_completion_tokens; reasoning models don't support temperature
+  if (isReasoningModel) {
+    // Reasoning models don't support temperature, top_p, etc.
+    payload.max_completion_tokens = 4096
+  } else if (isGpt5Plus) {
+    // GPT-5+ models prefer max_completion_tokens
+    payload.max_completion_tokens = 4096
+    payload.temperature = 0.2
+  } else {
+    // Legacy models use max_tokens
+    payload.max_tokens = 4096
+    payload.temperature = 0.2
+  }
+
+  if (useStructuredOutput && !isReasoningModel) {
     payload.response_format = {
       type: 'json_schema',
       json_schema: {
@@ -366,7 +390,7 @@ export async function POST(request: NextRequest) {
     let selectedModel = forceModel || agentConfig.defaultModel
     if (hasImage && !MODELS[selectedModel]?.supportsVision) {
       // Upgrade to vision-capable model
-      selectedModel = 'gpt-4o' // Best vision model
+      selectedModel = 'gpt-5.1-chat-latest' // Best vision model
     }
 
     await ensureAssistantSession({
