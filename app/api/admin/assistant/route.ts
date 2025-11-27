@@ -15,14 +15,18 @@ interface ModelConfig {
   provider: ModelProvider
   displayName: string
   supportsVision: boolean
+  reasoningEffort?: 'none' | 'low' | 'medium' | 'high' // GPT-5.1 reasoning_effort parameter
 }
 
 const MODELS: Record<string, ModelConfig> = {
-  // OpenAI GPT-5.1 series (Nov 2025) - from /v1/models endpoint
-  'gpt-5.1': { id: 'gpt-5.1', provider: 'openai', displayName: 'GPT-5.1', supportsVision: true },
-  'gpt-5.1-chat-latest': { id: 'gpt-5.1-chat-latest', provider: 'openai', displayName: 'GPT-5.1 Chat', supportsVision: true },
-  'gpt-5.1-codex': { id: 'gpt-5.1-codex', provider: 'openai', displayName: 'GPT-5.1 Codex', supportsVision: true },
-  // OpenAI GPT-5 series (Aug 2025)
+  // OpenAI GPT-5.1 series (Nov 2025) - with reasoning_effort parameter
+  // Per API docs: GPT-5.1 defaults to 'none', use 'high' for intelligence/reliability over speed
+  'gpt-5.1-high': { id: 'gpt-5.1-chat-latest', provider: 'openai', displayName: 'GPT-5.1 High Reasoning', supportsVision: true, reasoningEffort: 'high' },
+  'gpt-5.1-medium': { id: 'gpt-5.1-chat-latest', provider: 'openai', displayName: 'GPT-5.1 Medium', supportsVision: true, reasoningEffort: 'medium' },
+  'gpt-5.1': { id: 'gpt-5.1', provider: 'openai', displayName: 'GPT-5.1', supportsVision: true, reasoningEffort: 'none' },
+  'gpt-5.1-chat-latest': { id: 'gpt-5.1-chat-latest', provider: 'openai', displayName: 'GPT-5.1 Chat', supportsVision: true, reasoningEffort: 'none' },
+  'gpt-5.1-codex': { id: 'gpt-5.1-codex', provider: 'openai', displayName: 'GPT-5.1 Codex', supportsVision: true, reasoningEffort: 'medium' },
+  // OpenAI GPT-5 series (Aug 2025) - reasoning_effort defaults to 'medium'
   'gpt-5': { id: 'gpt-5', provider: 'openai', displayName: 'GPT-5', supportsVision: true },
   'gpt-5-mini': { id: 'gpt-5-mini', provider: 'openai', displayName: 'GPT-5 Mini', supportsVision: true },
   'gpt-5-codex': { id: 'gpt-5-codex', provider: 'openai', displayName: 'GPT-5 Codex', supportsVision: true },
@@ -38,9 +42,10 @@ const MODELS: Record<string, ModelConfig> = {
 }
 
 // Agent configurations with specialized system prompts
+// Upgraded per user request: high reasoning for complex tasks, gpt-5.1-chat-latest for general
 const AGENT_CONFIGS: Record<AgentType, { defaultModel: string; systemPromptAddition: string }> = {
   product: {
-    defaultModel: 'gpt-5.1-chat-latest',
+    defaultModel: 'gpt-5.1-high', // High reasoning for product analysis and descriptions
     systemPromptAddition: `
 You specialize in product management for a metal music import business (vinyls, CDs, cassettes).
 When analyzing images: identify band/artist, album title, format, special editions, condition.
@@ -48,14 +53,14 @@ Generate compelling metal-scene-appropriate product descriptions.
 Suggest categories, tags, and pricing based on format and rarity.`,
   },
   operations: {
-    defaultModel: 'gpt-5-mini',
+    defaultModel: 'gpt-5.1-chat-latest', // Upgraded from gpt-5-mini
     systemPromptAddition: `
 You specialize in inventory and order operations for an Australian music import business.
 Help with stock management, order processing, shipping estimates (AU focused).
 Provide clear summaries, flag issues (low stock, delays), and suggest optimizations.`,
   },
   marketing: {
-    defaultModel: 'gpt-5.1-chat-latest',
+    defaultModel: 'gpt-5.1-high', // High reasoning for creative marketing content
     systemPromptAddition: `
 You specialize in marketing content for underground metal music.
 Your voice: authentic to metal/underground scene, knowledgeable, passionate but professional.
@@ -63,7 +68,7 @@ Create social posts (Instagram, Facebook), articles, email campaigns, release an
 Use genre-appropriate language, relevant hashtags, mention local AU shipping/AUD pricing.`,
   },
   general: {
-    defaultModel: 'gpt-5-mini',
+    defaultModel: 'gpt-5.1-chat-latest', // Upgraded from gpt-5-mini
     systemPromptAddition: '',
   },
 }
@@ -85,7 +90,7 @@ function classifyIntent(message: string): AgentType {
   return 'general'
 }
 
-const OPENAI_MODEL = process.env.ASSISTANT_CHAT_MODEL || 'gpt-5-mini'
+const OPENAI_MODEL = process.env.ASSISTANT_CHAT_MODEL || 'gpt-5.1-chat-latest'
 const CHAT_SYSTEM_PROMPT =
   process.env.ASSISTANT_CHAT_SYSTEM_PROMPT ||
   [
@@ -125,16 +130,20 @@ const requestSchema = z.object({
 })
 
 // API call functions for each provider
+// Per OpenAI API docs: GPT-5.1 uses reasoning.effort parameter (none/low/medium/high)
 async function callOpenAI(
   messages: Array<{ role: string; content: any }>,
   model: string,
-  useStructuredOutput: boolean = true
+  useStructuredOutput: boolean = true,
+  reasoningEffort?: 'none' | 'low' | 'medium' | 'high'
 ): Promise<{ text: string; raw: any }> {
   const apiKey = process.env.OPENAI_API_KEY
   if (!apiKey) throw new Error('OPENAI_API_KEY not configured')
 
-  // Check if this is a reasoning model (o-series or models that need special handling)
-  const isReasoningModel = model.startsWith('o3') || model.startsWith('o4') || model.includes('reasoning')
+  // Check if this is a reasoning model (o-series)
+  const isOSeriesModel = model.startsWith('o3') || model.startsWith('o4')
+  // Check if this is a GPT-5.1 model (supports reasoning.effort parameter)
+  const isGpt51 = model.startsWith('gpt-5.1')
   // Check if this is a GPT-5+ model (use max_completion_tokens instead of deprecated params)
   const isGpt5Plus = model.startsWith('gpt-5')
 
@@ -143,21 +152,31 @@ async function callOpenAI(
     messages,
   }
 
-  // GPT-5+ models use max_completion_tokens; reasoning models don't support temperature
-  if (isReasoningModel) {
-    // Reasoning models don't support temperature, top_p, etc.
+  // GPT-5.1 models: add reasoning.effort parameter per API docs
+  // Per docs: "GPT-5.1 defaults to 'none', use 'high' for intelligence/reliability over speed"
+  if (isGpt51 && reasoningEffort) {
+    payload.reasoning = {
+      effort: reasoningEffort,
+    }
+  }
+
+  // O-series models don't support temperature, top_p, etc.
+  if (isOSeriesModel) {
     payload.max_completion_tokens = 4096
   } else if (isGpt5Plus) {
-    // GPT-5+ models prefer max_completion_tokens
+    // GPT-5+ models use max_completion_tokens
     payload.max_completion_tokens = 4096
-    payload.temperature = 0.2
+    // When reasoning is enabled (not 'none'), temperature may not be supported
+    if (!reasoningEffort || reasoningEffort === 'none') {
+      payload.temperature = 0.2
+    }
   } else {
     // Legacy models use max_tokens
     payload.max_tokens = 4096
     payload.temperature = 0.2
   }
 
-  if (useStructuredOutput && !isReasoningModel) {
+  if (useStructuredOutput && !isOSeriesModel) {
     payload.response_format = {
       type: 'json_schema',
       json_schema: {
@@ -283,13 +302,14 @@ async function callModel(
 
   switch (config.provider) {
     case 'google':
-      const geminiResult = await callGemini(messages, modelId)
+      const geminiResult = await callGemini(messages, config.id)
       return { ...geminiResult, provider: 'google' }
     case 'anthropic':
-      const claudeResult = await callClaude(messages, modelId)
+      const claudeResult = await callClaude(messages, config.id)
       return { ...claudeResult, provider: 'anthropic' }
     default:
-      const openaiResult = await callOpenAI(messages, modelId, useStructuredOutput)
+      // Pass the actual model ID and reasoning effort from config
+      const openaiResult = await callOpenAI(messages, config.id, useStructuredOutput, config.reasoningEffort)
       return { ...openaiResult, provider: 'openai' }
   }
 }
@@ -389,8 +409,8 @@ export async function POST(request: NextRequest) {
     // Select model: force > vision-capable > agent default
     let selectedModel = forceModel || agentConfig.defaultModel
     if (hasImage && !MODELS[selectedModel]?.supportsVision) {
-      // Upgrade to vision-capable model
-      selectedModel = 'gpt-5.1-chat-latest' // Best vision model
+      // Upgrade to vision-capable model with high reasoning for best image analysis
+      selectedModel = 'gpt-5.1-high'
     }
 
     await ensureAssistantSession({
@@ -483,7 +503,13 @@ export async function POST(request: NextRequest) {
       if (selectedModel !== OPENAI_MODEL && process.env.OPENAI_API_KEY) {
         console.log(`Falling back to ${OPENAI_MODEL}`)
         try {
-          const fallbackResult = await callOpenAI(apiMessages, OPENAI_MODEL, true)
+          const fallbackConfig = MODELS[OPENAI_MODEL]
+          const fallbackResult = await callOpenAI(
+            apiMessages,
+            fallbackConfig?.id || OPENAI_MODEL,
+            true,
+            fallbackConfig?.reasoningEffort
+          )
           responseProvider = 'openai'
           const rawContent = fallbackResult.text.trim()
           if (rawContent) {
