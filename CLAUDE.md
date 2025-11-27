@@ -5,18 +5,15 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Build & Development Commands
 
 ```bash
-npm run dev              # Local dev server at localhost:3000
-npm run build            # Production build
 npm run lint             # ESLint (run before pushing)
 npm run type-check       # TypeScript check (some admin type errors expected)
 npm run test             # Vitest unit tests
 npm run test:e2e         # Playwright E2E tests
-npm run test:puppeteer   # Smoke tests with screenshots
 ```
 
 ## Deployment
 
-**Netlify auto-deploys from git pushes. Do NOT use `netlify deploy` CLI.**
+**We develop against Netlify branch deploys, not localhost. Do NOT use `netlify deploy` CLI.**
 
 ```bash
 git push origin dev_claude    # → https://dev-claude--obsidianriterecords.netlify.app
