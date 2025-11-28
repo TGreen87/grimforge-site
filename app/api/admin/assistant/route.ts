@@ -213,14 +213,15 @@ async function callResponsesAPI(
   }
 
   // Structured output with JSON schema
-  // Per docs: Responses API uses text.format, NOT response_format (which is deprecated)
-  // Format: text: { format: { type: "json_schema", schema: {...} } }
+  // Per docs (Nov 2025): Responses API uses text.format with strict: true
+  // Source: https://jamesmccaffreyblog.com/2025/11/04/example-of-openai-responses-api-structured-output-using-json-schema/
   if (options.useStructuredOutput !== false) {
     payload.text = {
       format: {
         type: 'json_schema',
         name: RESPONSE_JSON_SCHEMA.name,
         schema: RESPONSE_JSON_SCHEMA.schema,
+        strict: true,
       },
     }
   }

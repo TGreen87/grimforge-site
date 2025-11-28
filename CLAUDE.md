@@ -2,6 +2,19 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## ⚠️ CRITICAL GUARDRAIL: API Documentation
+
+**NEVER use training data for OpenAI API calls. ALWAYS:**
+
+1. **Fetch current docs** via WebFetch/WebSearch before ANY OpenAI API changes
+2. **Verify EVERY parameter** against official docs dated within last 30 days
+3. **Use Azure OpenAI docs** as authoritative source: https://learn.microsoft.com/en-us/azure/ai-foundry/openai/
+4. **Check OpenAI Cookbook** for current examples: https://cookbook.openai.com/
+5. **NEVER revert to gpt-4o** - GPT-5.1 is current (Nov 2025)
+6. **NEVER guess parameter formats** - fetch and verify first
+
+If an API call fails, fetch docs FIRST before attempting fixes.
+
 ## Build & Development Commands
 
 ```bash
