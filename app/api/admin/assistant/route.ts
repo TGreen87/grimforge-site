@@ -125,7 +125,7 @@ const requestSchema = z.object({
 // Per OpenAI docs:
 // - ALL objects must have additionalProperties: false
 // - ALL keys in properties MUST be in required array
-// - To make a field "optional", use anyOf with null: anyOf: [{type: "array"...}, {type: "null"}]
+// - To make a field optional, use type array: ["array", "null"]
 const RESPONSE_JSON_SCHEMA = {
   name: 'AssistantResponse',
   schema: {
@@ -133,27 +133,22 @@ const RESPONSE_JSON_SCHEMA = {
     properties: {
       reply: { type: 'string', description: 'The assistant reply to show the user' },
       actions: {
-        anyOf: [
-          {
-            type: 'array',
-            items: {
+        type: ['array', 'null'],
+        items: {
+          type: 'object',
+          properties: {
+            type: { type: 'string', enum: assistantActionTypes },
+            summary: { type: 'string' },
+            parameters: {
               type: 'object',
-              properties: {
-                type: { type: 'string', enum: assistantActionTypes },
-                summary: { type: 'string' },
-                parameters: {
-                  type: 'object',
-                  properties: {},
-                  required: [] as string[],
-                  additionalProperties: false,
-                },
-              },
-              required: ['type', 'summary', 'parameters'],
+              properties: {},
+              required: [] as string[],
               additionalProperties: false,
             },
           },
-          { type: 'null' },
-        ],
+          required: ['type', 'summary', 'parameters'],
+          additionalProperties: false,
+        },
       },
     },
     required: ['reply', 'actions'],
