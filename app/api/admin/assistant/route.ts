@@ -150,9 +150,13 @@ const RESPONSE_JSON_SCHEMA = {
 // =============================================================================
 // OpenAI Responses API Call
 // =============================================================================
+// Input format per docs:
+// - Simple: input="text string"
+// - Multi-turn: input=[{role: "user", content: "text"}]
+// - With images: input=[{role: "user", content: [{type: "input_image", image_url: "..."}]}]
 interface ResponsesAPIInput {
-  role: 'user' | 'assistant' | 'system'
-  content: Array<{ type: string; text?: string; image_url?: string }>
+  role: 'user' | 'assistant'
+  content: string | Array<{ type: string; text?: string; image_url?: string }>
 }
 
 interface ResponsesAPIResult {
@@ -297,33 +301,32 @@ function extractOutputText(response: any): string {
 }
 
 // Build input for Responses API (handles images)
+// Per docs: content is string for text, array only when including images
 function buildResponsesInput(
-  messages: Array<{ role: string; content: string; image?: string }>,
-  systemContext: string
+  messages: Array<{ role: string; content: string; image?: string }>
 ): ResponsesAPIInput[] {
   const input: ResponsesAPIInput[] = []
 
-  // Add system context as first user message with context
-  // (Responses API uses 'instructions' for system prompt, but we can include context here)
-
   for (const msg of messages) {
-    const contentParts: Array<{ type: string; text?: string; image_url?: string }> = []
-
-    // Add text content
-    contentParts.push({ type: 'input_text', text: msg.content })
-
-    // Add image if present
     if (msg.image) {
+      // With image: content is array with image object
       const imageUrl = msg.image.startsWith('data:')
         ? msg.image
         : `data:image/jpeg;base64,${msg.image}`
-      contentParts.push({ type: 'input_image', image_url: imageUrl })
+      input.push({
+        role: msg.role as 'user' | 'assistant',
+        content: [
+          { type: 'input_text', text: msg.content },
+          { type: 'input_image', image_url: imageUrl },
+        ],
+      })
+    } else {
+      // Text only: content is just a string
+      input.push({
+        role: msg.role as 'user' | 'assistant',
+        content: msg.content,
+      })
     }
-
-    input.push({
-      role: msg.role as 'user' | 'assistant',
-      content: contentParts,
-    })
   }
 
   return input
@@ -428,7 +431,7 @@ export async function POST(request: NextRequest) {
       }
     } else {
       // New conversation - send full history (last 8 messages)
-      input = buildResponsesInput(messages.slice(-8), '')
+      input = buildResponsesInput(messages.slice(-8))
     }
 
     // Optional: Enable web search for product/marketing research
