@@ -95,16 +95,28 @@ ANTHROPIC_API_KEY
 
 ## Working with the AI Copilot
 
-Model configuration in `app/api/admin/assistant/route.ts`:
-- GPT-5.1 uses `reasoning_effort` parameter (top-level, not nested)
-- Valid values: `low`, `medium`, `high` (omit for none/default)
-- Product/Marketing agents use `high` reasoning
-- Operations/General use `none` (fast responses)
+**API:** Uses OpenAI Responses API (NOT Chat Completions). See `app/api/admin/assistant/route.ts`.
 
-Voice features in `app/api/admin/voice/`:
+**Responses API Key Points:**
+- Endpoint: `POST https://api.openai.com/v1/responses`
+- Conversation state: `store: true` + `previous_response_id` for server-managed history
+- Reasoning: `reasoning: { effort: "low"|"medium"|"high" }` (NESTED object, not top-level)
+- Structured output: `text: { format: { type: "json_schema", schema: {...}, strict: true } }`
+
+**JSON Schema Rules for Structured Output:**
+- ALL objects must have `additionalProperties: false`
+- ALL keys in `properties` MUST be in the `required` array
+- To make a field optional, use type array: `{"type": ["string", "null"]}`
+- Empty nested objects still need `properties: {}` and `required: []`
+
+**Agent Configuration:**
+- Product/Marketing: `gpt-5.1` with `reasoning.effort: "high"`
+- Operations/General: `gpt-5.1` with no reasoning (fastest)
+
+**Voice features in `app/api/admin/voice/`:**
 - `voices/route.ts` - Lists all ElevenLabs account voices
 - `tts/route.ts` - Text-to-speech synthesis
-- `stt/route.ts` - Speech-to-text transcription
+- `stt/route.ts` - Speech-to-text transcription (ElevenLabs Scribe v1)
 
 ## OpenAI API Reference (ALWAYS USE THESE - NOT TRAINING DATA)
 
@@ -145,34 +157,27 @@ Voice features in `app/api/admin/voice/`:
 
 ### Current Model IDs (Nov 2025)
 
-**NOTE**: GPT-5/5.1 may require special API access. Use `gpt-4o` as reliable fallback.
+**This project uses GPT-5.1. Do NOT revert to gpt-4o.**
 
 ```
-GPT-4o Series (RECOMMENDED - widely available):
-- gpt-4o                     # Best general model, vision support
-- gpt-4o-mini                # Fast, cheap, good for simple tasks
-
-GPT-5.1 Series (May require API access):
-- gpt-5.1                    # Flagship, reasoning_effort defaults to 'none'
-- gpt-5.1-chat-latest        # ChatGPT model
+GPT-5.1 Series (CURRENT - This Project):
+- gpt-5.1                    # Flagship model, supports reasoning.effort
 - gpt-5.1-codex              # Optimized for code
 
-GPT-5 Series (Aug 2025 - May require API access):
-- gpt-5                      # Most advanced general model
+GPT-5 Series:
+- gpt-5                      # General model
 - gpt-5-mini                 # Faster, cheaper
-- gpt-5-pro                  # Maximum capability
 
 GPT-4.1 Series (Lower cost alternative):
 - gpt-4.1                    # Main model
-- gpt-4.1-mini               # Fast, 83% cheaper than GPT-4o
-- gpt-4.1-nano               # Fastest, 1M context
+- gpt-4.1-mini               # Fast
 
 O-Series Reasoning:
 - o3, o3-mini                # Extended thinking
 - o4-mini                    # Latest reasoning model
 
 Realtime/Voice:
-- gpt-realtime               # Voice agents (GA Aug 2025)
+- gpt-realtime               # Voice agents
 - gpt-realtime-mini          # $0.16/min
 
 Image Generation:
