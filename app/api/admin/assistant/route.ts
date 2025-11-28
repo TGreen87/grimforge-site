@@ -122,6 +122,7 @@ const requestSchema = z.object({
 })
 
 // JSON Schema for structured output (Responses API format)
+// Per OpenAI docs: ALL objects must have additionalProperties: false
 const RESPONSE_JSON_SCHEMA = {
   name: 'AssistantResponse',
   schema: {
@@ -135,7 +136,7 @@ const RESPONSE_JSON_SCHEMA = {
           properties: {
             type: { type: 'string', enum: assistantActionTypes },
             summary: { type: 'string' },
-            parameters: { type: 'object', additionalProperties: true },
+            parameters: { type: 'object', additionalProperties: false },
           },
           required: ['type', 'summary', 'parameters'],
           additionalProperties: false,
