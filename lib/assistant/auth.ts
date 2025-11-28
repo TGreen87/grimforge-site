@@ -14,11 +14,14 @@ function isPreviewHost(request: NextRequest) {
   const previewEnv = process.env.ASSISTANT_ALLOW_PREVIEW === '1'
   const allowLocalhost =
     process.env.ASSISTANT_ALLOW_LOCALHOST === '1' || process.env.NODE_ENV !== 'production'
-  return (
-    previewEnv ||
-    /netlify\.app$/.test(host) ||
-    (allowLocalhost && /^localhost(?::\d+)?$/.test(host))
-  )
+
+  const isNetlify = /netlify\.app$/.test(host)
+  const isLocal = allowLocalhost && /^localhost(?::\d+)?$/.test(host)
+  const result = previewEnv || isNetlify || isLocal
+
+  console.log('isPreviewHost check:', { host, forwardedHost, previewEnv, isNetlify, isLocal, result })
+
+  return result
 }
 
 export function extractAssistantToken(headers: Headers) {
