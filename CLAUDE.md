@@ -75,9 +75,33 @@ Available in `.claude/commands/`:
 - `lib/supabase/server.ts` - Server-side (cookies)
 - `lib/supabase/admin.ts` - Service role (bypasses RLS)
 
-**AI Copilot:** `app/api/admin/assistant/route.ts` handles chat with multi-model support (OpenAI, Google, Anthropic). Models configured in `MODELS` object with `reasoningEffort` parameter for GPT-5.1.
+**AI Copilot:** `app/api/admin/assistant/route.ts` handles chat via OpenAI Responses API. Uses GPT-5.1 with optional `reasoning.effort` for complex tasks.
 
 **Legacy Migration:** `src/` contains React SPA code being migrated to `app/`. Path aliases (`@/components`, `@/hooks`) may resolve to either location.
+
+## Admin Panel Features
+
+### Dashboard (`app/admin/dashboard/`)
+- Real-time metrics with sparklines
+- Activity feed with live updates
+- Attention panel for urgent items
+
+### Copilot Actions (`lib/assistant/actions.ts`)
+The Copilot can execute these actions (all fully implemented):
+- `create_product_draft` - Create inactive product + variant + inventory
+- `create_product_full` - Full product with AI-generated copy, publish, hero update
+- `receive_stock` - Add inventory to existing variant
+- `lookup_order_status` - Query orders by number or email
+- `summarize_analytics` - Pull traffic/event highlights
+- `draft_article` - Create Journal article with AI content
+- `publish_article` - Publish existing draft
+- `update_campaign` - Update storefront hero/campaign
+
+### n8n Integration (`lib/webhooks/n8n.ts`)
+Webhook automation for order events, inventory alerts, etc.
+
+### Theme (`app/admin/theme/`)
+Gothic dark theme with Cinzel font. Tokens in `tokens.ts`, Ant Design config in `antd-config.ts`.
 
 ## Environment Variables
 
