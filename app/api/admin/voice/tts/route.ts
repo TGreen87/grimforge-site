@@ -94,9 +94,9 @@ export async function POST(request: NextRequest) {
 
     if (!response.ok) {
       const errorText = await response.text()
-      console.error('ElevenLabs TTS error:', errorText)
+      console.error('ElevenLabs TTS error:', response.status, errorText)
       return NextResponse.json(
-        { error: `TTS failed: ${response.status}` },
+        { error: `TTS failed: ${response.status}`, details: errorText },
         { status: response.status }
       )
     }
