@@ -460,7 +460,7 @@ export async function POST(request: NextRequest) {
       useStructuredOutput: true,
     })
 
-    // Parse the response
+    // Parse the response - structured output returns valid JSON
     let parsedResponse: z.infer<typeof assistantResponseSchema>
 
     const rawContent = result.outputText.trim()
@@ -469,14 +469,17 @@ export async function POST(request: NextRequest) {
     }
 
     try {
-      // Try to parse as JSON
-      const jsonMatch = rawContent.match(/\{[\s\S]*\}/)
-      if (jsonMatch) {
-        parsedResponse = assistantResponseSchema.parse(JSON.parse(jsonMatch[0]))
-      } else {
-        parsedResponse = { reply: rawContent, actions: [] }
+      // With structured output, the response IS the JSON
+      const parsed = JSON.parse(rawContent)
+
+      // Validate with Zod and provide defaults
+      parsedResponse = {
+        reply: parsed.reply || rawContent,
+        actions: Array.isArray(parsed.actions) ? parsed.actions : [],
       }
-    } catch {
+    } catch (parseError) {
+      console.error('Failed to parse structured output:', parseError, 'Raw:', rawContent.slice(0, 500))
+      // Fallback: treat entire response as the reply
       parsedResponse = { reply: rawContent, actions: [] }
     }
 
