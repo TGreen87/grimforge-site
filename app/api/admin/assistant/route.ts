@@ -122,7 +122,10 @@ const requestSchema = z.object({
 })
 
 // JSON Schema for structured output (Responses API format)
-// Per OpenAI docs: ALL objects must have additionalProperties: false AND properties defined
+// Per OpenAI docs:
+// - ALL objects must have additionalProperties: false
+// - ALL keys in properties MUST be in required array
+// - To make a field "optional", use anyOf with null: anyOf: [{type: "array"...}, {type: "null"}]
 const RESPONSE_JSON_SCHEMA = {
   name: 'AssistantResponse',
   schema: {
@@ -130,25 +133,30 @@ const RESPONSE_JSON_SCHEMA = {
     properties: {
       reply: { type: 'string', description: 'The assistant reply to show the user' },
       actions: {
-        type: 'array',
-        items: {
-          type: 'object',
-          properties: {
-            type: { type: 'string', enum: assistantActionTypes },
-            summary: { type: 'string' },
-            parameters: {
+        anyOf: [
+          {
+            type: 'array',
+            items: {
               type: 'object',
-              properties: {},
-              required: [],
+              properties: {
+                type: { type: 'string', enum: assistantActionTypes },
+                summary: { type: 'string' },
+                parameters: {
+                  type: 'object',
+                  properties: {},
+                  required: [] as string[],
+                  additionalProperties: false,
+                },
+              },
+              required: ['type', 'summary', 'parameters'],
               additionalProperties: false,
             },
           },
-          required: ['type', 'summary', 'parameters'],
-          additionalProperties: false,
-        },
+          { type: 'null' },
+        ],
       },
     },
-    required: ['reply'],
+    required: ['reply', 'actions'],
     additionalProperties: false,
   },
 }
