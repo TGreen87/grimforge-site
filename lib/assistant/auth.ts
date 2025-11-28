@@ -62,8 +62,15 @@ function tokensMatch(expected: string, provided: string | null) {
 }
 
 export async function assertAdmin(request: NextRequest): Promise<AssertAdminResult> {
+  // Check API token first
   if (ADMIN_FALLBACK_TOKEN && tokensMatch(ADMIN_FALLBACK_TOKEN, extractAssistantToken(request.headers))) {
     return { ok: true, userId: null }
+  }
+
+  // Allow preview/dev hosts without auth (Netlify branch deploys, localhost)
+  // This check is done BEFORE Supabase to avoid cookie issues in dev
+  if (isPreviewHost(request)) {
+    return { ok: true as const, userId: null }
   }
 
   const supabase = await createClient()
@@ -72,9 +79,6 @@ export async function assertAdmin(request: NextRequest): Promise<AssertAdminResu
   } = await supabase.auth.getUser()
 
   if (!user) {
-    if (isPreviewHost(request)) {
-      return { ok: true as const, userId: null }
-    }
     if (ADMIN_FALLBACK_TOKEN) {
       return {
         ok: false as const,

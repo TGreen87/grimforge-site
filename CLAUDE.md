@@ -97,26 +97,84 @@ ANTHROPIC_API_KEY
 
 **API:** Uses OpenAI Responses API (NOT Chat Completions). See `app/api/admin/assistant/route.ts`.
 
-**Responses API Key Points:**
-- Endpoint: `POST https://api.openai.com/v1/responses`
-- Conversation state: `store: true` + `previous_response_id` for server-managed history
-- Reasoning: `reasoning: { effort: "low"|"medium"|"high" }` (NESTED object, not top-level)
-- Structured output: `text: { format: { type: "json_schema", schema: {...}, strict: true } }`
+### Responses API Configuration (EXACT working format)
 
-**JSON Schema Rules for Structured Output:**
-- ALL objects must have `additionalProperties: false`
-- ALL keys in `properties` MUST be in the `required` array
-- To make a field optional, use type array: `{"type": ["string", "null"]}`
-- Empty nested objects still need `properties: {}` and `required: []`
+```typescript
+// Payload structure
+const payload = {
+  model: 'gpt-5.1',
+  input: messages,  // string OR array of {role, content}
+  store: true,      // Enable 30-day conversation persistence
 
-**Agent Configuration:**
-- Product/Marketing: `gpt-5.1` with `reasoning.effort: "high"`
-- Operations/General: `gpt-5.1` with no reasoning (fastest)
+  // Continue conversation (pass responseId from previous call)
+  previous_response_id: 'resp_xxx',
 
-**Voice features in `app/api/admin/voice/`:**
-- `voices/route.ts` - Lists all ElevenLabs account voices
-- `tts/route.ts` - Text-to-speech synthesis
-- `stt/route.ts` - Speech-to-text transcription (ElevenLabs Scribe v1)
+  // System prompt
+  instructions: 'You are...',
+
+  // Reasoning - MUST be nested object, NOT top-level
+  reasoning: { effort: 'low' | 'medium' | 'high' },
+
+  // Structured output
+  text: {
+    format: {
+      type: 'json_schema',
+      name: 'ResponseName',
+      schema: { /* JSON Schema */ },
+      strict: true,
+    },
+  },
+
+  max_output_tokens: 4096,
+}
+```
+
+### JSON Schema Rules (Strict Mode)
+
+```typescript
+// CORRECT - all fields required, optional via type array
+const schema = {
+  type: 'object',
+  properties: {
+    reply: { type: 'string' },
+    actions: { type: ['array', 'null'] },  // Optional field
+  },
+  required: ['reply', 'actions'],  // ALL properties must be listed
+  additionalProperties: false,     // REQUIRED on every object
+}
+
+// WRONG - missing from required
+const badSchema = {
+  properties: { reply: {...}, actions: {...} },
+  required: ['reply'],  // ERROR: 'actions' missing
+}
+```
+
+### Response Parsing
+
+```typescript
+const result = await callResponsesAPI(...)
+const rawContent = result.outputText.trim()
+
+// Structured output IS valid JSON - parse directly
+const parsed = JSON.parse(rawContent)
+const reply = parsed.reply
+const actions = parsed.actions ?? []
+```
+
+### Agent Configuration
+- Product/Marketing: `reasoning: { effort: 'high' }`
+- Operations/General: No reasoning param (fastest)
+
+### Voice Features (`app/api/admin/voice/`)
+- `voices/route.ts` - List ElevenLabs voices
+- `tts/route.ts` - Text-to-speech (ElevenLabs)
+- `stt/route.ts` - Speech-to-text (ElevenLabs Scribe v1)
+
+### Admin Auth (`lib/assistant/auth.ts`)
+- `assertAdmin(request)` - checks token OR Supabase session OR preview host
+- Preview hosts (*.netlify.app, localhost) bypass auth for dev
+- Check is done BEFORE Supabase to avoid cookie issues
 
 ## OpenAI API Reference (ALWAYS USE THESE - NOT TRAINING DATA)
 
