@@ -679,3 +679,39 @@ Limits auto-increase with usage history and payments.
 4. Set `reasoning_effort: "minimal"` for fast responses
 5. Use structured outputs to avoid re-processing
 6. Leverage `previous_response_id` to avoid resending history
+
+---
+
+## Current Project Status (Dec 2025)
+
+### What's Working
+- ✅ **Admin Panel** - Full gothic-themed admin at `/admin` with dashboard, orders, products
+- ✅ **AI Copilot** - GPT-5.1 via Responses API, can create products, articles, lookup orders
+- ✅ **Supabase** - Products, orders, inventory, customers tables with RLS
+- ✅ **Authentication** - Supabase SSR auth, admin role gating
+
+### What Needs Work (Next Session Focus)
+- ⚠️ **Stripe** - Integration exists but needs test → live verification
+- ⚠️ **Checkout Flow** - Needs end-to-end testing with real payment
+- ⚠️ **Storefront** - Public pages need real product content
+- ⚠️ **Shipping/Tax** - May need configuration for AU market
+- ⚠️ **ElevenLabs** - Voice features work but account quota exhausted (owner aware)
+
+### Known Type Errors (Safe to Ignore)
+These pre-exist and don't affect functionality:
+- `app/(site)/articles/page.tsx` - Supabase client await
+- `app/admin/hooks/useRealtimeNotifications.ts` - Import/type issues
+- `app/admin/orders/page.tsx` - OrderForKanban type mismatch
+- `app/admin/settings/page.tsx` - Slider formatter type
+- `app/admin/ui/EnhancedTable.tsx` - Title prop type
+
+### Database Tables
+Key tables in Supabase:
+- `products` - Main product catalog
+- `variants` - Product variants (format, edition)
+- `inventory` - Stock levels per variant
+- `orders` / `order_items` - Customer orders
+- `customers` - Customer records
+- `articles` - Journal/blog posts
+- `campaigns` - Storefront hero campaigns
+- `user_roles` - Admin access control
