@@ -2,6 +2,30 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## About This Project
+
+**Obsidian Rite Records** is an Australian independent record label specializing in underground metal music. This is the official e-commerce platform and admin system.
+
+### Business Context
+- **What we sell:** Vinyl records, CDs, cassettes - primarily metal/underground music imports
+- **Target market:** Australian metal collectors and enthusiasts
+- **Currency:** AUD with Australian shipping focus
+- **Brand aesthetic:** Gothic, dark, premium - reflecting the underground metal scene
+
+### The Platform
+- **Public storefront** (`/`) - Product catalog, cart, checkout, Journal (blog)
+- **Admin panel** (`/admin`) - Full back-office with AI Copilot assistant
+- **AI Copilot** - GPT-5.1 powered assistant that can create products, write articles, manage inventory, and more
+
+### Owner
+The site owner manages everything through the admin panel. The AI Copilot acts as a knowledgeable assistant that understands the metal music scene and can help with:
+- Creating product listings with genre-appropriate descriptions
+- Writing Journal articles about releases and the scene
+- Looking up orders and analytics
+- Managing inventory and campaigns
+
+---
+
 ## ⚠️ CRITICAL GUARDRAIL: API Documentation
 
 **NEVER use training data for OpenAI API calls. ALWAYS:**

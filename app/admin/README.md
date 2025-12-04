@@ -1,16 +1,34 @@
-# Grimforge Admin Panel
+# Obsidian Rite Records - Admin Panel
 
-A complete Refine-based admin panel for managing the Grimforge e-commerce platform.
+A complete Refine-based admin panel with an AI-powered Copilot assistant.
 
 ## Features
 
+- **AI Copilot** (GPT-5.1) - Create products, draft articles, manage inventory via natural language
 - **Full CRUD Operations** for all resources
 - **Supabase Authentication** with role-based access control
 - **Real-time Inventory Management** with stock movements tracking
 - **Order Management** with status updates and fulfillment tracking
 - **Customer Management** with order history
 - **Audit Logging** for all system activities
-- **Receive Stock Action** for bulk inventory updates
+- **Gothic Dark Theme** with Cinzel font
+
+## AI Copilot
+
+The Copilot is accessible from the header and can perform these actions:
+
+| Action | Description |
+|--------|-------------|
+| `create_product_draft` | Create inactive product + variant + inventory |
+| `create_product_full` | Full product with AI-generated copy, publish, hero update |
+| `receive_stock` | Add inventory to existing variant |
+| `lookup_order_status` | Query orders by number or email |
+| `summarize_analytics` | Pull traffic/event highlights |
+| `draft_article` | Create Journal article with AI content |
+| `publish_article` | Publish existing draft |
+| `update_campaign` | Update storefront hero/campaign |
+
+The Copilot understands the metal music scene and generates genre-appropriate content.
 
 ## Resources
 
