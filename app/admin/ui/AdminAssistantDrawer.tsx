@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useMemo, useRef, useState, useCallback } from 'react'
-import { Alert, Button, Collapse, Drawer, Form, Input, InputNumber, List, Modal, Space, Spin, Switch, Tag, Typography, Divider, Upload, message, Tooltip, Badge } from 'antd'
+import { Alert, Button, Collapse, Drawer, Form, Input, InputNumber, List, Space, Spin, Switch, Tag, Typography, Divider, Upload, message, Tooltip, Badge } from 'antd'
 import type { UploadFile, RcFile } from 'antd/es/upload/interface'
 import {
   InboxOutlined,
@@ -113,9 +113,7 @@ export default function AdminAssistantDrawer({ open, onClose }: AdminAssistantDr
   ])
   const [form] = Form.useForm<{ prompt: string }>()
   const [contextForm] = Form.useForm<ContextFormValues>()
-  const [actionForm] = Form.useForm<Record<string, unknown>>()
   const [loading, setLoading] = useState(false)
-  const [pendingAction, setPendingAction] = useState<AssistantAction | null>(null)
   const [actionLoading, setActionLoading] = useState(false)
   const [uploads, setUploads] = useState<AssistantAttachment[]>([])
   const [uploadFileList, setUploadFileList] = useState<UploadFile[]>([])
@@ -167,25 +165,6 @@ export default function AdminAssistantDrawer({ open, onClose }: AdminAssistantDr
     return found?.sources ?? []
   }, [messages])
 
-  useEffect(() => {
-    if (pendingAction?.type === 'receive_stock') {
-      actionForm.setFieldsValue({
-        variant_id: (pendingAction.parameters.variant_id as string | undefined) ?? '',
-        quantity:
-          typeof pendingAction.parameters.quantity === 'number'
-            ? pendingAction.parameters.quantity
-            : Number(pendingAction.parameters.quantity) || 1,
-        notes: (pendingAction.parameters.notes as string | undefined) ?? '',
-      })
-    } else if (pendingAction?.type === 'lookup_order_status') {
-      actionForm.setFieldsValue({
-        order_number: (pendingAction.parameters.order_number as string | undefined) ?? '',
-        email: (pendingAction.parameters.email as string | undefined) ?? '',
-      })
-    } else {
-      actionForm.resetFields()
-    }
-  }, [pendingAction, actionForm])
 
   // Initialize voice recognition on mount
   useEffect(() => {
@@ -409,7 +388,7 @@ export default function AdminAssistantDrawer({ open, onClose }: AdminAssistantDr
       ])
       const formData = new FormData()
       formData.append('file', file)
-      formData.append('intent', pendingAction?.type ?? 'general')
+      formData.append('intent', 'general')
       formData.append('sessionId', sessionIdRef.current)
       const response = await fetch('/api/admin/assistant/uploads', {
         method: 'POST',
@@ -647,27 +626,12 @@ export default function AdminAssistantDrawer({ open, onClose }: AdminAssistantDr
       setActionLoading(true)
       let parameters: Record<string, unknown> = action.parameters
 
-      if (action.type === 'receive_stock') {
-        const values = await actionForm.validateFields()
-        const variantId = typeof values.variant_id === 'string' ? values.variant_id.trim() : ''
-        const quantity = Number(values.quantity)
-        parameters = {
-          variant_id: variantId,
-          quantity,
-          ...(values.notes ? { notes: values.notes } : {}),
-        }
-      } else if (action.type === 'lookup_order_status') {
-        const values = await actionForm.validateFields()
-        const orderNumber = typeof values.order_number === 'string' ? values.order_number.trim() : ''
-        const email = typeof values.email === 'string' ? values.email.trim() : ''
-        if (!orderNumber && !email) {
-          throw new Error('Provide an order number or customer email')
-        }
-        parameters = {
-          ...(orderNumber ? { order_number: orderNumber } : {}),
-          ...(email ? { email } : {}),
-        }
-      }
+      // Add confirmation message to chat
+      const actionDef = assistantActionMap[action.type]
+      setMessages((current) => [
+        ...current,
+        { role: 'assistant', content: `Running: ${actionDef?.label || action.type}...` },
+      ])
 
       if (uploads.length && ['create_product_full', 'draft_article', 'publish_article'].includes(action.type)) {
         parameters = {
@@ -739,8 +703,6 @@ export default function AdminAssistantDrawer({ open, onClose }: AdminAssistantDr
       ])
     } finally {
       setActionLoading(false)
-      setPendingAction(null)
-      actionForm.resetFields()
     }
   }
 
@@ -966,8 +928,13 @@ export default function AdminAssistantDrawer({ open, onClose }: AdminAssistantDr
                             </div>
                           ) : null}
                           <div className="mt-3 text-right">
-                            <Button size="small" type="primary" onClick={() => setPendingAction(action)}>
-                              Review & Run
+                            <Button
+                              size="small"
+                              type="primary"
+                              loading={actionLoading}
+                              onClick={() => executeAction(action)}
+                            >
+                              Run
                             </Button>
                           </div>
                         </div>
@@ -1210,112 +1177,6 @@ export default function AdminAssistantDrawer({ open, onClose }: AdminAssistantDr
           </Button>
         </div>
       </Form>
-
-      <Modal
-        title="Confirm Action"
-        open={!!pendingAction}
-        onCancel={() => !actionLoading && setPendingAction(null)}
-        onOk={() => pendingAction && executeAction(pendingAction)}
-        confirmLoading={actionLoading}
-        okText="Run"
-        okButtonProps={{ danger: false }}
-        getContainer={false}
-        zIndex={1300}
-        forceRender
-        focusTriggerAfterClose={false}
-      >
-        {pendingAction && (
-          <div className="space-y-3 text-sm">
-            <Text strong>{pendingAction.summary}</Text>
-            {(() => {
-              const plan = buildActionPlan(pendingAction.type, pendingAction.parameters || {})
-              if (!plan) return null
-              return (
-                <div className="space-y-1">
-                  <Text type="secondary">Plan ({plan.steps.length} steps, risk {plan.riskLevel})</Text>
-                  <ol className="list-decimal list-inside space-y-1 text-xs text-muted-foreground">
-                    {plan.steps.map((step) => (
-                      <li key={step.title}>{step.detail}</li>
-                    ))}
-                  </ol>
-                  {plan.riskNote ? (
-                    <Paragraph type="secondary" style={{ marginBottom: 0 }}>
-                      {plan.riskNote}
-                    </Paragraph>
-                  ) : null}
-                </div>
-              )
-            })()}
-            <div className="space-y-2">
-              {pendingAction.type === 'receive_stock' ? (
-                <Form form={actionForm} layout="vertical" requiredMark={false}>
-                  <Form.Item
-                    label="Variant ID"
-                    name="variant_id"
-                    rules={[{ required: true, message: 'Variant ID is required' }]}
-                  >
-                    <Input placeholder="UUID of the variant" />
-                  </Form.Item>
-                  <Form.Item
-                    label="Quantity"
-                    name="quantity"
-                    rules={[
-                      { required: true, message: 'Quantity is required' },
-                      { type: 'number', min: 1, message: 'Quantity must be at least 1' },
-                    ]}
-                  >
-                    <InputNumber min={1} style={{ width: '100%' }} />
-                  </Form.Item>
-                  <Form.Item label="Notes" name="notes">
-                    <Input.TextArea rows={3} placeholder="Optional receiving note" />
-                  </Form.Item>
-                </Form>
-              ) : pendingAction.type === 'lookup_order_status' ? (
-                <Form form={actionForm} layout="vertical" requiredMark={false}>
-                  <Form.Item label="Order Number" name="order_number">
-                    <Input placeholder="e.g. ORR-123456" autoComplete="off" />
-                  </Form.Item>
-                  <Form.Item label="Customer Email" name="email">
-                    <Input type="email" placeholder="email@example.com" autoComplete="off" />
-                  </Form.Item>
-                  <Paragraph type="secondary" style={{ marginBottom: 0 }}>
-                    Provide an order number or email (both allowed). We’ll use the most specific value available.
-                  </Paragraph>
-                </Form>
-              ) : (
-                <div className="space-y-1">
-                  {Object.entries(pendingAction.parameters || {}).map(([key, value]) => {
-                    const definition = assistantActionMap[pendingAction.type]?.parameters.find((param) => param.name === key)
-                    const label = definition?.label ?? key
-                    const displayValue = String(value ?? '').trim() || '—'
-                    return (
-                      <div key={key} className="flex justify-between gap-2">
-                        <span className="uppercase tracking-wide text-xs text-muted-foreground">{label}</span>
-                        <span className="text-right break-all text-sm">{displayValue}</span>
-                      </div>
-                    )
-                  })}
-                </div>
-              )}
-            </div>
-            {pendingAction.type === 'create_product_draft' && (
-              <Paragraph type="secondary" style={{ marginBottom: 0 }}>
-                The copilot will create a draft product with these details and leave it inactive so you can review before publishing.
-              </Paragraph>
-            )}
-            {pendingAction.type === 'receive_stock' && (
-              <Paragraph type="secondary" style={{ marginBottom: 0 }}>
-                Inventory updates are audit logged. Double-check the variant ID and quantity before running.
-              </Paragraph>
-            )}
-            {pendingAction.type === 'lookup_order_status' && (
-              <Paragraph type="secondary" style={{ marginBottom: 0 }}>
-                Order lookups use service credentials and are logged in the audit trail.
-              </Paragraph>
-            )}
-          </div>
-        )}
-      </Modal>
 
       {/* Voice Settings Modal */}
       <VoiceSettingsModal

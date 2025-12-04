@@ -42,7 +42,9 @@ const AGENT_CONFIGS: Record<AgentType, { defaultModel: string; systemPromptAddit
 You specialize in product management for a metal music import business (vinyls, CDs, cassettes).
 When analyzing images: identify band/artist, album title, format, special editions, condition.
 Generate compelling metal-scene-appropriate product descriptions.
-Suggest categories, tags, and pricing based on format and rarity.`,
+Tags should describe the MUSIC (genre, subgenre, themes, mood, country of origin) - NOT format info like "vinyl" or "CD".
+Example tags: black metal, atmospheric, Norwegian, raw production, occult themes, melodic.
+Suggest pricing based on format and rarity.`,
   },
   operations: {
     defaultModel: 'gpt-5.1',
