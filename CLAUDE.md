@@ -143,71 +143,132 @@ ANTHROPIC_API_KEY
 
 ## Working with the AI Copilot
 
-**API:** Uses OpenAI Responses API (NOT Chat Completions). See `app/api/admin/assistant/route.ts`.
+**API:** Uses OpenAI Responses API via official Node.js SDK. See `app/api/admin/assistant/route.ts`.
 
-### Responses API Configuration (EXACT working format)
+**SDK Docs:** https://github.com/openai/openai-node
+
+### Basic Responses API Usage (Official SDK)
 
 ```typescript
-// Payload structure
-const payload = {
+import OpenAI from 'openai';
+
+const client = new OpenAI();
+
+// Simple response
+const response = await client.responses.create({
   model: 'gpt-5.1',
-  input: messages,  // string OR array of {role, content}
-  store: true,      // Enable 30-day conversation persistence
+  input: 'Your prompt here',
+  instructions: 'System instructions...',
+  store: true,  // Enable 30-day conversation persistence
+});
 
-  // Continue conversation (pass responseId from previous call)
-  previous_response_id: 'resp_xxx',
-
-  // System prompt
-  instructions: 'You are...',
-
-  // Reasoning - MUST be nested object, NOT top-level
-  reasoning: { effort: 'low' | 'medium' | 'high' },
-
-  // Structured output
-  text: {
-    format: {
-      type: 'json_schema',
-      name: 'ResponseName',
-      schema: { /* JSON Schema */ },
-      strict: true,
-    },
-  },
-
-  max_output_tokens: 4096,
-}
+console.log(response.output_text);
 ```
 
-### JSON Schema Rules (Strict Mode)
+### Web Search Tool
 
 ```typescript
-// CORRECT - all fields required, optional via type array
+// Enable web search
+const response = await client.responses.create({
+  model: 'gpt-5.1',
+  tools: [{ type: 'web_search_preview' }],
+  input: 'What was a positive news story from today?',
+});
+
+// With location customization
+const response = await client.responses.create({
+  model: 'gpt-5.1',
+  tools: [{
+    type: 'web_search_preview',
+    user_location: {
+      type: 'approximate',
+      country: 'AU',
+      city: 'Sydney',
+    }
+  }],
+  input: 'Best record stores near me',
+});
+```
+
+### Structured Outputs with Zod (Recommended)
+
+```typescript
+import { zodTextFormat } from 'openai/helpers/zod';
+import { z } from 'zod';
+
+const ResponseSchema = z.object({
+  reply: z.string(),
+  actions: z.array(z.object({
+    type: z.string(),
+    summary: z.string(),
+    parameters: z.record(z.any()),
+  })).nullable(),
+});
+
+const response = await client.responses.parse({
+  model: 'gpt-5.1',
+  input: 'Your prompt',
+  text: {
+    format: zodTextFormat(ResponseSchema, 'assistant_response'),
+  },
+});
+
+// Typed, validated output
+console.log(response.output_parsed);
+```
+
+### Streaming
+
+```typescript
+const stream = client.responses.stream({
+  model: 'gpt-5.1',
+  input: 'Your prompt',
+});
+
+for await (const event of stream) {
+  console.log(event);
+}
+
+const result = await stream.finalResponse();
+```
+
+### Conversation State
+
+```typescript
+// First message
+const response1 = await client.responses.create({
+  model: 'gpt-5.1',
+  input: 'Hello!',
+  store: true,
+});
+
+// Continue conversation
+const response2 = await client.responses.create({
+  model: 'gpt-5.1',
+  input: 'What did I just say?',
+  previous_response_id: response1.id,
+});
+```
+
+### JSON Schema Rules (When Not Using Zod)
+
+```typescript
+// CORRECT - use additionalProperties: true for dynamic parameters
 const schema = {
   type: 'object',
   properties: {
     reply: { type: 'string' },
-    actions: { type: ['array', 'null'] },  // Optional field
+    actions: { type: ['array', 'null'] },
   },
-  required: ['reply', 'actions'],  // ALL properties must be listed
-  additionalProperties: false,     // REQUIRED on every object
+  required: ['reply', 'actions'],
+  additionalProperties: false,  // Only false on root object
 }
 
-// WRONG - missing from required
-const badSchema = {
-  properties: { reply: {...}, actions: {...} },
-  required: ['reply'],  // ERROR: 'actions' missing
+// For nested objects with dynamic properties:
+parameters: {
+  type: 'object',
+  additionalProperties: true,  // Allow any properties
 }
-```
-
-### Response Parsing
-
-```typescript
-const result = await callResponsesAPI(...)
-const rawContent = result.outputText.trim()
-
-// Structured output IS valid JSON - parse directly
-const parsed = JSON.parse(rawContent)
-const reply = parsed.reply
-const actions = parsed.actions ?? []
 ```
 
 ### Agent Configuration
