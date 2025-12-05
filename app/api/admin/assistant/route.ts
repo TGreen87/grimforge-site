@@ -136,39 +136,11 @@ const requestSchema = z.object({
   forceModel: z.string().optional(),
 })
 
-// JSON Schema for structured output
-// NOTE: We use additionalProperties: true for the parameters object
-// because the model needs to include action-specific parameters (price, stock, title, etc.)
-// The action handler validates the specific parameters for each action type
-const RESPONSE_JSON_SCHEMA = {
-  name: 'AssistantResponse',
-  schema: {
-    type: 'object' as const,
-    properties: {
-      reply: { type: 'string', description: 'The assistant reply to show the user' },
-      actions: {
-        type: ['array', 'null'] as const,
-        items: {
-          type: 'object' as const,
-          properties: {
-            type: { type: 'string', enum: assistantActionTypes },
-            summary: { type: 'string' },
-            parameters: {
-              type: 'object' as const,
-              // Allow any properties - action handler validates specifics
-              additionalProperties: true,
-            },
-          },
-          required: ['type', 'summary', 'parameters'] as const,
-          additionalProperties: false,
-        },
-      },
-    },
-    required: ['reply', 'actions'] as const,
-    additionalProperties: false,
-  },
-  strict: true,
-}
+// We use json_object format (not json_schema with strict mode) because:
+// - strict mode requires additionalProperties: false on ALL objects
+// - but action parameters need to be dynamic (price, stock, title, etc.)
+// - json_object allows flexible JSON while we guide structure via prompt
+// The prompt instructs the model to use our expected format
 
 // Build input for Responses API
 // Using EasyInputMessage format from SDK which accepts:
@@ -300,8 +272,7 @@ export async function POST(request: NextRequest) {
       ...(modelConfig.reasoningEffort && { reasoning: { effort: modelConfig.reasoningEffort } }),
       text: {
         format: {
-          type: 'json_schema',
-          ...RESPONSE_JSON_SCHEMA,
+          type: 'json_object',
         },
       },
       max_output_tokens: 4096,
