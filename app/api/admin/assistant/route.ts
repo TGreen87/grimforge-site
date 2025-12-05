@@ -136,11 +136,11 @@ const requestSchema = z.object({
   forceModel: z.string().optional(),
 })
 
-// We use json_object format (not json_schema with strict mode) because:
-// - strict mode requires additionalProperties: false on ALL objects
-// - but action parameters need to be dynamic (price, stock, title, etc.)
-// - json_object allows flexible JSON while we guide structure via prompt
-// The prompt instructs the model to use our expected format
+// Note on output format:
+// - web_search_preview tool CANNOT be used with json_object or json_schema format
+// - So we use plain text output and parse JSON from the response
+// - The prompt instructs the model to respond in JSON format
+// - If parsing fails, we treat the whole response as the reply text
 
 // Build input for Responses API
 // Using EasyInputMessage format from SDK which accepts:
@@ -261,7 +261,8 @@ export async function POST(request: NextRequest) {
     }
 
     // Call OpenAI Responses API using official SDK
-    // Per docs: tools: [{ type: "web_search_preview" }]
+    // Note: web_search_preview cannot be combined with json_object or json_schema format
+    // So we use plain text and parse JSON from the response
     const response = await openai.responses.create({
       model: modelConfig.id,
       input,
@@ -270,11 +271,6 @@ export async function POST(request: NextRequest) {
       store: true,
       ...(previousResponseId && { previous_response_id: previousResponseId }),
       ...(modelConfig.reasoningEffort && { reasoning: { effort: modelConfig.reasoningEffort } }),
-      text: {
-        format: {
-          type: 'json_object',
-        },
-      },
       max_output_tokens: 4096,
     })
 
