@@ -181,6 +181,33 @@ interface ResponsesAPIResult {
   }
 }
 
+// Tool types per OpenAI SDK (Dec 2025)
+// Source: https://github.com/openai/openai-python/blob/main/src/openai/types/responses/
+interface WebSearchTool {
+  type: 'web_search' | 'web_search_2025_08_26'
+  search_context_size?: 'low' | 'medium' | 'high'
+  filters?: { allowed_domains?: string[] }
+  user_location?: {
+    type: 'approximate'
+    city?: string
+    country?: string
+    region?: string
+    timezone?: string
+  }
+}
+
+interface FileSearchTool {
+  type: 'file_search'
+  vector_store_ids: string[]
+  max_num_results?: number
+}
+
+interface CodeInterpreterTool {
+  type: 'code_interpreter'
+}
+
+type ResponsesTool = WebSearchTool | FileSearchTool | CodeInterpreterTool | { type: string }
+
 async function callResponsesAPI(
   input: string | ResponsesAPIInput[],
   options: {
@@ -188,7 +215,7 @@ async function callResponsesAPI(
     instructions?: string
     previousResponseId?: string
     reasoningEffort?: 'low' | 'medium' | 'high'
-    tools?: Array<{ type: string }>
+    tools?: ResponsesTool[]
     useStructuredOutput?: boolean
   }
 ): Promise<ResponsesAPIResult> {
@@ -446,11 +473,23 @@ export async function POST(request: NextRequest) {
       input = buildResponsesInput(messages.slice(-8))
     }
 
-    // Optional: Enable web search for product/marketing research
-    const tools: Array<{ type: string }> = []
-    if (agent === 'product' || agent === 'marketing') {
-      tools.push({ type: 'web_search_preview' })
-    }
+    // Enable built-in tools for GPT-5.1
+    // Per OpenAI docs (Dec 2025):
+    // - web_search: Real-time web search with filters and user_location options
+    // - code_interpreter: Python sandbox for calculations (requires container config)
+    // - file_search: Vector store RAG (requires vector_store_ids)
+    //
+    // We enable web_search for ALL agents so Copilot can research:
+    // - Product info (bands, albums, releases, pricing)
+    // - Operations (shipping rates, carrier info)
+    // - Marketing (trends, scene news, hashtags)
+    // - General (any lookup the user needs)
+    const tools: ResponsesTool[] = [
+      {
+        type: 'web_search',
+        search_context_size: 'medium', // low | medium | high - controls context allocation
+      } as WebSearchTool,
+    ]
 
     // Call Responses API
     const result = await callResponsesAPI(input, {
