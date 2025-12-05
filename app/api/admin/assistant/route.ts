@@ -137,6 +137,9 @@ const requestSchema = z.object({
 })
 
 // JSON Schema for structured output
+// NOTE: We use additionalProperties: true for the parameters object
+// because the model needs to include action-specific parameters (price, stock, title, etc.)
+// The action handler validates the specific parameters for each action type
 const RESPONSE_JSON_SCHEMA = {
   name: 'AssistantResponse',
   schema: {
@@ -152,9 +155,8 @@ const RESPONSE_JSON_SCHEMA = {
             summary: { type: 'string' },
             parameters: {
               type: 'object' as const,
-              properties: {},
-              required: [] as string[],
-              additionalProperties: false,
+              // Allow any properties - action handler validates specifics
+              additionalProperties: true,
             },
           },
           required: ['type', 'summary', 'parameters'] as const,
