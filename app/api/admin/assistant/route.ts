@@ -1,14 +1,15 @@
 import { randomUUID } from 'crypto'
 import { NextRequest, NextResponse } from 'next/server'
+import OpenAI from 'openai'
 import { z } from 'zod'
 import { assistantActionTypes, buildActionsPrompt } from '@/lib/assistant/actions'
 import { ensureAssistantSession, logAssistantEvent } from '@/lib/assistant/sessions'
 import { assertAdmin } from '@/lib/assistant/auth'
 
 // =============================================================================
-// OpenAI Responses API Implementation (Nov 2025)
+// OpenAI Responses API Implementation (Dec 2025)
 // =============================================================================
-// Using the Responses API instead of legacy Chat Completions:
+// Using the official OpenAI SDK with Responses API:
 // - Server-managed conversation state via previous_response_id
 // - Built-in tools: web_search_preview, file_search, code_interpreter
 // - Structured outputs with JSON schema
@@ -17,24 +18,26 @@ import { assertAdmin } from '@/lib/assistant/auth'
 // Docs: https://platform.openai.com/docs/api-reference/responses
 // =============================================================================
 
+// Initialize OpenAI client
+const openai = new OpenAI()
+
 type AgentType = 'product' | 'operations' | 'marketing' | 'general'
 
 interface ModelConfig {
   id: string
   displayName: string
   supportsVision: boolean
-  reasoningEffort?: 'low' | 'medium' | 'high' // omit for 'none' (default for 5.1)
+  reasoningEffort?: 'low' | 'medium' | 'high'
 }
 
-// Current models (Nov 2025)
+// Current models (Dec 2025)
 const MODELS: Record<string, ModelConfig> = {
-  // GPT-5.1 Series - Current flagship
   'gpt-5.1-high': { id: 'gpt-5.1', displayName: 'GPT-5.1 High Reasoning', supportsVision: true, reasoningEffort: 'high' },
   'gpt-5.1-medium': { id: 'gpt-5.1', displayName: 'GPT-5.1 Medium', supportsVision: true, reasoningEffort: 'medium' },
   'gpt-5.1': { id: 'gpt-5.1', displayName: 'GPT-5.1', supportsVision: true },
 }
 
-// Agent configurations with specialized system prompts
+// Agent configurations
 const AGENT_CONFIGS: Record<AgentType, { defaultModel: string; systemPromptAddition: string }> = {
   product: {
     defaultModel: 'gpt-5.1-high',
@@ -128,258 +131,68 @@ const requestSchema = z.object({
   messages: z.array(messageSchema).min(1),
   topic: z.string().optional(),
   sessionId: z.string().uuid().optional(),
-  // OpenAI Responses API conversation state
   previousResponseId: z.string().optional(),
   forceAgent: z.enum(['product', 'operations', 'marketing', 'general']).optional(),
   forceModel: z.string().optional(),
 })
 
-// JSON Schema for structured output (Responses API format)
-// Per OpenAI docs:
-// - ALL objects must have additionalProperties: false
-// - ALL keys in properties MUST be in required array
-// - To make a field optional, use type array: ["array", "null"]
+// JSON Schema for structured output
 const RESPONSE_JSON_SCHEMA = {
   name: 'AssistantResponse',
   schema: {
-    type: 'object',
+    type: 'object' as const,
     properties: {
       reply: { type: 'string', description: 'The assistant reply to show the user' },
       actions: {
-        type: ['array', 'null'],
+        type: ['array', 'null'] as const,
         items: {
-          type: 'object',
+          type: 'object' as const,
           properties: {
             type: { type: 'string', enum: assistantActionTypes },
             summary: { type: 'string' },
             parameters: {
-              type: 'object',
+              type: 'object' as const,
               properties: {},
               required: [] as string[],
               additionalProperties: false,
             },
           },
-          required: ['type', 'summary', 'parameters'],
+          required: ['type', 'summary', 'parameters'] as const,
           additionalProperties: false,
         },
       },
     },
-    required: ['reply', 'actions'],
+    required: ['reply', 'actions'] as const,
     additionalProperties: false,
   },
+  strict: true,
 }
 
-// =============================================================================
-// OpenAI Responses API Call
-// =============================================================================
-// Input format per docs:
-// - Simple: input="text string"
-// - Multi-turn: input=[{role: "user", content: "text"}]
-// - With images: input=[{role: "user", content: [{type: "input_image", image_url: "..."}]}]
-interface ResponsesAPIInput {
-  role: 'user' | 'assistant'
-  content: string | Array<{ type: string; text?: string; image_url?: string }>
-}
-
-interface ResponsesAPIResult {
-  id: string
-  outputText: string
-  raw: any
-  usage?: {
-    inputTokens: number
-    outputTokens: number
-    cachedTokens?: number
-  }
-}
-
-// Tool types per OpenAI SDK (Dec 2025)
-// Source: https://github.com/openai/openai-python/blob/main/src/openai/types/responses/
-interface WebSearchTool {
-  type: 'web_search' | 'web_search_2025_08_26'
-  search_context_size?: 'low' | 'medium' | 'high'
-  filters?: { allowed_domains?: string[] }
-  user_location?: {
-    type: 'approximate'
-    city?: string
-    country?: string
-    region?: string
-    timezone?: string
-  }
-}
-
-interface FileSearchTool {
-  type: 'file_search'
-  vector_store_ids: string[]
-  max_num_results?: number
-}
-
-interface CodeInterpreterTool {
-  type: 'code_interpreter'
-}
-
-type ResponsesTool = WebSearchTool | FileSearchTool | CodeInterpreterTool | { type: string }
-
-async function callResponsesAPI(
-  input: string | ResponsesAPIInput[],
-  options: {
-    model: string
-    instructions?: string
-    previousResponseId?: string
-    reasoningEffort?: 'low' | 'medium' | 'high'
-    tools?: ResponsesTool[]
-    useStructuredOutput?: boolean
-  }
-): Promise<ResponsesAPIResult> {
-  const apiKey = process.env.OPENAI_API_KEY
-  if (!apiKey) throw new Error('OPENAI_API_KEY not configured')
-
-  const payload: any = {
-    model: options.model,
-    input,
-    // Store conversation for 30 days, enables previous_response_id
-    store: true,
-  }
-
-  // System instructions
-  if (options.instructions) {
-    payload.instructions = options.instructions
-  }
-
-  // Continue conversation from previous response
-  if (options.previousResponseId) {
-    payload.previous_response_id = options.previousResponseId
-  }
-
-  // Reasoning (GPT-5.1) - nested object format: reasoning: { effort: "medium" }
-  // Omit entirely for 'none'/default
-  if (options.reasoningEffort) {
-    payload.reasoning = { effort: options.reasoningEffort }
-  }
-
-  // Built-in tools
-  if (options.tools && options.tools.length > 0) {
-    payload.tools = options.tools
-  }
-
-  // Structured output with JSON schema
-  // Per docs (Nov 2025): Responses API uses text.format with strict: true
-  // Source: https://jamesmccaffreyblog.com/2025/11/04/example-of-openai-responses-api-structured-output-using-json-schema/
-  if (options.useStructuredOutput !== false) {
-    payload.text = {
-      format: {
-        type: 'json_schema',
-        name: RESPONSE_JSON_SCHEMA.name,
-        schema: RESPONSE_JSON_SCHEMA.schema,
-        strict: true,
-      },
-    }
-  }
-
-  // Token limit
-  payload.max_output_tokens = 4096
-
-  console.log('Responses API payload:', JSON.stringify(payload, null, 2))
-
-  const response = await fetch('https://api.openai.com/v1/responses', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${apiKey}`,
-    },
-    body: JSON.stringify(payload),
-  })
-
-  const responseText = await response.text()
-
-  if (!response.ok) {
-    console.error('Responses API error:', responseText)
-    // Parse error to get cleaner message
-    try {
-      const errorJson = JSON.parse(responseText)
-      throw new Error(`OpenAI API error: ${errorJson.error?.message || responseText}`)
-    } catch {
-      throw new Error(`OpenAI API error: ${responseText}`)
-    }
-  }
-
-  // Clean control characters before parsing
-  const cleanedText = responseText.replace(/[\x00-\x1F\x7F]/g, (char) => {
-    if (char === '\n' || char === '\t' || char === '\r') return char
-    return ''
-  })
-
-  const data = JSON.parse(cleanedText)
-
-  // Extract output text from Responses API format
-  const outputText = extractOutputText(data)
-
-  return {
-    id: data.id,
-    outputText,
-    raw: data,
-    usage: data.usage ? {
-      inputTokens: data.usage.input_tokens,
-      outputTokens: data.usage.output_tokens,
-      cachedTokens: data.usage.input_tokens_details?.cached_tokens,
-    } : undefined,
-  }
-}
-
-// Extract text from Responses API output format
-function extractOutputText(response: any): string {
-  // Try output_text shorthand first
-  if (response.output_text) {
-    return response.output_text
-  }
-
-  // Otherwise parse the output array
-  const outputs = Array.isArray(response.output) ? response.output : []
-  for (const output of outputs) {
-    if (output.type === 'message' && Array.isArray(output.content)) {
-      for (const content of output.content) {
-        if (content.type === 'output_text' && content.text) {
-          return content.text
-        }
-        // Also check for 'text' type (some responses use this)
-        if (content.type === 'text' && content.text) {
-          return content.text
-        }
-      }
-    }
-  }
-  return ''
-}
-
-// Build input for Responses API (handles images)
-// Per docs: content is string for text, array only when including images
-function buildResponsesInput(
+// Build input for Responses API
+// Using EasyInputMessage format from SDK which accepts:
+// - content: string | ResponseInputMessageContentList
+// - role: 'user' | 'assistant' | 'system' | 'developer'
+function buildInput(
   messages: Array<{ role: string; content: string; image?: string }>
-): ResponsesAPIInput[] {
-  const input: ResponsesAPIInput[] = []
-
-  for (const msg of messages) {
+): OpenAI.Responses.EasyInputMessage[] {
+  return messages.map(msg => {
     if (msg.image) {
-      // With image: content is array with image object
       const imageUrl = msg.image.startsWith('data:')
         ? msg.image
         : `data:image/jpeg;base64,${msg.image}`
-      input.push({
+      return {
         role: msg.role as 'user' | 'assistant',
         content: [
-          { type: 'input_text', text: msg.content },
-          { type: 'input_image', image_url: imageUrl },
+          { type: 'input_text' as const, text: msg.content },
+          { type: 'input_image' as const, image_url: imageUrl, detail: 'auto' as const },
         ],
-      })
-    } else {
-      // Text only: content is just a string
-      input.push({
-        role: msg.role as 'user' | 'assistant',
-        content: msg.content,
-      })
+      }
     }
-  }
-
-  return input
+    return {
+      role: msg.role as 'user' | 'assistant',
+      content: msg.content,
+    }
+  })
 }
 
 // =============================================================================
@@ -414,15 +227,12 @@ export async function POST(request: NextRequest) {
     }
 
     sessionId = parsedRequest.data.sessionId ?? randomUUID()
-
-    // Check if any message has an image
     const hasImage = messages.some(m => m.image)
 
     // Determine agent and model
     const agent: AgentType = forceAgent || classifyIntent(latestUserMessage.content)
     const agentConfig = AGENT_CONFIGS[agent]
 
-    // Select model
     let selectedModel = forceModel || agentConfig.defaultModel
     if (hasImage && !MODELS[selectedModel]?.supportsVision) {
       selectedModel = 'gpt-5.1-high'
@@ -447,7 +257,7 @@ export async function POST(request: NextRequest) {
       payload: { content: latestUserMessage.content, hasImage },
     })
 
-    // Build system instructions with agent specialization
+    // Build system instructions
     const instructions = [
       CHAT_SYSTEM_PROMPT,
       agentConfig.systemPromptAddition,
@@ -455,83 +265,64 @@ export async function POST(request: NextRequest) {
       'Respond in JSON format: { "reply": "your message", "actions": [...] }',
     ].filter(Boolean).join('\n\n')
 
-    // Build input for Responses API
-    // If we have a previousResponseId, we only send the new message
-    // Otherwise, send the conversation history
-    let input: string | ResponsesAPIInput[]
-
+    // Build input - if continuing conversation, only send new message
+    let input: string | OpenAI.Responses.EasyInputMessage[]
     if (previousResponseId) {
-      // Continuing conversation - only send new message
       if (hasImage && latestUserMessage.image) {
+        const imageUrl = latestUserMessage.image.startsWith('data:')
+          ? latestUserMessage.image
+          : `data:image/jpeg;base64,${latestUserMessage.image}`
         input = [{
-          role: 'user',
+          role: 'user' as const,
           content: [
-            { type: 'input_text', text: latestUserMessage.content },
-            {
-              type: 'input_image',
-              image_url: latestUserMessage.image.startsWith('data:')
-                ? latestUserMessage.image
-                : `data:image/jpeg;base64,${latestUserMessage.image}`
-            },
+            { type: 'input_text' as const, text: latestUserMessage.content },
+            { type: 'input_image' as const, image_url: imageUrl, detail: 'auto' as const },
           ],
         }]
       } else {
-        // Simple string input for text-only continuation
         input = latestUserMessage.content
       }
     } else {
-      // New conversation - send full history (last 8 messages)
-      input = buildResponsesInput(messages.slice(-8))
+      input = buildInput(messages.slice(-8))
     }
 
-    // Enable built-in tools for GPT-5.1
-    // Per OpenAI docs (Dec 2025):
-    // - web_search: Real-time web search with filters and user_location options
-    // - code_interpreter: Python sandbox for calculations (requires container config)
-    // - file_search: Vector store RAG (requires vector_store_ids)
-    //
-    // We enable web_search for ALL agents so Copilot can research:
-    // - Product info (bands, albums, releases, pricing)
-    // - Operations (shipping rates, carrier info)
-    // - Marketing (trends, scene news, hashtags)
-    // - General (any lookup the user needs)
-    const tools: ResponsesTool[] = [
-      {
-        type: 'web_search',
-        search_context_size: 'medium', // low | medium | high - controls context allocation
-      } as WebSearchTool,
-    ]
-
-    // Call Responses API
-    const result = await callResponsesAPI(input, {
+    // Call OpenAI Responses API using official SDK
+    // Per docs: tools: [{ type: "web_search_preview" }]
+    const response = await openai.responses.create({
       model: modelConfig.id,
+      input,
       instructions,
-      previousResponseId,
-      reasoningEffort: modelConfig.reasoningEffort,
-      tools: tools.length > 0 ? tools : undefined,
-      useStructuredOutput: true,
+      tools: [{ type: 'web_search_preview' }],
+      store: true,
+      ...(previousResponseId && { previous_response_id: previousResponseId }),
+      ...(modelConfig.reasoningEffort && { reasoning: { effort: modelConfig.reasoningEffort } }),
+      text: {
+        format: {
+          type: 'json_schema',
+          ...RESPONSE_JSON_SCHEMA,
+        },
+      },
+      max_output_tokens: 4096,
     })
 
-    // Parse the response - structured output returns valid JSON
-    let parsedResponse: z.infer<typeof assistantResponseSchema>
+    console.log('OpenAI response:', JSON.stringify(response, null, 2))
 
-    const rawContent = result.outputText.trim()
+    // Extract output text - SDK provides output_text property
+    const rawContent = response.output_text || ''
     if (!rawContent) {
       throw new Error('Empty response from API')
     }
 
+    // Parse the response
+    let parsedResponse: z.infer<typeof assistantResponseSchema>
     try {
-      // With structured output, the response IS the JSON
       const parsed = JSON.parse(rawContent)
-
-      // Validate with Zod and provide defaults
       parsedResponse = {
         reply: parsed.reply || rawContent,
         actions: Array.isArray(parsed.actions) ? parsed.actions : [],
       }
     } catch (parseError) {
       console.error('Failed to parse structured output:', parseError, 'Raw:', rawContent.slice(0, 500))
-      // Fallback: treat entire response as the reply
       parsedResponse = { reply: rawContent, actions: [] }
     }
 
@@ -545,8 +336,8 @@ export async function POST(request: NextRequest) {
         metadata: {
           agent,
           model: selectedModel,
-          responseId: result.id,
-          usage: result.usage,
+          responseId: response.id,
+          usage: response.usage,
         },
       },
     })
@@ -555,13 +346,11 @@ export async function POST(request: NextRequest) {
       sessionId,
       message: parsedResponse.reply,
       actions: parsedResponse.actions ?? [],
-      // Responses API conversation state - client should pass this back
-      responseId: result.id,
-      // Metadata
+      responseId: response.id,
       agent,
       model: selectedModel,
       modelDisplayName: modelConfig.displayName,
-      usage: result.usage,
+      usage: response.usage,
     })
   } catch (error) {
     const errorDetail = error instanceof Error
