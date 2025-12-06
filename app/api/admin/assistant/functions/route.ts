@@ -118,6 +118,34 @@ function slugify(input: string) {
     .slice(0, 64) || 'product'
 }
 
+// Valid format values as per database constraint
+type ProductFormat = 'vinyl' | 'cassette' | 'cd'
+const VALID_FORMATS: ProductFormat[] = ['vinyl', 'cassette', 'cd']
+
+function normaliseFormat(format?: string): ProductFormat {
+  if (!format) return 'vinyl'
+  const lower = format.toLowerCase().trim()
+
+  // Direct match
+  if (VALID_FORMATS.includes(lower as ProductFormat)) {
+    return lower as ProductFormat
+  }
+
+  // Common variations
+  if (lower.includes('vinyl') || lower.includes('lp') || lower.includes('12"') || lower.includes('record')) {
+    return 'vinyl'
+  }
+  if (lower.includes('cd') || lower.includes('compact disc')) {
+    return 'cd'
+  }
+  if (lower.includes('cassette') || lower.includes('tape')) {
+    return 'cassette'
+  }
+
+  // Default fallback
+  return 'vinyl'
+}
+
 // Function implementations
 async function executeCreateProductDraft(args: z.infer<typeof createProductDraftSchema>, userId: string | null) {
   const supabase = createServiceClient()
@@ -125,6 +153,7 @@ async function executeCreateProductDraft(args: z.infer<typeof createProductDraft
   const price = Number(args.price)
   const stock = args.stock ?? 0
   const tags = args.tags?.split(',').map(t => t.trim()).filter(Boolean) ?? []
+  const format = normaliseFormat(args.format)
 
   // Generate UUID for product ID (Supabase should do this but some configs don't)
   const productId = crypto.randomUUID()
@@ -136,7 +165,7 @@ async function executeCreateProductDraft(args: z.infer<typeof createProductDraft
     artist: args.artist,
     description: args.description ?? null,
     price,
-    format: args.format,
+    format,
     image: args.image ?? null,
     active: false,
     featured: false,

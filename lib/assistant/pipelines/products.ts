@@ -84,7 +84,7 @@ export async function createProductFullPipeline(options: {
     throw new Error('Price is required to create a full product release')
   }
 
-  const resolvedFormat = input.format?.toLowerCase() || 'vinyl'
+  const resolvedFormat = normaliseFormat(input.format)
   const tagList = normaliseTagList(input.tags)
   const attachmentContext = attachments.map((item) => `${item.name} (${item.type || 'file'})`).join(', ')
 
@@ -264,6 +264,34 @@ export async function createProductFullPipeline(options: {
       campaignId: campaignId ?? null,
     },
   }
+}
+
+// Valid format values as per database constraint
+type ProductFormat = 'vinyl' | 'cassette' | 'cd'
+const VALID_FORMATS: ProductFormat[] = ['vinyl', 'cassette', 'cd']
+
+function normaliseFormat(format?: string): ProductFormat {
+  if (!format) return 'vinyl'
+  const lower = format.toLowerCase().trim()
+
+  // Direct match
+  if (VALID_FORMATS.includes(lower as ProductFormat)) {
+    return lower as ProductFormat
+  }
+
+  // Common variations
+  if (lower.includes('vinyl') || lower.includes('lp') || lower.includes('12"') || lower.includes('record')) {
+    return 'vinyl'
+  }
+  if (lower.includes('cd') || lower.includes('compact disc')) {
+    return 'cd'
+  }
+  if (lower.includes('cassette') || lower.includes('tape')) {
+    return 'cassette'
+  }
+
+  // Default fallback
+  return 'vinyl'
 }
 
 function normaliseTagList(tags?: string) {
