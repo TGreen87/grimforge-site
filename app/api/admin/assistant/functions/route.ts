@@ -29,80 +29,85 @@ const requestSchema = z.object({
   callId: z.string().optional(), // For tracking
 })
 
+// Helper for nullable optional values (OpenAI sends null for optional fields)
+const nullStr = z.string().nullable().optional().transform(v => v ?? undefined)
+const nullNum = z.number().nullable().optional().transform(v => v ?? undefined)
+const nullBool = z.boolean().nullable().optional().transform(v => v ?? undefined)
+
 // Individual parameter schemas
 const createProductDraftSchema = z.object({
   title: z.string().min(1),
   artist: z.string().min(1),
   price: z.coerce.number().positive(),
   format: z.string().min(1),
-  slug: z.string().optional(),
-  description: z.string().optional(),
-  tags: z.string().optional(), // Comma-separated string from model
-  image: z.string().optional(),
-  stock: z.coerce.number().int().min(0).optional(),
+  slug: nullStr,
+  description: nullStr,
+  tags: nullStr, // Comma-separated string from model
+  image: nullStr,
+  stock: z.coerce.number().int().min(0).nullable().optional(),
 })
 
 const receiveStockSchema = z.object({
   variant_id: z.string().min(1),
   quantity: z.coerce.number().int().positive(),
-  notes: z.string().optional(),
+  notes: nullStr,
 })
 
 const summarizeAnalyticsSchema = z.object({
-  range: z.enum(['24h', '7d', '30d']).optional(),
-  pathname: z.string().optional(),
+  range: z.enum(['24h', '7d', '30d']).nullable().optional(),
+  pathname: nullStr,
 })
 
 const lookupOrderSchema = z.object({
-  order_number: z.string().optional(),
-  email: z.string().optional(),
+  order_number: nullStr,
+  email: nullStr,
 })
 
 const createProductFullSchema = z.object({
-  brief: z.string().optional(),
-  title: z.string().optional(),
-  artist: z.string().optional(),
-  format: z.string().optional(),
-  price: z.coerce.number().positive().optional(),
-  stock: z.coerce.number().int().min(0).optional(),
-  publish: z.coerce.boolean().optional(),
-  featureOnHero: z.coerce.boolean().optional(),
-  heroLayout: z.string().optional(),
-  heroSubtitle: z.string().optional(),
-  heroBadge: z.string().optional(),
-  heroHighlights: z.string().optional(),
-  tags: z.string().optional(),
+  brief: nullStr,
+  title: nullStr,
+  artist: nullStr,
+  format: nullStr,
+  price: z.coerce.number().positive().nullable().optional(),
+  stock: z.coerce.number().int().min(0).nullable().optional(),
+  publish: nullBool,
+  featureOnHero: nullBool,
+  heroLayout: nullStr,
+  heroSubtitle: nullStr,
+  heroBadge: nullStr,
+  heroHighlights: nullStr,
+  tags: nullStr,
 })
 
 const draftArticleSchema = z.object({
   brief: z.string().min(1),
-  title: z.string().optional(),
-  wordCount: z.coerce.number().optional(),
-  publish: z.coerce.boolean().optional(),
-  featured: z.coerce.boolean().optional(),
-  tags: z.string().optional(),
-  productSlug: z.string().optional(),
+  title: nullStr,
+  wordCount: z.coerce.number().nullable().optional(),
+  publish: nullBool,
+  featured: nullBool,
+  tags: nullStr,
+  productSlug: nullStr,
 })
 
 const publishArticleSchema = z.object({
-  articleId: z.string().optional(),
-  slug: z.string().optional(),
-  featured: z.coerce.boolean().optional(),
+  articleId: nullStr,
+  slug: nullStr,
+  featured: nullBool,
 })
 
 const updateCampaignSchema = z.object({
   slug: z.string().min(1),
   title: z.string().min(1),
-  subtitle: z.string().optional(),
-  description: z.string().optional(),
-  layout: z.string().optional(),
-  badgeText: z.string().optional(),
-  highlightBullets: z.string().optional(),
-  ctaPrimaryLabel: z.string().optional(),
-  ctaPrimaryHref: z.string().optional(),
-  ctaSecondaryLabel: z.string().optional(),
-  ctaSecondaryHref: z.string().optional(),
-  activate: z.coerce.boolean().optional(),
+  subtitle: nullStr,
+  description: nullStr,
+  layout: nullStr,
+  badgeText: nullStr,
+  highlightBullets: nullStr,
+  ctaPrimaryLabel: nullStr,
+  ctaPrimaryHref: nullStr,
+  ctaSecondaryLabel: nullStr,
+  ctaSecondaryHref: nullStr,
+  activate: nullBool,
 })
 
 function slugify(input: string) {
