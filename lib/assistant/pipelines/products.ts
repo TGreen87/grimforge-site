@@ -45,6 +45,7 @@ export interface CreateProductFullInput {
   heroBadge?: string
   heroHighlights?: string
   tags?: string
+  imageUrl?: string  // URL of the product image (passed from model via function call)
 }
 
 const PRODUCT_SYSTEM_PROMPT =
@@ -131,7 +132,11 @@ export async function createProductFullPipeline(options: {
   const baseSlug = slugify(title)
   const slug = await ensureUniqueProductSlug(supabase, baseSlug)
 
-  const imageUrl = attachments.find((file) => file.type?.startsWith('image/'))?.url ?? attachments[0]?.url ?? null
+  // Priority: 1) input.imageUrl from model function call, 2) image attachment, 3) any attachment
+  const imageUrl = input.imageUrl
+    ?? attachments.find((file) => file.type?.startsWith('image/'))?.url
+    ?? attachments[0]?.url
+    ?? null
   const publish = Boolean(input.publish)
 
   // Generate UUID explicitly (Supabase tables may not have default UUID generation)
