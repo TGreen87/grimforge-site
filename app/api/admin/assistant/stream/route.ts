@@ -32,8 +32,18 @@ const messageSchema = z.object({
   imageUrl: z.string().optional(), // Public URL for product creation
 })
 
+// Schema for submitting function call outputs back to the model
+const functionCallOutputSchema = z.object({
+  callId: z.string(),
+  name: z.string(),
+  arguments: z.string(),
+  output: z.string(),
+})
+
 const requestSchema = z.object({
-  messages: z.array(messageSchema).min(1),
+  // Either messages for new prompts OR functionCallOutput for continuing after function execution
+  messages: z.array(messageSchema).optional(),
+  functionCallOutput: functionCallOutputSchema.optional(),
   sessionId: z.string().uuid().optional(),
   previousResponseId: z.string().optional(),
   forceAgent: z.enum(['product', 'operations', 'marketing', 'general']).optional(),
@@ -103,24 +113,117 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const { messages, forceAgent, previousResponseId } = parsed.data
-    const latestUserMessage = [...messages].reverse().find(m => m.role === 'user')
-
-    if (!latestUserMessage) {
-      return new Response(
-        JSON.stringify({ error: 'Missing user message' }),
-        { status: 400, headers: { 'Content-Type': 'application/json' } }
-      )
-    }
+    const { messages, functionCallOutput, forceAgent, previousResponseId } = parsed.data
 
     sessionId = parsed.data.sessionId ?? randomUUID()
-    const hasImage = messages.some(m => m.image)
 
-    // Get the public imageUrl if provided (for product creation)
-    const attachedImageUrl = latestUserMessage.imageUrl
+    // Determine if this is a function call output submission or a new message
+    const isFunctionOutputSubmission = !!functionCallOutput
 
-    // Determine agent type
-    const agent: AgentType = forceAgent || classifyIntent(latestUserMessage.content)
+    // Variables we'll use for both paths
+    let agent: AgentType = forceAgent || 'general'
+    let input: OpenAI.Responses.ResponseInputItem[] | string | OpenAI.Responses.EasyInputMessage[]
+    let attachedImageUrl: string | undefined
+
+    if (isFunctionOutputSubmission) {
+      // =========================================================================
+      // Function Call Output Submission Path
+      // =========================================================================
+      // After executing a function, we need to send the output back to the model
+      // so it can generate a final response to the user.
+      //
+      // Per OpenAI Responses API docs, we send:
+      // 1. The function_call item (so the model knows what was called)
+      // 2. The function_call_output item (with the result)
+      // =========================================================================
+
+      if (!previousResponseId) {
+        return new Response(
+          JSON.stringify({ error: 'previousResponseId is required when submitting function output' }),
+          { status: 400, headers: { 'Content-Type': 'application/json' } }
+        )
+      }
+
+      // Build input with function call and output items
+      input = [
+        {
+          type: 'function_call' as const,
+          call_id: functionCallOutput.callId,
+          name: functionCallOutput.name,
+          arguments: functionCallOutput.arguments,
+        },
+        {
+          type: 'function_call_output' as const,
+          call_id: functionCallOutput.callId,
+          output: functionCallOutput.output,
+        },
+      ]
+
+      // Log the function output submission
+      await logAssistantEvent({
+        sessionId,
+        userId: adminUserId,
+        eventType: 'function.output_submitted',
+        payload: { name: functionCallOutput.name, callId: functionCallOutput.callId },
+      })
+
+    } else {
+      // =========================================================================
+      // Regular Message Path
+      // =========================================================================
+
+      if (!messages || messages.length === 0) {
+        return new Response(
+          JSON.stringify({ error: 'Either messages or functionCallOutput is required' }),
+          { status: 400, headers: { 'Content-Type': 'application/json' } }
+        )
+      }
+
+      const latestUserMessage = [...messages].reverse().find(m => m.role === 'user')
+
+      if (!latestUserMessage) {
+        return new Response(
+          JSON.stringify({ error: 'Missing user message' }),
+          { status: 400, headers: { 'Content-Type': 'application/json' } }
+        )
+      }
+
+      const hasImage = messages.some(m => m.image)
+      attachedImageUrl = latestUserMessage.imageUrl
+
+      // Determine agent type from message content
+      agent = forceAgent || classifyIntent(latestUserMessage.content)
+
+      await logAssistantEvent({
+        sessionId,
+        userId: adminUserId,
+        eventType: 'message.user',
+        payload: { content: latestUserMessage.content, hasImage },
+      })
+
+      // Build input for API
+      if (previousResponseId) {
+        // Continue conversation - only send latest message
+        if (hasImage && latestUserMessage.image) {
+          const imageUrl = latestUserMessage.image.startsWith('data:')
+            ? latestUserMessage.image
+            : `data:image/jpeg;base64,${latestUserMessage.image}`
+          input = [{
+            role: 'user' as const,
+            content: [
+              { type: 'input_text' as const, text: latestUserMessage.content },
+              { type: 'input_image' as const, image_url: imageUrl, detail: 'auto' as const },
+            ],
+          }]
+        } else {
+          input = latestUserMessage.content
+        }
+      } else {
+        // New conversation - send last 8 messages
+        input = buildInput(messages.slice(-8))
+      }
+    }
+
     const agentConfig = AGENT_CONFIGS[agent]
 
     // Session tracking
@@ -128,13 +231,6 @@ export async function POST(request: NextRequest) {
       sessionId,
       userId: adminUserId,
       metadata: { agent, model: MODEL },
-    })
-
-    await logAssistantEvent({
-      sessionId,
-      userId: adminUserId,
-      eventType: 'message.user',
-      payload: { content: latestUserMessage.content, hasImage },
     })
 
     // Build instructions
@@ -152,29 +248,6 @@ export async function POST(request: NextRequest) {
     }
 
     const instructions = instructionParts.filter(Boolean).join('\n\n')
-
-    // Build input for API
-    let input: string | OpenAI.Responses.EasyInputMessage[]
-    if (previousResponseId) {
-      // Continue conversation - only send latest message
-      if (hasImage && latestUserMessage.image) {
-        const imageUrl = latestUserMessage.image.startsWith('data:')
-          ? latestUserMessage.image
-          : `data:image/jpeg;base64,${latestUserMessage.image}`
-        input = [{
-          role: 'user' as const,
-          content: [
-            { type: 'input_text' as const, text: latestUserMessage.content },
-            { type: 'input_image' as const, image_url: imageUrl, detail: 'auto' as const },
-          ],
-        }]
-      } else {
-        input = latestUserMessage.content
-      }
-    } else {
-      // New conversation - send last 8 messages
-      input = buildInput(messages.slice(-8))
-    }
 
     // Get tools (web_search + function tools)
     const tools = getAssistantTools()

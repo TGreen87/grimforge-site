@@ -218,3 +218,103 @@ export async function executeFunction(
 
   return response.json()
 }
+
+// Continue conversation after function execution by submitting the function output
+// This sends the function_call + function_call_output back to get the model's response
+export async function submitFunctionOutput(
+  functionCall: { id: string; name: string; arguments: string },
+  output: string,
+  options: {
+    sessionId?: string
+    previousResponseId?: string
+  },
+  callbacks: StreamCallbacks
+): Promise<{ responseId?: string }> {
+  const response = await fetch('/api/admin/assistant/stream', {
+    method: 'POST',
+    credentials: 'include',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      // Send function call and output as input items
+      functionCallOutput: {
+        callId: functionCall.id,
+        name: functionCall.name,
+        arguments: functionCall.arguments,
+        output,
+      },
+      sessionId: options.sessionId,
+      previousResponseId: options.previousResponseId,
+    }),
+  })
+
+  if (!response.ok) {
+    const text = await response.text()
+    let error = 'Request failed'
+    try {
+      const json = JSON.parse(text)
+      error = json.error || error
+    } catch {}
+    callbacks.onError?.(error)
+    throw new Error(error)
+  }
+
+  const reader = response.body!.getReader()
+  const decoder = new TextDecoder()
+  let buffer = ''
+  let responseId: string | undefined
+
+  while (true) {
+    const { value, done } = await reader.read()
+    if (done) break
+
+    buffer += decoder.decode(value)
+    const lines = buffer.split('\n\n')
+    buffer = lines.pop() || ''
+
+    for (const line of lines) {
+      if (!line.startsWith('data: ')) continue
+      const dataStr = line.slice(6)
+      if (dataStr === '[DONE]') break
+
+      try {
+        const { event, data } = JSON.parse(dataStr)
+
+        switch (event) {
+          case 'session.info':
+            callbacks.onSessionInfo?.(data)
+            break
+
+          case 'response.output_text.delta': {
+            const { delta, item_id } = data
+            if (typeof delta === 'string') {
+              callbacks.onTextDelta?.(delta, item_id)
+            }
+            break
+          }
+
+          case 'response.output_text.done': {
+            const { text, item_id } = data
+            callbacks.onTextDone?.(text, item_id)
+            break
+          }
+
+          case 'response.completed': {
+            const { response: resp } = data
+            responseId = resp?.id
+            callbacks.onResponseDone?.(resp)
+            break
+          }
+
+          case 'error': {
+            callbacks.onError?.(data.error || 'Unknown streaming error')
+            break
+          }
+        }
+      } catch (parseError) {
+        console.error('Failed to parse SSE event:', parseError, dataStr)
+      }
+    }
+  }
+
+  return { responseId }
+}

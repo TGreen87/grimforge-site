@@ -21,7 +21,7 @@ import {
   PauseCircleOutlined,
 } from '@ant-design/icons'
 import { assistantActionMap } from '@/lib/assistant/actions'
-import { streamCopilotResponse, executeFunction } from '@/lib/assistant/streaming'
+import { streamCopilotResponse, executeFunction, submitFunctionOutput } from '@/lib/assistant/streaming'
 import type { AssistantActionType } from '@/lib/assistant/actions'
 import { buildActionPlan } from '@/lib/assistant/plans'
 import VoiceSettingsModal, { DEFAULT_VOICE_SETTINGS, type VoiceSettings } from './VoiceSettingsModal'
@@ -539,7 +539,8 @@ export default function AdminAssistantDrawer({ open, onClose }: AdminAssistantDr
     // Track streaming state
     let streamedText = ''
     let currentAgent: AgentType = 'general'
-    let pendingFunctionCalls: Map<string, { name: string; arguments: string }> = new Map()
+    let pendingFunctionCalls: Map<string, { id: string; name: string; arguments: string }> = new Map()
+    let currentResponseId: string | undefined
 
     try {
       const { responseId: newResponseId } = await streamCopilotResponse(
@@ -584,15 +585,19 @@ export default function AdminAssistantDrawer({ open, onClose }: AdminAssistantDr
           },
 
           onFunctionCall: (call) => {
-            pendingFunctionCalls.set(call.id, { name: call.name, arguments: call.arguments })
+            // Store the full call info including ID for later submission
+            pendingFunctionCalls.set(call.id, { id: call.id, name: call.name, arguments: call.arguments })
             // Show function call in progress
-            setMessages((current) => [
-              ...current,
-              {
+            setMessages((current) => {
+              const updated = [...current]
+              // Update the last message to show function call status
+              updated[updated.length - 1] = {
                 role: 'assistant',
                 content: `Calling: ${call.name}...`,
-              },
-            ])
+                agent: currentAgent,
+              }
+              return updated
+            })
           },
 
           onFunctionArgumentsDelta: (delta, itemId) => {
@@ -608,40 +613,108 @@ export default function AdminAssistantDrawer({ open, onClose }: AdminAssistantDr
 
             try {
               const parsedArgs = JSON.parse(args)
+              // Update the call with final arguments
+              call.arguments = args
+
               // Execute the function
               const result = await executeFunction(call.name, parsedArgs, sessionIdRef.current)
 
-              // Show result
+              // Show intermediate result
               setMessages((current) => {
                 const updated = [...current]
-                // Replace the "Calling..." message with the result
-                const lastIdx = updated.length - 1
-                if (updated[lastIdx]?.content?.startsWith('Calling:')) {
-                  updated[lastIdx] = {
-                    role: 'assistant',
-                    content: result.message || `${call.name} completed successfully.`,
-                    agent: currentAgent,
-                  }
-                } else {
-                  updated.push({
-                    role: 'assistant',
-                    content: result.message || `${call.name} completed successfully.`,
-                    agent: currentAgent,
-                  })
+                updated[updated.length - 1] = {
+                  role: 'assistant',
+                  content: `✓ ${call.name}: ${result.message || 'Completed'}`,
+                  agent: currentAgent,
                 }
                 return updated
               })
 
+              // Now submit the function output back to the model to get a final response
+              // This is the key step for multi-turn function calling!
+              if (currentResponseId) {
+                // Add a new message for the model's follow-up
+                setMessages((current) => [
+                  ...current,
+                  { role: 'assistant', content: '', agent: currentAgent },
+                ])
+
+                let followUpText = ''
+                const { responseId: followUpResponseId } = await submitFunctionOutput(
+                  { id: call.id, name: call.name, arguments: call.arguments },
+                  JSON.stringify(result),
+                  {
+                    sessionId: sessionIdRef.current,
+                    previousResponseId: currentResponseId,
+                  },
+                  {
+                    onTextDelta: (delta) => {
+                      followUpText += delta
+                      setMessages((current) => {
+                        const updated = [...current]
+                        updated[updated.length - 1] = {
+                          role: 'assistant',
+                          content: followUpText,
+                          agent: currentAgent,
+                        }
+                        return updated
+                      })
+                    },
+                    onTextDone: (text) => {
+                      followUpText = text
+                      setMessages((current) => {
+                        const updated = [...current]
+                        updated[updated.length - 1] = {
+                          role: 'assistant',
+                          content: text,
+                          agent: currentAgent,
+                        }
+                        return updated
+                      })
+                    },
+                    onResponseDone: (response) => {
+                      if (response?.id) {
+                        setPreviousResponseId(response.id)
+                        currentResponseId = response.id
+                      }
+                    },
+                    onError: (error) => {
+                      setMessages((current) => {
+                        const updated = [...current]
+                        updated[updated.length - 1] = {
+                          role: 'assistant',
+                          content: `Error getting follow-up response: ${error}`,
+                          agent: currentAgent,
+                        }
+                        return updated
+                      })
+                    },
+                  }
+                )
+
+                // Update for next iteration if there are more function calls
+                if (followUpResponseId) {
+                  currentResponseId = followUpResponseId
+                }
+
+                // Auto-play the follow-up response if enabled
+                if (voiceSettings.enabled && voiceSettings.auto_play && followUpText) {
+                  speakText(followUpText)
+                }
+              }
+
               message.success(result.message || 'Action completed')
             } catch (error) {
               const errorMsg = error instanceof Error ? error.message : 'Function failed'
-              setMessages((current) => [
-                ...current,
-                {
+              setMessages((current) => {
+                const updated = [...current]
+                updated[updated.length - 1] = {
                   role: 'assistant',
                   content: `Error: ${errorMsg}`,
-                },
-              ])
+                  agent: currentAgent,
+                }
+                return updated
+              })
               message.error(errorMsg)
             }
           },
@@ -657,6 +730,7 @@ export default function AdminAssistantDrawer({ open, onClose }: AdminAssistantDr
           onResponseDone: (response) => {
             if (response?.id) {
               setPreviousResponseId(response.id)
+              currentResponseId = response.id
             }
           },
 
@@ -673,8 +747,8 @@ export default function AdminAssistantDrawer({ open, onClose }: AdminAssistantDr
         }
       )
 
-      // Auto-play response if enabled
-      if (voiceSettings.enabled && voiceSettings.auto_play && streamedText) {
+      // Auto-play response if enabled (only if no function calls happened)
+      if (voiceSettings.enabled && voiceSettings.auto_play && streamedText && pendingFunctionCalls.size === 0) {
         speakText(streamedText)
       }
     } catch (error) {
