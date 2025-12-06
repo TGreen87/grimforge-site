@@ -168,23 +168,31 @@ console.log(response.output_text);
 ### Web Search Tool
 
 ```typescript
-// Enable web search
+// Enable web search (current API - Dec 2025)
+// Tool types: 'web_search' or 'web_search_2025_08_26'
+// Legacy: 'web_search_preview' or 'web_search_preview_2025_03_11'
 const response = await client.responses.create({
   model: 'gpt-5.1',
-  tools: [{ type: 'web_search_preview' }],
+  tools: [{ type: 'web_search' }],
   input: 'What was a positive news story from today?',
 });
 
-// With location customization
+// With location and context size customization
 const response = await client.responses.create({
   model: 'gpt-5.1',
   tools: [{
-    type: 'web_search_preview',
+    type: 'web_search',
+    search_context_size: 'medium',  // 'low' | 'medium' | 'high'
     user_location: {
       type: 'approximate',
       country: 'AU',
       city: 'Sydney',
-    }
+    },
+    // Optional filters (web_search only, not in preview)
+    filters: {
+      domains: ['discogs.com', 'metal-archives.com'],  // Include only
+      // blocked_domains: ['example.com'],  // Exclude
+    },
   }],
   input: 'Best record stores near me',
 });
@@ -380,7 +388,7 @@ The new unified API that should be used for all new development:
 
   // Tools (built-in)
   tools: [
-    { type: "web_search_preview" },   // Real-time web search
+    { type: "web_search" },           // Real-time web search (current)
     { type: "file_search" },          // Vector store RAG
     { type: "code_interpreter" },     // Python sandbox
     { type: "apply_patch" },          // Code editing
@@ -490,9 +498,11 @@ Context limits: 272K input + 128K output = 400K total context.
 
 #### Web Search
 ```typescript
-tools: [{ type: "web_search_preview" }]
+tools: [{ type: "web_search" }]  // or "web_search_2025_08_26"
+// Legacy: "web_search_preview" or "web_search_preview_2025_03_11"
 ```
 - Real-time web search with citations
+- Supports filters.domains / filters.blocked_domains
 - Available on GPT-4o, GPT-4.1, GPT-5, o-series
 
 #### Code Interpreter

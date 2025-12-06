@@ -146,10 +146,21 @@ function buildFunctionTools(): FunctionToolDefinition[] {
   })
 }
 
+// Web search tool configuration
+// Using web_search (current) - see https://github.com/openai/openai-node
+const webSearchTool = {
+  type: 'web_search' as const,
+  search_context_size: 'medium' as const,
+  user_location: {
+    type: 'approximate' as const,
+    country: 'AU',
+  },
+}
+
 // Get all tools for the assistant (web search + functions)
-export function getAssistantTools(): Array<{ type: 'web_search' } | FunctionToolDefinition> {
+export function getAssistantTools() {
   return [
-    { type: 'web_search' as const },
+    webSearchTool,
     ...buildFunctionTools(),
   ]
 }
