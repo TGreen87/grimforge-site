@@ -36,7 +36,9 @@ export interface StreamCallbacks {
   onSessionInfo?: (data: { sessionId: string; agent: string; model: string }) => void
   onTextDelta?: (delta: string, itemId: string) => void
   onTextDone?: (text: string, itemId: string) => void
-  onFunctionCall?: (call: { id: string; name: string; arguments: string }) => void
+  // call_id is the unique ID used to map function call output back to the call
+  // id is the item ID (different field!) - we need call_id for submitting outputs
+  onFunctionCall?: (call: { id: string; callId: string; name: string; arguments: string }) => void
   onFunctionArgumentsDelta?: (delta: string, itemId: string) => void
   onFunctionArgumentsDone?: (args: string, itemId: string) => void
   onWebSearchStart?: (id: string) => void
@@ -123,8 +125,11 @@ export async function streamCopilotResponse(
 
             switch (item.type) {
               case 'function_call':
+                // CRITICAL: Use call_id (not id) for mapping function output back to the call
+                // The call_id is required by the Responses API for function_call_output
                 callbacks.onFunctionCall?.({
-                  id: item.id,
+                  id: item.id,           // item ID (for tracking in UI)
+                  callId: item.call_id,  // call ID (REQUIRED for submitting output!)
                   name: item.name,
                   arguments: item.arguments || '',
                 })
@@ -220,13 +225,20 @@ export async function executeFunction(
 }
 
 // Continue conversation after function execution by submitting the function output
-// Per OpenAI Responses API (Dec 2025): only send call_id + output, context is in previous_response_id
+// Per OpenAI Responses API (Dec 2025):
+// - Must include BOTH function_call AND function_call_output in the input array
+// - The function_call must come BEFORE function_call_output
+// - Use call_id (not item id) to link them together
 export async function submitFunctionOutput(
   callId: string,
   output: string,
   options: {
     sessionId?: string
     previousResponseId: string  // Required for function output submission
+    functionCall?: {            // Function call details to include in input
+      name: string
+      arguments: string
+    }
   },
   callbacks: StreamCallbacks
 ): Promise<{ responseId?: string }> {
@@ -238,6 +250,9 @@ export async function submitFunctionOutput(
       functionCallOutput: {
         callId,
         output,
+        // Include original function call details so backend can build proper input
+        name: options.functionCall?.name,
+        arguments: options.functionCall?.arguments,
       },
       sessionId: options.sessionId,
       previousResponseId: options.previousResponseId,

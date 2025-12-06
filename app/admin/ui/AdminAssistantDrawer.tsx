@@ -539,7 +539,8 @@ export default function AdminAssistantDrawer({ open, onClose }: AdminAssistantDr
     // Track streaming state
     let streamedText = ''
     let currentAgent: AgentType = 'general'
-    let pendingFunctionCalls: Map<string, { id: string; name: string; arguments: string }> = new Map()
+    // Store function call info including BOTH id (item ID) and callId (for output submission)
+    let pendingFunctionCalls: Map<string, { id: string; callId: string; name: string; arguments: string }> = new Map()
     let currentResponseId: string | undefined
 
     try {
@@ -585,8 +586,15 @@ export default function AdminAssistantDrawer({ open, onClose }: AdminAssistantDr
           },
 
           onFunctionCall: (call) => {
-            // Store the full call info including ID for later submission
-            pendingFunctionCalls.set(call.id, { id: call.id, name: call.name, arguments: call.arguments })
+            // Store the full call info including BOTH IDs:
+            // - id: item ID for tracking in the pending map
+            // - callId: the call_id needed for submitting function_call_output
+            pendingFunctionCalls.set(call.id, {
+              id: call.id,
+              callId: call.callId,  // CRITICAL: This is what the API needs for output submission!
+              name: call.name,
+              arguments: call.arguments
+            })
             // Show function call in progress
             setMessages((current) => {
               const updated = [...current]
@@ -641,11 +649,16 @@ export default function AdminAssistantDrawer({ open, onClose }: AdminAssistantDr
 
                 let followUpText = ''
                 const { responseId: followUpResponseId } = await submitFunctionOutput(
-                  call.id,  // Just the call_id
+                  call.callId,  // CRITICAL: Use callId (call_id from API), NOT id (item ID)!
                   JSON.stringify(result),  // Output as string
                   {
                     sessionId: sessionIdRef.current,
                     previousResponseId: currentResponseId,  // Required - contains function call context
+                    // Pass function call details for the backend to include in input
+                    functionCall: {
+                      name: call.name,
+                      arguments: call.arguments,
+                    },
                   },
                   {
                     onTextDelta: (delta) => {

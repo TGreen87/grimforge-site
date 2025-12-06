@@ -33,10 +33,16 @@ const messageSchema = z.object({
 })
 
 // Schema for submitting function call outputs back to the model
-// Per OpenAI docs: only need call_id and output - context comes from previous_response_id
+// Per OpenAI Responses API (Dec 2025):
+// - Input must include BOTH function_call AND function_call_output items
+// - function_call must come BEFORE function_call_output
+// - Both must share the same call_id
 const functionCallOutputSchema = z.object({
   callId: z.string(),
   output: z.string(),
+  // Include function call details to properly reconstruct the input
+  name: z.string().optional(),
+  arguments: z.string().optional(),
 })
 
 const requestSchema = z.object({
@@ -135,13 +141,15 @@ export async function POST(request: NextRequest) {
       // =========================================================================
       // Function Call Output Submission Path
       // =========================================================================
-      // After executing a function, we send ONLY the function_call_output items.
-      // The previous_response_id maintains context of what was called.
+      // Per OpenAI Responses API (Dec 2025) and community workarounds:
+      // https://community.openai.com/t/issue-with-new-responses-api-400-no-tool-call-found-for-function-call-output-with-call-id/1142327
       //
-      // Per official OpenAI docs (Dec 2025):
-      // - Input: array of { type: "function_call_output", call_id, output }
-      // - previous_response_id: links to the response containing the function call
-      // - DO NOT include the function_call item - that's already in the context
+      // The input MUST include BOTH:
+      // 1. The original function_call item (with call_id, name, arguments)
+      // 2. The function_call_output item (with matching call_id and output)
+      //
+      // The function_call MUST come BEFORE the function_call_output in the array.
+      // This pairs the tool invocation with its result for the model.
       // =========================================================================
 
       if (!previousResponseId) {
@@ -151,9 +159,17 @@ export async function POST(request: NextRequest) {
         )
       }
 
-      // Build input with ONLY the function_call_output item
-      // The previous_response_id already contains the function_call context
+      // Build input with BOTH function_call AND function_call_output
+      // Order matters: function_call must come before function_call_output
       input = [
+        // First: the original function call (reconstructed from frontend data)
+        {
+          type: 'function_call' as const,
+          call_id: functionCallOutput.callId,
+          name: functionCallOutput.name || 'unknown',
+          arguments: functionCallOutput.arguments || '{}',
+        },
+        // Second: the function call output with the same call_id
         {
           type: 'function_call_output' as const,
           call_id: functionCallOutput.callId,
@@ -166,7 +182,7 @@ export async function POST(request: NextRequest) {
         sessionId,
         userId: adminUserId,
         eventType: 'function.output_submitted',
-        payload: { callId: functionCallOutput.callId },
+        payload: { callId: functionCallOutput.callId, name: functionCallOutput.name },
       })
 
     } else {
