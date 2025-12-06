@@ -33,10 +33,9 @@ const messageSchema = z.object({
 })
 
 // Schema for submitting function call outputs back to the model
+// Per OpenAI docs: only need call_id and output - context comes from previous_response_id
 const functionCallOutputSchema = z.object({
   callId: z.string(),
-  name: z.string(),
-  arguments: z.string(),
   output: z.string(),
 })
 
@@ -136,12 +135,13 @@ export async function POST(request: NextRequest) {
       // =========================================================================
       // Function Call Output Submission Path
       // =========================================================================
-      // After executing a function, we need to send the output back to the model
-      // so it can generate a final response to the user.
+      // After executing a function, we send ONLY the function_call_output items.
+      // The previous_response_id maintains context of what was called.
       //
-      // Per OpenAI Responses API docs, we send:
-      // 1. The function_call item (so the model knows what was called)
-      // 2. The function_call_output item (with the result)
+      // Per official OpenAI docs (Dec 2025):
+      // - Input: array of { type: "function_call_output", call_id, output }
+      // - previous_response_id: links to the response containing the function call
+      // - DO NOT include the function_call item - that's already in the context
       // =========================================================================
 
       if (!previousResponseId) {
@@ -151,14 +151,9 @@ export async function POST(request: NextRequest) {
         )
       }
 
-      // Build input with function call and output items
+      // Build input with ONLY the function_call_output item
+      // The previous_response_id already contains the function_call context
       input = [
-        {
-          type: 'function_call' as const,
-          call_id: functionCallOutput.callId,
-          name: functionCallOutput.name,
-          arguments: functionCallOutput.arguments,
-        },
         {
           type: 'function_call_output' as const,
           call_id: functionCallOutput.callId,
@@ -171,7 +166,7 @@ export async function POST(request: NextRequest) {
         sessionId,
         userId: adminUserId,
         eventType: 'function.output_submitted',
-        payload: { name: functionCallOutput.name, callId: functionCallOutput.callId },
+        payload: { callId: functionCallOutput.callId },
       })
 
     } else {

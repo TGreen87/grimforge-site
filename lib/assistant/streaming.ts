@@ -220,13 +220,13 @@ export async function executeFunction(
 }
 
 // Continue conversation after function execution by submitting the function output
-// This sends the function_call + function_call_output back to get the model's response
+// Per OpenAI Responses API (Dec 2025): only send call_id + output, context is in previous_response_id
 export async function submitFunctionOutput(
-  functionCall: { id: string; name: string; arguments: string },
+  callId: string,
   output: string,
   options: {
     sessionId?: string
-    previousResponseId?: string
+    previousResponseId: string  // Required for function output submission
   },
   callbacks: StreamCallbacks
 ): Promise<{ responseId?: string }> {
@@ -235,11 +235,8 @@ export async function submitFunctionOutput(
     credentials: 'include',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      // Send function call and output as input items
       functionCallOutput: {
-        callId: functionCall.id,
-        name: functionCall.name,
-        arguments: functionCall.arguments,
+        callId,
         output,
       },
       sessionId: options.sessionId,

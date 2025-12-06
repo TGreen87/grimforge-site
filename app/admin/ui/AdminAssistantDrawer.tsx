@@ -641,11 +641,11 @@ export default function AdminAssistantDrawer({ open, onClose }: AdminAssistantDr
 
                 let followUpText = ''
                 const { responseId: followUpResponseId } = await submitFunctionOutput(
-                  { id: call.id, name: call.name, arguments: call.arguments },
-                  JSON.stringify(result),
+                  call.id,  // Just the call_id
+                  JSON.stringify(result),  // Output as string
                   {
                     sessionId: sessionIdRef.current,
-                    previousResponseId: currentResponseId,
+                    previousResponseId: currentResponseId,  // Required - contains function call context
                   },
                   {
                     onTextDelta: (delta) => {
