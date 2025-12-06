@@ -126,7 +126,11 @@ async function executeCreateProductDraft(args: z.infer<typeof createProductDraft
   const stock = args.stock ?? 0
   const tags = args.tags?.split(',').map(t => t.trim()).filter(Boolean) ?? []
 
+  // Generate UUID for product ID (Supabase should do this but some configs don't)
+  const productId = crypto.randomUUID()
+
   const productInsert: TablesInsert<'products'> = {
+    id: productId,
     slug,
     title: args.title,
     artist: args.artist,
@@ -151,10 +155,12 @@ async function executeCreateProductDraft(args: z.infer<typeof createProductDraft
   if (productError) throw new Error(productError.message)
 
   const sku = `${slug.replace(/-/g, '').toUpperCase().slice(0, 10)}-STD`
+  const variantId = crypto.randomUUID()
 
   const { data: variant, error: variantError } = await supabase
     .from('variants')
     .insert({
+      id: variantId,
       product_id: product.id,
       name: 'Standard Edition',
       sku,
@@ -169,7 +175,9 @@ async function executeCreateProductDraft(args: z.infer<typeof createProductDraft
     throw new Error(variantError.message)
   }
 
+  const inventoryId = crypto.randomUUID()
   await supabase.from('inventory').insert({
+    id: inventoryId,
     variant_id: variant.id,
     on_hand: stock,
     allocated: 0,
