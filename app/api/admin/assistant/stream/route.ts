@@ -125,6 +125,13 @@ export async function POST(request: NextRequest) {
     let input: OpenAI.Responses.ResponseInputItem[] | string | OpenAI.Responses.EasyInputMessage[]
     let attachedImageUrl: string | undefined
 
+    // IMPORTANT: Ensure session exists BEFORE logging any events (FK constraint)
+    await ensureAssistantSession({
+      sessionId,
+      userId: adminUserId,
+      metadata: { agent, model: MODEL },
+    })
+
     if (isFunctionOutputSubmission) {
       // =========================================================================
       // Function Call Output Submission Path
@@ -225,13 +232,6 @@ export async function POST(request: NextRequest) {
     }
 
     const agentConfig = AGENT_CONFIGS[agent]
-
-    // Session tracking
-    await ensureAssistantSession({
-      sessionId,
-      userId: adminUserId,
-      metadata: { agent, model: MODEL },
-    })
 
     // Build instructions
     const instructionParts = [
