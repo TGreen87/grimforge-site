@@ -21,6 +21,7 @@ import {
   PauseCircleOutlined,
 } from '@ant-design/icons'
 import { assistantActionMap } from '@/lib/assistant/actions'
+import { streamCopilotResponse, executeFunction } from '@/lib/assistant/streaming'
 import type { AssistantActionType } from '@/lib/assistant/actions'
 import { buildActionPlan } from '@/lib/assistant/plans'
 import VoiceSettingsModal, { DEFAULT_VOICE_SETTINGS, type VoiceSettings } from './VoiceSettingsModal'
@@ -524,84 +525,152 @@ export default function AdminAssistantDrawer({ open, onClose }: AdminAssistantDr
     setMessages((current) => [
       ...current,
       userMessage,
-      { role: 'assistant', content: 'Let me check…' },
+      { role: 'assistant', content: '' }, // Empty for streaming
     ])
     setLoading(true)
     form.resetFields()
-    const imageToSend = pendingImage
-    setPendingImage(null) // Clear pending image
+    setPendingImage(null)
+
+    // Track streaming state
+    let streamedText = ''
+    let currentAgent: AgentType = 'general'
+    let pendingFunctionCalls: Map<string, { name: string; arguments: string }> = new Map()
 
     try {
-      const response = await fetch('/api/admin/assistant', {
-        method: 'POST',
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          messages: [...messages, userMessage].map(({ role, content, image }) => ({ role, content, image })),
+      const { responseId: newResponseId } = await streamCopilotResponse(
+        [...messages, userMessage].map(({ role, content, image }) => ({ role, content, image })),
+        {
           sessionId: sessionIdRef.current,
-          // Pass OpenAI Responses API conversation state for server-side history
           previousResponseId: previousResponseId || undefined,
           forceAgent,
-        }),
-      })
+        },
+        {
+          onSessionInfo: (info) => {
+            sessionIdRef.current = info.sessionId
+            setCurrentAgent(info.agent as AgentType)
+            setCurrentModel(info.model)
+            currentAgent = info.agent as AgentType
+          },
 
-      const raw = await response.text()
-      let parsed: any = null
-      if (raw) {
-        try {
-          parsed = JSON.parse(raw)
-        } catch (error) {
-          console.error('Failed to parse assistant response', error)
+          onTextDelta: (delta) => {
+            streamedText += delta
+            setMessages((current) => {
+              const updated = [...current]
+              updated[updated.length - 1] = {
+                role: 'assistant',
+                content: streamedText,
+                agent: currentAgent,
+              }
+              return updated
+            })
+          },
+
+          onTextDone: (text) => {
+            streamedText = text
+            setMessages((current) => {
+              const updated = [...current]
+              updated[updated.length - 1] = {
+                role: 'assistant',
+                content: text,
+                agent: currentAgent,
+              }
+              return updated
+            })
+          },
+
+          onFunctionCall: (call) => {
+            pendingFunctionCalls.set(call.id, { name: call.name, arguments: call.arguments })
+            // Show function call in progress
+            setMessages((current) => [
+              ...current,
+              {
+                role: 'assistant',
+                content: `Calling: ${call.name}...`,
+              },
+            ])
+          },
+
+          onFunctionArgumentsDelta: (delta, itemId) => {
+            const existing = pendingFunctionCalls.get(itemId)
+            if (existing) {
+              existing.arguments += delta
+            }
+          },
+
+          onFunctionArgumentsDone: async (args, itemId) => {
+            const call = pendingFunctionCalls.get(itemId)
+            if (!call) return
+
+            try {
+              const parsedArgs = JSON.parse(args)
+              // Execute the function
+              const result = await executeFunction(call.name, parsedArgs, sessionIdRef.current)
+
+              // Show result
+              setMessages((current) => {
+                const updated = [...current]
+                // Replace the "Calling..." message with the result
+                const lastIdx = updated.length - 1
+                if (updated[lastIdx]?.content?.startsWith('Calling:')) {
+                  updated[lastIdx] = {
+                    role: 'assistant',
+                    content: result.message || `${call.name} completed successfully.`,
+                    agent: currentAgent,
+                  }
+                } else {
+                  updated.push({
+                    role: 'assistant',
+                    content: result.message || `${call.name} completed successfully.`,
+                    agent: currentAgent,
+                  })
+                }
+                return updated
+              })
+
+              message.success(result.message || 'Action completed')
+            } catch (error) {
+              const errorMsg = error instanceof Error ? error.message : 'Function failed'
+              setMessages((current) => [
+                ...current,
+                {
+                  role: 'assistant',
+                  content: `Error: ${errorMsg}`,
+                },
+              ])
+              message.error(errorMsg)
+            }
+          },
+
+          onWebSearchStart: () => {
+            // Optionally show search indicator
+          },
+
+          onWebSearchDone: () => {
+            // Search complete
+          },
+
+          onResponseDone: (response) => {
+            if (response?.id) {
+              setPreviousResponseId(response.id)
+            }
+          },
+
+          onError: (error) => {
+            setMessages((current) => {
+              const updated = [...current]
+              updated[updated.length - 1] = {
+                role: 'assistant',
+                content: `Error: ${error}`,
+              }
+              return updated
+            })
+          },
         }
-      }
-
-      if (!response.ok) {
-        const errorMessage = parsed?.error || `Request failed with ${response.status}`
-        if (parsed?.sessionId) {
-          sessionIdRef.current = parsed.sessionId
-        }
-        throw new Error(errorMessage)
-      }
-
-      const data = parsed as {
-        message: string
-        sources?: AssistantSource[]
-        actions?: AssistantAction[]
-        sessionId?: string
-        responseId?: string // OpenAI Responses API conversation state
-        agent?: AgentType
-        model?: string
-        modelDisplayName?: string
-        usage?: { inputTokens: number; outputTokens: number; cachedTokens?: number }
-      }
-      if (data.sessionId) {
-        sessionIdRef.current = data.sessionId
-      }
-      // Store OpenAI Responses API conversation ID for next request
-      if (data.responseId) {
-        setPreviousResponseId(data.responseId)
-      }
-      // Update current agent/model state
-      if (data.agent) setCurrentAgent(data.agent)
-      if (data.model) setCurrentModel(data.modelDisplayName || data.model)
-
-      setMessages((current) => {
-        const updated = [...current]
-        updated[updated.length - 1] = {
-          role: 'assistant',
-          content: data.message,
-          sources: data.sources,
-          actions: data.actions,
-          agent: data.agent,
-          model: data.model,
-          modelDisplayName: data.modelDisplayName,
-        }
-        return updated
-      })
+      )
 
       // Auto-play response if enabled
-      if (voiceSettings.enabled && voiceSettings.auto_play && data.message) {
-        speakText(data.message)
+      if (voiceSettings.enabled && voiceSettings.auto_play && streamedText) {
+        speakText(streamedText)
       }
     } catch (error) {
       setMessages((current) => {
