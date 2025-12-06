@@ -134,7 +134,11 @@ export async function createProductFullPipeline(options: {
   const imageUrl = attachments.find((file) => file.type?.startsWith('image/'))?.url ?? attachments[0]?.url ?? null
   const publish = Boolean(input.publish)
 
+  // Generate UUID explicitly (Supabase tables may not have default UUID generation)
+  const productId = crypto.randomUUID()
+
   const productInsert: TablesInsert<'products'> = {
+    id: productId,
     slug,
     title,
     artist,
@@ -164,7 +168,11 @@ export async function createProductFullPipeline(options: {
   const skuSuffix = (enrichment?.skuSuffix ?? 'STD').replace(/[^A-Z0-9]/g, '').slice(0, 6) || 'STD'
   const sku = `${skuBase}-${skuSuffix}`
 
+  // Generate UUID for variant
+  const variantId = crypto.randomUUID()
+
   const variantInsert: TablesInsert<'variants'> = {
+    id: variantId,
     product_id: product.id,
     name: enrichment?.variantName ?? 'Standard Edition',
     sku,
@@ -183,9 +191,13 @@ export async function createProductFullPipeline(options: {
     throw new Error(`Failed to create variant: ${variantError.message}`)
   }
 
+  // Generate UUID for inventory
+  const inventoryId = crypto.randomUUID()
+
   const { error: inventoryError } = await supabase
     .from('inventory')
     .insert({
+      id: inventoryId,
       variant_id: variant.id,
       on_hand: input.stock ?? 0,
       allocated: 0,
@@ -325,7 +337,11 @@ async function upsertCampaign(options: {
     ? options.layout!.toLowerCase()
     : 'classic'
 
+  // Generate UUID for campaign (used on insert, ignored on update due to onConflict)
+  const campaignId = crypto.randomUUID()
+
   const campaignInsert: TablesInsert<'campaigns'> = {
+    id: campaignId,
     slug: options.slug,
     title: options.title,
     subtitle: options.subtitle ?? null,

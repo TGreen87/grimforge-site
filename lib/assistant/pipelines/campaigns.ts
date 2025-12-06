@@ -66,7 +66,11 @@ export async function updateCampaignPipeline(options: {
     throw new Error(`Failed to load existing campaign: ${previousError.message}`)
   }
 
+  // Generate UUID for campaign (used on insert, ignored on update due to onConflict)
+  const campaignId = crypto.randomUUID()
+
   const campaign: TablesInsert<'campaigns'> = {
+    id: campaignId,
     slug: options.input.slug,
     title: options.input.title,
     subtitle: options.input.subtitle ?? null,

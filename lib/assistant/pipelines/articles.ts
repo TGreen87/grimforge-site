@@ -100,7 +100,11 @@ export async function draftArticlePipeline(options: {
   const coverImage = attachments.find((file) => file.type?.startsWith('image/'))?.url ?? attachments[0]?.url ?? null
   const published = Boolean(input.publish)
 
+  // Generate UUID for article
+  const articleId = crypto.randomUUID()
+
   const articleInsert: TablesInsert<'articles'> = {
+    id: articleId,
     slug,
     title,
     excerpt: article.excerpt,
