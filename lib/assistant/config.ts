@@ -85,7 +85,14 @@ You are helping run Obsidian Rite Records, an Australian underground metal label
 // - type: "function"
 // - strict: true (guarantees schema compliance)
 // - additionalProperties: false on parameters
+// - ALL properties must be in 'required' array (use nullable type for optional)
 // =============================================================================
+
+interface PropertyDef {
+  type: string | string[]  // Can be ["string", "null"] for nullable
+  description: string
+  enum?: string[]
+}
 
 interface FunctionToolDefinition {
   type: 'function'
@@ -93,11 +100,7 @@ interface FunctionToolDefinition {
   description: string
   parameters: {
     type: 'object'
-    properties: Record<string, {
-      type: string
-      description: string
-      enum?: string[]
-    }>
+    properties: Record<string, PropertyDef>
     required: string[]
     additionalProperties: false
   }
@@ -105,19 +108,27 @@ interface FunctionToolDefinition {
 }
 
 // Convert assistant actions to OpenAI function tool format
+// IMPORTANT: OpenAI strict mode requires ALL properties in 'required' array
+// Optional parameters use nullable types: ["string", "null"]
 function buildFunctionTools(): FunctionToolDefinition[] {
   return assistantActions.map(action => {
-    const properties: Record<string, { type: string; description: string; enum?: string[] }> = {}
+    const properties: Record<string, PropertyDef> = {}
     const required: string[] = []
 
     for (const param of action.parameters) {
+      // Map our types to JSON schema types
+      const baseType = param.type === 'number' ? 'number' :
+                       param.type === 'boolean' ? 'boolean' : 'string'
+
+      // For optional params, use nullable type array ["type", "null"]
+      // For required params, use just the type
       properties[param.name] = {
-        type: param.type,
-        description: param.description,
+        type: param.required ? baseType : [baseType, 'null'],
+        description: param.description + (param.required ? '' : ' (optional)'),
       }
-      if (param.required) {
-        required.push(param.name)
-      }
+
+      // ALL properties must be in required array for strict mode
+      required.push(param.name)
     }
 
     return {
