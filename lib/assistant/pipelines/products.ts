@@ -329,16 +329,17 @@ async function ensureUniqueProductSlug(supabase: ReturnType<typeof createService
   let candidate = baseSlug
   let attempt = 1
   while (attempt <= 5) {
-    const { data, error } = await supabase
+    // Use count instead of maybeSingle to avoid PostgREST row-count edge cases
+    const { count, error } = await supabase
       .from('products')
-      .select('id')
+      .select('id', { count: 'exact', head: true })
       .eq('slug', candidate)
-      .maybeSingle()
 
     if (error) {
       throw new Error(`Failed to verify product slug uniqueness: ${error.message}`)
     }
-    if (!data) {
+    // If no products exist with this slug, it's available
+    if (count === 0) {
       return candidate
     }
     attempt += 1
