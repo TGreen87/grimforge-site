@@ -77,6 +77,7 @@ const createProductFullSchema = z.object({
   heroBadge: nullStr,
   heroHighlights: nullStr,
   tags: nullStr,
+  imageUrl: nullStr,
 })
 
 const draftArticleSchema = z.object({
@@ -340,9 +341,19 @@ async function executeLookupOrder(args: z.infer<typeof lookupOrderSchema>, userI
 }
 
 async function executeCreateProductFull(args: z.infer<typeof createProductFullSchema>, userId: string | null) {
+  // Build attachments from imageUrl if provided
+  const attachments: { name: string; url: string; type?: string }[] = []
+  if (args.imageUrl) {
+    attachments.push({
+      name: 'product-image',
+      url: args.imageUrl,
+      type: 'image/jpeg', // Assume JPEG for now
+    })
+  }
+
   const result = await createProductFullPipeline({
     input: args,
-    attachments: [],
+    attachments,
     userId,
   })
 

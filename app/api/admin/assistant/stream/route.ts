@@ -28,7 +28,8 @@ type AgentType = 'product' | 'operations' | 'marketing' | 'general'
 const messageSchema = z.object({
   role: z.enum(['user', 'assistant']),
   content: z.string(),
-  image: z.string().optional(),
+  image: z.string().optional(), // Base64 for model vision
+  imageUrl: z.string().optional(), // Public URL for product creation
 })
 
 const requestSchema = z.object({
@@ -115,6 +116,9 @@ export async function POST(request: NextRequest) {
     sessionId = parsed.data.sessionId ?? randomUUID()
     const hasImage = messages.some(m => m.image)
 
+    // Get the public imageUrl if provided (for product creation)
+    const attachedImageUrl = latestUserMessage.imageUrl
+
     // Determine agent type
     const agent: AgentType = forceAgent || classifyIntent(latestUserMessage.content)
     const agentConfig = AGENT_CONFIGS[agent]
@@ -134,10 +138,20 @@ export async function POST(request: NextRequest) {
     })
 
     // Build instructions
-    const instructions = [
+    const instructionParts = [
       COPILOT_SYSTEM_PROMPT,
       agentConfig.systemPromptAddition,
-    ].filter(Boolean).join('\n\n')
+    ]
+
+    // If an image was uploaded, tell the model about the public URL
+    if (attachedImageUrl) {
+      instructionParts.push(
+        `ATTACHED IMAGE: The user has attached an image that has been uploaded to: ${attachedImageUrl}\n` +
+        `When calling create_product_full or similar functions, use this URL for the imageUrl parameter.`
+      )
+    }
+
+    const instructions = instructionParts.filter(Boolean).join('\n\n')
 
     // Build input for API
     let input: string | OpenAI.Responses.EasyInputMessage[]

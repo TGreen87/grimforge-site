@@ -75,6 +75,7 @@ interface AssistantMessage {
   sources?: AssistantSource[]
   actions?: AssistantAction[]
   image?: string // Base64 image for user messages
+  imageUrl?: string // Public URL for product creation
   agent?: AgentType // Which agent responded
   model?: string // Model used
   modelDisplayName?: string // Human-readable model name
@@ -515,11 +516,15 @@ export default function AdminAssistantDrawer({ open, onClose }: AdminAssistantDr
     const question = buildStructuredContext(questionInput || '')
     if (!question?.trim() && !pendingImage) return
 
+    // Get the public URL from uploaded images (for product creation)
+    const uploadedImageUrl = uploads.find((u) => u.type.startsWith('image/'))?.url
+
     // Include image in user message if present
     const userMessage: AssistantMessage = {
       role: 'user',
       content: question.trim() || (pendingImage ? 'What is this?' : ''),
       image: pendingImage || undefined,
+      imageUrl: uploadedImageUrl, // Public URL for function calls
     }
 
     setMessages((current) => [
@@ -538,7 +543,7 @@ export default function AdminAssistantDrawer({ open, onClose }: AdminAssistantDr
 
     try {
       const { responseId: newResponseId } = await streamCopilotResponse(
-        [...messages, userMessage].map(({ role, content, image }) => ({ role, content, image })),
+        [...messages, userMessage].map(({ role, content, image, imageUrl }) => ({ role, content, image, imageUrl })),
         {
           sessionId: sessionIdRef.current,
           previousResponseId: previousResponseId || undefined,

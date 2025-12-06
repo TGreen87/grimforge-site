@@ -8,7 +8,8 @@
 export interface StreamMessage {
   role: 'user' | 'assistant'
   content: string
-  image?: string
+  image?: string // Base64 for model vision
+  imageUrl?: string // Public URL for product creation
 }
 
 export interface ToolCallItem {
@@ -58,7 +59,7 @@ export async function streamCopilotResponse(
     credentials: 'include',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      messages: messages.map(({ role, content, image }) => ({ role, content, image })),
+      messages: messages.map(({ role, content, image, imageUrl }) => ({ role, content, image, imageUrl })),
       sessionId: options.sessionId,
       previousResponseId: options.previousResponseId,
       forceAgent: options.forceAgent,

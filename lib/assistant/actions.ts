@@ -89,6 +89,7 @@ export const assistantActions: AssistantActionDefinition[] = [
       { name: 'heroBadge', label: 'Hero Badge', description: 'Optional badge text for the hero.', required: false, type: 'string' },
       { name: 'heroHighlights', label: 'Hero Highlights', description: 'Comma-separated hero highlight bullets.', required: false, type: 'string' },
       { name: 'tags', label: 'Tags', description: 'Comma-separated product tags.', required: false, type: 'string' },
+      { name: 'imageUrl', label: 'Image URL', description: 'URL of the product image (from attachments or external source).', required: false, type: 'string' },
     ],
   },
   {
